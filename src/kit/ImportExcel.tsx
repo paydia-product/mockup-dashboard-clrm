@@ -3,12 +3,12 @@ import * as XLSX from 'xlsx'
 import { Download, Upload } from 'lucide-react'
 import { Modal } from '../ui'
 import { downloadXlsx } from './exportXlsx'
-import { fieldsFor, numericOpts, validateRecord } from './FormModal'
+import { fieldsFor, isReq, numericOpts, validateRecord } from './FormModal'
 import type { BaseRec, Ctx, Field, ModuleApi, PageConfig } from './types'
 
 type R = Record<string, any> // eslint-disable-line @typescript-eslint/no-explicit-any
 const SKIP = ['file', 'list', 'checklist']
-const optsOf = (f: Field<any>, c: Ctx) => (f.type === 'yesno' ? ['Ya', 'Tidak'] : typeof f.options === 'function' ? f.options(c) : f.options ?? []) // eslint-disable-line @typescript-eslint/no-explicit-any
+const optsOf = (f: Field<any>, c: Ctx) => { const o = f.importOptions ?? f.options; return f.type === 'yesno' ? ['Ya', 'Tidak'] : typeof o === 'function' ? o(c) : o ?? [] } // eslint-disable-line @typescript-eslint/no-explicit-any
 export const importFields = <T extends BaseRec>(cfg: PageConfig<T>) => fieldsFor(cfg, 'add').filter((f) => !f.noImport && !SKIP.includes(f.type))
 
 export function toDate(raw: unknown): string {
@@ -17,6 +17,8 @@ export function toDate(raw: unknown): string {
   const m = s.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})/)
   return m ? `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` : s.slice(0, 10)
 }
+// Tanggal kalender nyata: bulan 1-12, hari 1..jumlah hari bulan itu (tahun kabisat dihitung)
+const realDate = (d: string) => { const [y, mo, dd] = d.split('-').map(Number); return mo >= 1 && mo <= 12 && dd >= 1 && dd <= new Date(y, mo, 0).getDate() }
 // Teks angka ketat: "Rp 1.000.000", "1,000,000", "12,5" diterima; teks lain jadi NaN (bukan 0). Sel angka Excel dipakai apa adanya.
 function toNum(raw: unknown, s: string, percent: boolean): number {
   if (typeof raw === 'number') return raw
@@ -33,8 +35,8 @@ function conv(f: Field<any>, raw: unknown, c: Ctx): { v: unknown; err?: string }
   const s = raw instanceof Date ? '1' : String(raw ?? '').trim()
   if (!s) return { v: f.type === 'multiselect' ? [] : '' }
   if (['number', 'money', 'percent'].includes(f.type)) { const n = raw instanceof Date ? NaN : toNum(raw, s, f.type === 'percent'); return isNaN(n) ? { v: '', err: `${f.label}: bukan angka` } : { v: n } }
-  if (f.type === 'date') { const d = toDate(raw); return /^\d{4}-\d{2}-\d{2}$/.test(d) ? { v: d } : { v: '', err: `${f.label}: format tanggal harus YYYY-MM-DD` } }
-  if (f.type === 'datetime') { const d = raw instanceof Date ? new Date(raw.getTime() + 43200000).toISOString().slice(0, 10) + 'T00:00' : s.replace(' ', 'T').slice(0, 16); return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(d) ? { v: d } : { v: '', err: `${f.label}: format harus YYYY-MM-DD HH:mm` } }
+  if (f.type === 'date') { const d = toDate(raw); if (/^\d{4}-\d{2}-\d{2}$/.test(d) && !realDate(d)) return { v: '', err: `${f.label}: format tanggal tidak valid` }; return /^\d{4}-\d{2}-\d{2}$/.test(d) ? { v: d } : { v: '', err: `${f.label}: format tanggal harus YYYY-MM-DD` } }
+  if (f.type === 'datetime') { const d = raw instanceof Date ? new Date(raw.getTime() + 43200000).toISOString().slice(0, 10) + 'T00:00' : s.replace(' ', 'T').slice(0, 16); if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(d) && !realDate(d.slice(0, 10))) return { v: '', err: `${f.label}: format tanggal tidak valid` }; return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(d) ? { v: d } : { v: '', err: `${f.label}: format harus YYYY-MM-DD HH:mm` } }
   if (f.type === 'select' || f.type === 'yesno') { const o = optsOf(f, c).find((x) => x.toLowerCase() === s.toLowerCase()); return o ? { v: numericOpts(optsOf(f, c)) ? Number(o) : o } : { v: '', err: `${f.label}: "${s}" tidak ada dalam pilihan` } }
   if (f.type === 'multiselect') {
     const parts = s.split(/[;,]/).map((x) => x.trim()).filter(Boolean), o = optsOf(f, c)
@@ -59,8 +61,14 @@ export default function ImportExcel<T extends BaseRec>({ cfg, c, api, onDone, on
       setParsed(rows.map((raw) => {
         const rec: R = { ...cfg.blank() }
         const errs: string[] = []
-        cols.forEach((f) => { if (raw[f.label] !== undefined && String(raw[f.label]).trim() !== '') { const x = conv(f, raw[f.label], c); rec[f.key] = x.v; if (x.err) errs.push(x.err) } })
-        if (!errs.length) errs.push(...Object.values(validateRecord(cfg, rec, 'add', c, true)))
+        cols.forEach((f) => {
+          if (raw[f.label] !== undefined && String(raw[f.label]).trim() !== '') { const x = conv(f, raw[f.label], c); rec[f.key] = x.v; if (x.err) errs.push(x.err) }
+          // kolom yang dilonggarkan khusus import dan dikosongkan di file: jangan terisi default blank() (mis. Status 'Aktif')
+          else if (typeof f.required === 'function' && isReq(f, rec, c, 'add') && !isReq(f, rec, c, 'import')) rec[f.key] = f.type === 'multiselect' ? [] : ''
+        })
+        // kolom yang gagal konversi tidak divalidasi ulang (hindari pesan ganda); sisanya tetap dicek agar semua kesalahan baris tampil
+        const convBad = cols.filter((f) => errs.some((m) => m.startsWith(`${f.label}:`))).map((f) => f.key)
+        errs.push(...Object.values(validateRecord(cfg, rec, 'add', c, true, convBad, true)))
         return { raw, rec, errs }
       }))
     } catch { setMsg('File tidak bisa dibaca. Pakai file .xlsx dari template.'); setParsed(null) }

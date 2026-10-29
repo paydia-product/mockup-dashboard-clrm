@@ -11,9 +11,27 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
-    v: '2.1.0',
+    v: '2.2.0',
     date: '2026-10-29',
     deployed: true,
+    title: 'Perbaikan hasil QA penuh di prod',
+    prompt: 'Solve conflict kemudian QA penuh seluruhnya',
+    tokens: 950000,
+    changes: [
+      'Regulatory Change: PIC hanya bisa mengubah item tindak lanjut miliknya',
+      'Tracker: Kembalikan wajib alasan, simulasi 3 email per jenis alert, Export tercatat di Log',
+      'Import Excel menolak tanggal yang tidak ada dan menampilkan semua error per baris',
+      'Tanggal Masuk di Layanan Hukum dan Kajian wajib alasan saat diubah',
+      'Kalender BAP menampilkan 30 hari ke depan',
+      'Form Edit menampilkan status otomatis saat ini',
+      'Aksi baris mengikuti permission Ubah; import Kajian dan SOP sesuai alert dari import',
+      'Jumlah visual Reporting, Regulatory Change, Kajian sesuai CR',
+    ],
+  },
+  {
+    v: '2.1.0',
+    date: '2026-10-29',
+    deployed: false,
     title: 'Konflik tracker diselesaikan',
     prompt: 'Solve conflict kemudian QA penuh seluruhnya',
     tokens: 150000,

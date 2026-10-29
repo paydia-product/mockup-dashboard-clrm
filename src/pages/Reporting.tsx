@@ -1,6 +1,6 @@
 import { addDays, diffDays, fmtDate, fmtTime } from '../lib'
 import PageShell from '../kit/PageShell'
-import { BarCard, CalendarCard, LineCard, MiniTable, StatCards } from '../kit/charts'
+import { BarCard, CalendarCard, LineCard, MiniTable } from '../kit/charts'
 import { monthKey } from '../kit/dates'
 import { StatusPill, statusTone } from '../kit/fmt'
 import type { AlertDef, BaseRec, Column, Ctx, Field, FilterDef, PageConfig } from '../kit/types'
@@ -196,15 +196,8 @@ const cfg: PageConfig<Laporan> = {
     const months = Array.from({ length: 12 }, (_, i) => { const d = new Date(c.today + 'T00:00:00'); d.setDate(1); d.setMonth(d.getMonth() - (11 - i)); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}` })
     const tren = months.map((m) => ({ name: m, Terlambat: rows.filter((r) => wasLate(r) && monthKey(r.batas) === m).length }))
     const soon = rows.filter((r) => !SENT(r) && r.status !== 'Terlambat' && r.batas && dOf(r.batas) >= c.today && dOf(r.batas) <= addDays(c.today, 7)).sort((a, b) => a.batas.localeCompare(b.batas))
-    const late = rows.filter((r) => r.status === 'Terlambat').length
     return (
       <div className="space-y-3">
-        <StatCards items={[
-          { label: 'Total laporan', value: rows.length, tone: 'blue' },
-          { label: 'Jatuh tempo 7 hari', value: soon.length, tone: soon.length ? 'yellow' : 'gray' },
-          { label: 'Terlambat', value: late, tone: late ? 'red' : 'gray', onClick: () => drill({ status: 'Terlambat' }) },
-          { label: 'Tepat waktu (%)', value: `${pct(rows)}%`, tone: 'green' },
-        ]} />
         <CalendarCard title="Kalender pelaporan (batas waktu)" views={['hari', 'minggu', 'bulan']} onEvent={open}
           events={rows.map((r) => ({ date: dOf(r.batas), label: r.nama, tone: statusTone(r.status), id: r.id }))} />
         <div className="grid gap-3 lg:grid-cols-2">

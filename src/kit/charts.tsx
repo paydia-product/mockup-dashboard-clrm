@@ -127,7 +127,8 @@ export function MiniTable<T>({ title, cols, rows, onRow, empty = 'Tidak ada data
 
 // Kalender: tampilan hari/minggu/bulan, titik berwarna per event
 type View = 'hari' | 'minggu' | 'bulan'
-export function CalendarCard({ title, events, views = ['bulan'], onEvent, className }: { title: string; events: { date: string; label: string; tone: Tone; id?: string }[]; views?: View[]; onEvent?: (id: string) => void; className?: string }) {
+// rangeDays: tampilan rentang tetap mulai hari ini (tanpa paging), mis. 30 hari ke depan
+export function CalendarCard({ title, events, views = ['bulan'], onEvent, className, rangeDays }: { title: string; events: { date: string; label: string; tone: Tone; id?: string }[]; views?: View[]; onEvent?: (id: string) => void; className?: string; rangeDays?: number }) {
   const [view, setView] = useState<View>(views[0])
   const [anchor, setAnchor] = useState(todayStr)
   const dayOf = (s: string) => new Date(s + 'T00:00:00').getDay()
@@ -136,30 +137,32 @@ export function CalendarCard({ title, events, views = ['bulan'], onEvent, classN
     if (view === 'bulan') d.setMonth(d.getMonth() + n); else d.setDate(d.getDate() + n * (view === 'minggu' ? 7 : 1))
     setAnchor(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`)
   }
-  const first = view === 'bulan' ? addDays(anchor.slice(0, 8) + '01', -dayOf(anchor.slice(0, 8) + '01')) : view === 'minggu' ? addDays(anchor, -dayOf(anchor)) : anchor
-  const n = view === 'bulan' ? 42 : view === 'minggu' ? 7 : 1
+  const first = rangeDays ? anchor : view === 'bulan' ? addDays(anchor.slice(0, 8) + '01', -dayOf(anchor.slice(0, 8) + '01')) : view === 'minggu' ? addDays(anchor, -dayOf(anchor)) : anchor
+  const n = rangeDays ?? (view === 'bulan' ? 42 : view === 'minggu' ? 7 : 1)
   const days = Array.from({ length: n }, (_, i) => addDays(first, i))
+  const pad = rangeDays ? dayOf(first) : 0
   const ev = (d: string) => events.filter((e) => e.date.slice(0, 10) === d)
-  const head = view === 'bulan' ? new Date(anchor + 'T00:00:00').toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }) : view === 'minggu' ? `${fmtDate(days[0])} - ${fmtDate(days[6])}` : fmtDate(anchor)
+  const head = rangeDays ? `${fmtDate(days[0])} - ${fmtDate(days[n - 1])}` : view === 'bulan' ? new Date(anchor + 'T00:00:00').toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }) : view === 'minggu' ? `${fmtDate(days[0])} - ${fmtDate(days[6])}` : fmtDate(anchor)
   return (
     <Card title={title} className={className}>
       <div className="mb-2 flex items-center gap-2 text-xs">
-        <button className="btn !px-1.5 !py-1" onClick={() => move(-1)} aria-label="Sebelumnya"><ChevronLeft size={14} /></button>
+        {!rangeDays && <button className="btn !px-1.5 !py-1" onClick={() => move(-1)} aria-label="Sebelumnya"><ChevronLeft size={14} /></button>}
         <span className="min-w-[130px] text-center font-medium capitalize">{head}</span>
-        <button className="btn !px-1.5 !py-1" onClick={() => move(1)} aria-label="Berikutnya"><ChevronRight size={14} /></button>
-        {views.length > 1 && <div className="ml-auto flex gap-1">{views.map((v) => <button key={v} className={`btn !px-2 !py-1 capitalize ${v === view ? '!border-brand !bg-brand !text-white' : ''}`} onClick={() => setView(v)}>{v}</button>)}</div>}
+        {!rangeDays && <button className="btn !px-1.5 !py-1" onClick={() => move(1)} aria-label="Berikutnya"><ChevronRight size={14} /></button>}
+        {!rangeDays && views.length > 1 && <div className="ml-auto flex gap-1">{views.map((v) => <button key={v} className={`btn !px-2 !py-1 capitalize ${v === view ? '!border-brand !bg-brand !text-white' : ''}`} onClick={() => setView(v)}>{v}</button>)}</div>}
       </div>
-      <div className={view === 'hari' ? '' : 'grid grid-cols-7 gap-px rounded border bg-slate-200 text-[11px]'}>
-        {view === 'bulan' && ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'].map((d) => <div key={d} className="bg-slate-100 p-1 text-center font-semibold text-slate-500">{d}</div>)}
+      <div className={view === 'hari' && !rangeDays ? '' : 'grid grid-cols-7 gap-px rounded border bg-slate-200 text-[11px]'}>
+        {(view === 'bulan' || !!rangeDays) && ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'].map((d) => <div key={d} className="bg-slate-100 p-1 text-center font-semibold text-slate-500">{d}</div>)}
+        {Array.from({ length: pad }, (_, i) => <div key={`p${i}`} className="bg-slate-50" />)}
         {days.map((d) => (
-          <div key={d} className={`bg-white p-1 ${view === 'bulan' ? 'min-h-[64px]' : 'min-h-[90px]'} ${view === 'bulan' && d.slice(5, 7) !== anchor.slice(5, 7) ? 'opacity-40' : ''}`}>
-            <div className="text-slate-400">{view === 'bulan' ? Number(d.slice(8)) : fmtDate(d)}</div>
-            {ev(d).slice(0, view === 'bulan' ? 3 : 20).map((e, i) => (
+          <div key={d} className={`bg-white p-1 ${view === 'bulan' || rangeDays ? 'min-h-[64px]' : 'min-h-[90px]'} ${view === 'bulan' && !rangeDays && d.slice(5, 7) !== anchor.slice(5, 7) ? 'opacity-40' : ''}`}>
+            <div className="text-slate-400">{view === 'bulan' || rangeDays ? `${Number(d.slice(8))}${rangeDays && (d === first || d.slice(8) === '01') ? ' ' + new Date(d + 'T00:00:00').toLocaleDateString('id-ID', { month: 'short' }) : ''}` : fmtDate(d)}</div>
+            {ev(d).slice(0, view === 'bulan' || rangeDays ? 3 : 20).map((e, i) => (
               <div key={i} title={e.label} onClick={e.id && onEvent ? () => onEvent(e.id!) : undefined} className={`mt-0.5 flex items-center gap-1 truncate ${e.id && onEvent ? 'cursor-pointer' : ''}`}>
                 <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: TONE_HEX[e.tone] }} /><span className="truncate">{e.label}</span>
               </div>
             ))}
-            {view === 'bulan' && ev(d).length > 3 && <div className="text-slate-400">+{ev(d).length - 3} lagi</div>}
+            {(view === 'bulan' || !!rangeDays) && ev(d).length > 3 && <div className="text-slate-400">+{ev(d).length - 3} lagi</div>}
           </div>
         ))}
       </div>

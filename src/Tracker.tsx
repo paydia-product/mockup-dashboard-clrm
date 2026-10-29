@@ -5,7 +5,7 @@ import {
   Audit, DB, EMPTY_FILTER, Filter, Finding, REGULATORS, AlertInfo, RISKS, ROLE_USER, Role, STATUSES, UNITS, alertsFor, applyFilter,
   addDays, diffDays, fmtDate, fmtTime, isPendingReq, nowStr, todayStr,
 } from './lib'
-import { getStore, setStore } from './kit/store'
+import { getStore, setStore, useApp } from './kit/store'
 import type { Action } from './kit/types'
 import Dashboard from './Dashboard'
 import Drawer, { Acts } from './Drawer'
@@ -21,6 +21,7 @@ const COLS: { k: SortKey; l: string }[] = [
 type Pending = { kind: 'add' } | { kind: 'edit'; id: string } | { kind: 'reason'; title: string; danger?: boolean; run: (r: string) => void } | { kind: 'sim' } | { kind: 'import' } | null
 
 export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb: React.Dispatch<React.SetStateAction<DB>>; role: Role; user: { name: string }; can: (a: Action) => boolean }) {
+  const { log: appLog } = useApp()
   const [tab, setTab] = useState<'table' | 'dashboard'>('dashboard')
   const [filter, setFilter] = useState<Filter>(EMPTY_FILTER)
   const [showFilters, setShowFilters] = useState(false)
@@ -118,7 +119,7 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
     restore: () => {
       const last = db.audit.filter((a) => a.fid === f.id && a.kolom === 'Status' && a.baru === 'Dibatalkan').sort((a, b) => b.time.localeCompare(a.time))[0]
       const to = (last?.lama as Finding['status']) || 'Open'
-      commit({ ...f, status: to }, [statusEnt('Kembalikan temuan', 'Dibatalkan', to)])
+      setPending({ kind: 'reason', title: `Kembalikan temuan ${f.no}`, run: (r) => { commit({ ...f, status: to }, [statusEnt('Kembalikan temuan', 'Dibatalkan', to, r)]); setPending(null) } })
     },
   })
 
@@ -137,25 +138,28 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data), 'Temuan')
     const file = `Temuan_Regulator_${todayStr()}.xlsx`
     XLSX.writeFile(wb, file)
+    appLog('Regulatory Findings Tracker', 'Export', '', `${data.length} baris`)
   }
 
   const sim = useMemo(() => db.findings.flatMap((f) => alertsFor(f, db.audit).map((a) => ({ f, a }))), [db])
   const mails = useMemo(() => {
     const t = todayStr()
-    const first = (k: AlertInfo['key']) => sim.find((x) => x.a.key === k)
+    const hitsOf = (k: AlertInfo['key']) => sim.filter((x) => x.a.key === k).slice(0, 3)
     const sample = { id: 'sample', no: 1, regulator: 'BI', area: 'QRIS', pic: ROLE_USER.PIC.name, dueDate: addDays(t, 3), status: 'Proses' } as unknown as Finding
     const cfg: [AlertInfo['key'], string, string, string][] = [
       ['near', 'Temuan hampir jatuh tempo', 'yellow', 'Batas waktu tinggal 7 hari atau kurang dan temuan belum selesai.'],
       ['overdue', 'Temuan lewat batas waktu', 'red', 'Batas waktu terlewat dan temuan belum selesai. Lewat lebih dari 7 hari juga dikirim ke Direktur terkait.'],
       ['stale', 'Menunggu validasi terlalu lama', 'yellow', 'Status Menunggu Validasi lebih dari 7 hari.'],
     ]
-    return cfg.map(([key, label, color, rule]) => {
-      const hit = first(key)
-      const f = hit?.f ?? { ...sample, dueDate: key === 'overdue' ? addDays(t, -3) : sample.dueDate, status: key === 'stale' ? 'Menunggu Validasi' : 'Proses' } as Finding
-      const d = diffDays(f.dueDate, t)
-      const detail = hit?.a.detail ?? (key === 'near' ? `${d} hari lagi` : key === 'overdue' ? `Lewat ${-d} hari` : '9 hari menunggu')
-      const to = hit?.a.to ?? (key === 'near' ? ['PIC'] : key === 'overdue' ? ['PIC', 'Head CLRM'] : ['Compliance Officer', 'Head CLRM'])
-      return { key, label, color, rule, f, detail, to, sample: !hit }
+    return cfg.flatMap(([key, label, color, rule]) => {
+      const hs = hitsOf(key)
+      const items: { f: Finding; hit?: (typeof sim)[number] }[] = hs.length ? hs.map((h) => ({ f: h.f, hit: h })) : [{ f: { ...sample, dueDate: key === 'overdue' ? addDays(t, -3) : sample.dueDate, status: key === 'stale' ? 'Menunggu Validasi' : 'Proses' } as Finding }]
+      return items.map(({ f, hit }) => {
+        const d = diffDays(f.dueDate, t)
+        const detail = hit?.a.detail ?? (key === 'near' ? `${d} hari lagi` : key === 'overdue' ? `Lewat ${-d} hari` : '9 hari menunggu')
+        const to = hit?.a.to ?? (key === 'near' ? ['PIC'] : key === 'overdue' ? ['PIC', 'Head CLRM'] : ['Compliance Officer', 'Head CLRM'])
+        return { key: `${key}-${f.id}`, label, color, rule, f, detail, to, sample: !hit }
+      })
     })
   }, [sim])
   const dashFilter = (nf: Filter) => setFilter({ ...EMPTY_FILTER, from: nf.from, to: nf.to })
@@ -227,7 +231,7 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
             <div className="ml-auto flex flex-wrap gap-2">
               <button className="btn" onClick={() => setPending({ kind: 'sim' })}><Bell size={14} />Simulasi notifikasi ({sim.length})</button>
               {can('Tambah') && <button className="btn" onClick={() => setPending({ kind: 'import' })}><Upload size={14} />Import Excel</button>}
-              <button className="btn" onClick={doExport}><Download size={14} />Export Excel</button>
+              {can('Export') && <button className="btn" onClick={doExport}><Download size={14} />Export Excel</button>}
               {can('Tambah') && <button className="btn btn-primary" onClick={() => setPending({ kind: 'add' })}><Plus size={14} />Tambah</button>}
             </div>
           </div>

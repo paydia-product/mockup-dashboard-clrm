@@ -23,6 +23,8 @@ const isDue = (r: SopRec, today: string) => { const d = live(r) ? daysToReview(r
 const incomplete = (r: SopRec) => !r.tglReview || !r.status || !r.pic.trim()
 const toPic = (r: SopRec) => (r.pic ? `PIC (${r.pic})` : 'PIC Dokumen')
 
+// Import boleh membawa baris tanpa Tanggal Review / Status / PIC (jadi alert "Data belum lengkap"); form Tambah/Ubah tetap mewajibkan
+const notImport = (_r: SopRec, _c: Ctx, mode?: string) => mode !== 'import'
 const fields: Field<SopRec>[] = [
   { key: 'noDok', label: 'No Dokumen', type: 'text', required: true, help: 'Unik, contoh SOP-077-PAY.' },
   { key: 'judul', label: 'Judul', type: 'text', required: true, wide: true },
@@ -35,9 +37,9 @@ const fields: Field<SopRec>[] = [
   { key: 'retensi', label: 'Retensi', type: 'select', options: ['5 Tahun', '10 Tahun', 'Permanen'], required: true },
   { key: 'klasifikasi', label: 'Klasifikasi', type: 'select', options: ['Publik', 'Internal', 'Rahasia'], required: true },
   { key: 'file', label: 'File PDF', type: 'file', required: true, wide: true },
-  { key: 'tglReview', label: 'Tanggal Review Berikutnya', type: 'date', required: true },
-  { key: 'status', label: 'Status', type: 'select', options: STATUS, required: true },
-  { key: 'pic', label: 'PIC Dokumen', type: 'text', required: true },
+  { key: 'tglReview', label: 'Tanggal Review Berikutnya', type: 'date', required: notImport },
+  { key: 'status', label: 'Status', type: 'select', options: STATUS, required: notImport },
+  { key: 'pic', label: 'PIC Dokumen', type: 'text', required: notImport },
   {
     key: 'revisi', label: 'Daftar Revisi', type: 'list', inForm: 'none', wide: true,
     sub: [

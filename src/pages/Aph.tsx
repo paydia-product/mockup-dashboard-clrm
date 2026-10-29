@@ -171,7 +171,7 @@ const cfg: PageConfig<Aph> = {
           <BarCard title="Instansi pengirim terbanyak" horizontal data={count((r) => r.pengirim, PENGIRIM).sort((a, b) => b.Jumlah - a.Jumlah)} keys={['Jumlah']} onClick={(row) => drill({ pengirim: row.name })} />
           <DonutCard title="Permintaan per kasus" data={KASUS.map((k) => ({ name: k, value: rows.filter((r) => r.kasus === k).length }))} onClick={(name) => drill({ kasus: name })} />
           <BarCard title="Group merchant paling banyak disebut" data={top((r) => r.groupMerchant, 6)} keys={['Jumlah']} onClick={(row) => drill({ groupMerchant: row.name })} />
-          <CalendarCard title="Jadwal BAP 30 hari ke depan" events={events} onEvent={open} />
+          <CalendarCard title="Jadwal BAP 30 hari ke depan" rangeDays={30} events={events} onEvent={open} />
           <Card title="Permintaan Active menurut umur sejak surat diterima (hari)">
             <BarCard title="" data={umur.map(({ name, Jumlah }) => ({ name, Jumlah }))} keys={['Jumlah']} cellColors={umur.map((u) => (u.merah ? '#ef4444' : '#f59e0b'))} />
             <MiniTable cols={[

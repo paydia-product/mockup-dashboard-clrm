@@ -20,7 +20,10 @@ export interface Field<T> {
   key: string // boleh kunci kolom otomatis yang tidak ada di T. Kunci 'no' diabaikan (kit selalu menampilkan No)
   label: string; type: FieldType
   options?: string[] | ((c: Ctx) => string[])
-  required?: boolean | ((r: T, c: Ctx) => boolean)
+  required?: boolean | ((r: T, c: Ctx, mode?: 'add' | 'edit' | 'import') => boolean) // mode 'import' = baris Import Excel (boleh lebih longgar dari form Tambah)
+  importOptions?: string[] | ((c: Ctx) => string[]) // pilihan khusus Import Excel (menggantikan options)
+  itemEditableBy?: (c: Ctx, item: Record<string, unknown>) => boolean // type list, mode Edit: false = item tidak dapat diubah/dihapus
+  listLocked?: (c: Ctx) => boolean // type list, mode Edit: true = tidak dapat tambah/hapus item
   auto?: (r: T, c: Ctx) => unknown
   inForm?: 'add' | 'edit' | 'both' | 'none'
   editableBy?: (c: Ctx, r: T) => boolean

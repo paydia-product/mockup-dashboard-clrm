@@ -49,7 +49,7 @@ export default function PageShell<T extends BaseRec>({ config: cfg }: { config: 
       {canEdit(r) && <button className="btn !px-2 !py-1" onClick={() => setModal({ k: 'edit', id: r.id })}><Pencil size={13} />Edit</button>}
       {can(m, 'Cancel') && !r.cancelled && !api.pendingFor(r.id) && <button className="btn !px-2 !py-1 text-red-600" onClick={() => setModal({ k: 'cancel', id: r.id })}><XCircle size={13} />Batalkan</button>}
       {can(m, 'Cancel') && r.cancelled && <button className="btn !px-2 !py-1 text-green-700" onClick={() => setModal({ k: 'restore', id: r.id })}><RotateCcw size={13} />Kembalikan</button>}
-      {!r.cancelled && cfg.rowActions?.filter((a) => a.show(r, c)).map((a) => (
+      {!r.cancelled && can(m, 'Ubah') && cfg.rowActions?.filter((a) => a.show(r, c)).map((a) => (
         <button key={a.label} className="btn !px-2 !py-1" onClick={() => { const out = a.run(r, api, close); if (out) setModal({ k: 'extra', node: out }) }}>{a.icon && <a.icon size={13} />}{a.label}</button>
       ))}
     </>
@@ -86,7 +86,7 @@ export default function PageShell<T extends BaseRec>({ config: cfg }: { config: 
       {detail && <DetailModal cfg={cfg} r={detail} c={c} pending={api.pendingFor(detail.id)} onClose={close}
         alerts={detail.cancelled ? [] : cfg.alerts.flatMap((a) => { const hit = a.check(detail, c); return hit ? [{ a, hit }] : [] })} />}
       {modal?.k === 'add' && <FormModal cfg={cfg} mode="add" init={{ ...cfg.blank() }} c={c} onClose={close} onSave={(r) => { api.add(r as never); close() }} />}
-      {editing && <FormModal cfg={cfg} mode="edit" init={editing} c={c} onClose={close} onSave={(r, alasan) => { api.update(editing.id, r as Partial<T>, alasan); close() }} />}
+      {editing && <FormModal cfg={cfg} mode="edit" init={editing} norm={row(editing.id)} c={c} onClose={close} onSave={(r, alasan) => { api.update(editing.id, r as Partial<T>, alasan); close() }} />}
       {cancelling && <ReasonModal danger title={`Batalkan ${cfg.noun} ${cancelling.no}`} onClose={close} onConfirm={(reason) => { api.cancel(cancelling.id, reason); close() }} />}
       {restoring && <ReasonModal title={`Kembalikan ${cfg.noun} ${restoring.no}`} onClose={close} onConfirm={(reason) => { api.restore(restoring.id, reason); close() }} />}
       {modal?.k === 'sim' && <EmailSim cfg={cfg} rows={live} c={c} onClose={close} />}

@@ -7,7 +7,7 @@ import type { BaseRec, Ctx, Field, PageConfig } from './types'
 type R = Record<string, any> // eslint-disable-line @typescript-eslint/no-explicit-any
 type Mode = 'add' | 'edit'
 export const isEmpty = (v: unknown) => v === undefined || v === null || v === '' || (Array.isArray(v) && !v.length)
-const isReq = (f: Field<any>, r: R, c: Ctx) => (typeof f.required === 'function' ? f.required(r, c) : !!f.required) // eslint-disable-line @typescript-eslint/no-explicit-any
+export const isReq = (f: Field<any>, r: R, c: Ctx, mode?: 'add' | 'edit' | 'import') => (typeof f.required === 'function' ? f.required(r, c, mode) : !!f.required) // eslint-disable-line @typescript-eslint/no-explicit-any
 const opts = (f: Field<any>, c: Ctx) => (typeof f.options === 'function' ? f.options(c) : f.options ?? []) // eslint-disable-line @typescript-eslint/no-explicit-any
 // select dengan semua opsi angka (mis. skor 1-3) disimpan sebagai number
 export const numericOpts = (o: string[]) => o.length > 0 && o.every((x) => x.trim() !== '' && !isNaN(Number(x)))
@@ -16,20 +16,34 @@ export const fieldsFor = <T extends BaseRec>(cfg: PageConfig<T>, mode: Mode) =>
   cfg.fields.filter((f) => f.key !== 'no' && !f.auto && (f.inForm ?? 'both') !== 'none' && ((f.inForm ?? 'both') === 'both' || f.inForm === mode))
 
 // Validasi bersama form dan import. skipFile: import tidak membawa file.
-export function validateRecord<T extends BaseRec>(cfg: PageConfig<T>, r: R, mode: Mode, c: Ctx, skipFile = false, skipKeys: string[] = []): Record<string, string> {
+export function validateRecord<T extends BaseRec>(cfg: PageConfig<T>, r: R, mode: Mode, c: Ctx, skipFile = false, skipKeys: string[] = [], imp = false): Record<string, string> {
+  const rm = imp ? 'import' : mode
   const e: Record<string, string> = {}
   for (const f of fieldsFor(cfg, mode)) {
     if (f.showIf && !f.showIf(r as T)) continue
     if (skipKeys.includes(f.key)) continue
     const v = r[f.key]
     if (skipFile && f.type === 'file') continue
-    if (isReq(f, r, c) && isEmpty(v)) e[f.key] = `${f.label} wajib diisi`
+    if (isReq(f, r, c, rm) && isEmpty(v)) e[f.key] = `${f.label} wajib diisi`
     else if (['number', 'money', 'percent'].includes(f.type) && !isEmpty(v) && (typeof v !== 'number' || isNaN(v))) e[f.key] = `${f.label} harus berupa angka`
     else if (f.type === 'percent' && !isEmpty(v) && (v < 0 || v > 100)) e[f.key] = `${f.label} harus 0 sampai 100`
     if (f.type === 'list') (v ?? []).forEach((it: R, i: number) => f.sub?.forEach((s) => { if (isReq(s, it, c) && isEmpty(it[s.key])) e[`${f.key}.${i}.${s.key}`] = `${s.label} wajib diisi` }))
   }
   for (const [k, m] of Object.entries(cfg.validate?.(r as T, mode, c) ?? {})) if (!e[k] && !skipKeys.includes(k.split('.')[0])) e[k] = m
   return e
+}
+
+// Mode Edit: item list yang terkunci dikembalikan ke nilai tersimpan (penegakan saat simpan)
+function lockList(f: Field<any>, cur: R[], base: R[], c: Ctx): R[] { // eslint-disable-line @typescript-eslint/no-explicit-any
+  const ed = (it: R) => !f.itemEditableBy || f.itemEditableBy(c, it)
+  const frozen = (b: R) => (f.sub ?? []).filter((s) => s.editableBy && !s.editableBy(c, b)).map((s) => s.key)
+  let out: R[]
+  if (f.listLocked?.(c)) out = base.map((b, i) => (cur[i] && ed(b) ? { ...cur[i], ...Object.fromEntries(frozen(b).map((k) => [k, b[k]])) } : b))
+  else {
+    out = cur.slice()
+    base.filter((b) => !ed(b)).forEach((b) => { if (!out.some((x) => JSON.stringify(x) === JSON.stringify(b))) out.push(b) })
+  }
+  return out
 }
 
 function Input({ f, v, set, c, err, off }: { f: Field<any>; v: any; set: (v: unknown) => void; c: Ctx; err?: string; off?: boolean }) { // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -62,7 +76,7 @@ function Input({ f, v, set, c, err, off }: { f: Field<any>; v: any; set: (v: unk
   }
 }
 
-export default function FormModal<T extends BaseRec>({ cfg, mode, init, c, onSave, onClose }: { cfg: PageConfig<T>; mode: Mode; init: R; c: Ctx; onSave: (r: R, alasan: string) => void; onClose: () => void }) {
+export default function FormModal<T extends BaseRec>({ cfg, mode, init, norm, c, onSave, onClose }: { cfg: PageConfig<T>; mode: Mode; init: R; norm?: R; c: Ctx; onSave: (r: R, alasan: string) => void; onClose: () => void }) {
   const [r, setR] = useState<R>(init)
   const [alasan, setAlasan] = useState('')
   const [errs, setErrs] = useState<Record<string, string>>({})
@@ -78,7 +92,10 @@ export default function FormModal<T extends BaseRec>({ cfg, mode, init, c, onSav
     const e = validateRecord(cfg, r, mode, c, false, lockedKeys)
     if (need.length && !alasan.trim()) e.alasan = `Alasan wajib diisi jika ${need.map((f) => f.label).join(', ')} diubah`
     setErrs(e)
-    if (!Object.keys(e).length) onSave({ ...r, ...Object.fromEntries(lockedKeys.map((k) => [k, init[k]])) }, alasan.trim()) // field terkunci/disamarkan tidak pernah ditulis ulang
+    if (Object.keys(e).length) return
+    const out: R = { ...r, ...Object.fromEntries(lockedKeys.map((k) => [k, init[k]])) }
+    if (edit) for (const f of fields) if (f.type === 'list' && (f.itemEditableBy || f.listLocked) && !lockedKeys.includes(f.key)) out[f.key] = lockList(f, r[f.key] ?? [], init[f.key] ?? [], c)
+    onSave(out, alasan.trim()) // field terkunci/disamarkan tidak pernah ditulis ulang
   }
   return (
     <Modal wide title={edit ? `Ubah ${cfg.noun} ${init.no}` : `Tambah ${cfg.noun}`} onClose={onClose}>
@@ -99,23 +116,28 @@ export default function FormModal<T extends BaseRec>({ cfg, mode, init, c, onSav
                   <label className="lbl">{f.label}{req ? ' *' : ''}</label>
                   {f.type === 'list' ? (
                     <div className="space-y-2">
-                      {(list ?? []).map((it, i) => (
+                      {(list ?? []).map((it, i) => {
+                        const itOff = edit && !!f.itemEditableBy && !f.itemEditableBy(c, it)
+                        return (
                         <div key={i} className="rounded border border-slate-200 p-2">
                           <div className="grid gap-2 sm:grid-cols-2">
                             {f.sub?.map((s) => (
                               <div key={s.key} className={s.type === 'textarea' ? 'sm:col-span-2' : ''}>
                                 <label className="lbl">{s.label}{isReq(s, it, c) ? ' *' : ''}</label>
-                                <Input f={s} v={it[s.key]} c={c} set={(v) => set(f.key, (list ?? []).map((x, j) => (j === i ? { ...x, [s.key]: v } : x)))} />
+                                <Input f={s} v={it[s.key]} c={c} off={itOff || (edit && !!s.editableBy && !s.editableBy(c, it))} set={(v) => set(f.key, (list ?? []).map((x, j) => (j === i ? { ...x, [s.key]: v } : x)))} />
                                 {errs[`${f.key}.${i}.${s.key}`] && <p className="err">{errs[`${f.key}.${i}.${s.key}`]}</p>}
                               </div>
                             ))}
                           </div>
-                          <button type="button" className="btn mt-2 !py-1 text-red-600" onClick={() => set(f.key, (list ?? []).filter((_, j) => j !== i))}><Trash2 size={13} />Hapus item</button>
+                          {!itOff && !(edit && f.listLocked?.(c)) && <button type="button" className="btn mt-2 !py-1 text-red-600" onClick={() => set(f.key, (list ?? []).filter((_, j) => j !== i))}><Trash2 size={13} />Hapus item</button>}
+                          {itOff && <p className="mt-2 text-xs text-slate-400">Item ini tidak dapat diubah oleh Anda.</p>}
                         </div>
-                      ))}
-                      <button type="button" className="btn !py-1" onClick={() => set(f.key, [...(list ?? []), Object.fromEntries((f.sub ?? []).map((s) => [s.key, s.type === 'multiselect' ? [] : s.type === 'checklist' ? {} : s.type === 'file' ? null : '']))])}><Plus size={13} />Tambah item</button>
+                        )
+                      })}
+                      {!(edit && f.listLocked?.(c)) && <button type="button" className="btn !py-1" onClick={() => set(f.key, [...(list ?? []), Object.fromEntries((f.sub ?? []).map((s) => [s.key, s.type === 'multiselect' ? [] : s.type === 'checklist' ? {} : s.type === 'file' ? null : '']))])}><Plus size={13} />Tambah item</button>}
                     </div>
                   ) : <Input f={f} v={masked(f) ? maskStr(String(r[f.key] ?? '')) : r[f.key]} c={c} set={(v) => set(f.key, v)} off={locked(f)} />}
+                  {edit && f.key === 'status' && cfg.normalize && norm && norm.status !== init.status && <p className="mt-0.5 text-xs text-amber-600">Status saat ini (otomatis): {String(norm.status)}</p>}
                   {f.help && <p className="mt-0.5 text-xs text-slate-400">{f.help}</p>}
                   {errs[f.key] && <p className="err">{errs[f.key]}</p>}
                 </>

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { CheckCircle2 } from 'lucide-react'
 import { addDays, diffDays, fmtDate } from '../lib'
 import PageShell from '../kit/PageShell'
-import { BarCard, DonutCard, MiniTable, StatCards, Card } from '../kit/charts'
+import { BarCard, DonutCard, MiniTable, Card } from '../kit/charts'
 import { todayStr, workDaysBetween } from '../kit/dates'
 import { StatusPill } from '../kit/fmt'
 import { Modal } from '../ui'
@@ -30,10 +30,10 @@ const fields: Field<Kajian>[] = [
   { key: 'jenis', label: 'Jenis', type: 'select', options: JENIS, required: true },
   { key: 'judul', label: 'Judul / Objek', type: 'text', required: true, wide: true },
   { key: 'dept', label: 'Departemen Pengusul', type: 'select', options: (c) => c.master.departemen, required: true },
-  { key: 'tglMasuk', label: 'Tanggal Masuk', type: 'date', required: true },
+  { key: 'tglMasuk', label: 'Tanggal Masuk', type: 'date', required: true, reasonOnChange: true, help: 'Mengubah Tanggal Masuk menggeser batas waktu; wajib disertai alasan.' },
   { key: 'sla', label: 'SLA (hari kalender)', type: 'number', required: true, reasonOnChange: true, help: 'Mengubah SLA (batas waktu) wajib disertai alasan.' },
   { key: 'batas', label: 'Tanggal Batas', type: 'date', auto: (r) => batas(r) },
-  { key: 'status', label: 'Status', type: 'select', options: STATUS.filter((s) => s !== 'Selesai'), required: true, help: 'Status Selesai diisi lewat aksi baris "Selesai".' },
+  { key: 'status', label: 'Status', type: 'select', options: STATUS.filter((s) => s !== 'Selesai'), importOptions: STATUS, required: true, help: 'Status Selesai diisi lewat aksi baris "Selesai".' },
   { key: 'pic', label: 'PIC', type: 'text', required: true },
   { key: 'tglSelesai', label: 'Tanggal Selesai', type: 'date', inForm: 'none' },
   { key: 'hasil', label: 'Hasil / Opini Risk Management', type: 'select', options: HASIL, inForm: 'none' },
@@ -182,7 +182,7 @@ const cfg: PageConfig<Kajian> = {
   },
   rowActions: [{
     label: 'Selesai', icon: CheckCircle2,
-    show: (r, c) => r.status !== 'Batal' && (r.status !== 'Selesai' || !r.hasil) && (c.role === 'Risk Officer' || c.role === 'Super Admin' || c.role === 'Head CLRM'),
+    show: (r, c) => r.status !== 'Batal' && (r.status !== 'Selesai' || !r.hasil) && (c.role !== 'PIC' || sameName(r.pic, c.user.name)),
     run: (r, api, close) => <SelesaiModal r={r} api={api} close={close} />,
   }],
   Dashboard: ({ rows, c, drill, open }) => {
@@ -194,12 +194,6 @@ const cfg: PageConfig<Kajian> = {
     const ex = (s: string) => vendors.filter((r) => r.statusMitra === s).length
     return (
       <div className="space-y-3">
-        <StatCards items={[
-          { label: 'Baru', value: n('Baru'), tone: 'blue', onClick: () => drill({ status: 'Baru' }) },
-          { label: 'Proses', value: n('Proses'), tone: 'yellow', onClick: () => drill({ status: 'Proses' }) },
-          { label: 'Selesai', value: n('Selesai'), tone: 'green', onClick: () => drill({ status: 'Selesai' }) },
-          { label: 'Lewat batas', value: late.length, tone: late.length ? 'red' : 'gray' },
-        ]} />
         <div className="grid gap-3 lg:grid-cols-2">
           <DonutCard title="Kajian per jenis" data={JENIS.map((j) => ({ name: j, value: rows.filter((r) => r.jenis === j).length }))} onClick={(name) => drill({ jenis: name })} />
           <BarCard title="Kajian per status" data={STATUS.map((s) => ({ name: s, Jumlah: n(s) }))} keys={['Jumlah']} onClick={(row) => drill({ status: row.name })} />
@@ -213,11 +207,14 @@ const cfg: PageConfig<Kajian> = {
           <BarCard title="Kajian per departemen" horizontal data={c.master.departemen.map((d) => ({ name: d, Jumlah: rows.filter((r) => r.dept === d).length }))} keys={['Jumlah']} onClick={(row) => drill({ dept: row.name })} />
           <BarCard title="Rata-rata lama masuk sampai selesai per jenis (hari)" data={JENIS.map((j) => { const x = done.filter((r) => r.jenis === j); return { name: j, Hari: x.length ? Math.round(x.reduce((a, r) => a + lamaSelesai(r), 0) / x.length) : 0 } })} keys={['Hari']} />
           <DonutCard title="Kajian per hasil / opini" data={HASIL.map((h) => ({ name: h, value: rows.filter((r) => r.hasil === h).length }))} onClick={(name) => drill({ hasil: name })} />
-          <MiniTable title="Mitra dengan jadwal due diligence / evaluasi ≤30 hari atau lewat" cols={[
-            { label: 'Mitra', get: (r: Kajian) => r.namaMitra }, { label: 'Status', get: (r) => r.statusMitra }, { label: 'Jadwal', get: (r) => fmtDate(r.tglDD) },
-            { label: 'Sisa', get: (r) => { const d = ddDays(r, c.today)!; return d < 0 ? <span className="font-semibold text-red-600">Lewat {-d} hari</span> : <span className="text-amber-600">{d} hari lagi</span> } },
-          ]} rows={jadwal} onRow={(r) => open(r.id)} empty="Tidak ada jadwal dekat" />
-          <BarCard title="Mitra Eksisting vs Rencana" data={[{ name: 'Eksisting', Jumlah: ex('Eksisting') }, { name: 'Rencana', Jumlah: ex('Rencana') }]} keys={['Jumlah']} />
+          <Card title="Mitra: jadwal due diligence / evaluasi ≤30 hari atau lewat, dan Eksisting vs Rencana">
+            <MiniTable cols={[
+              { label: 'Mitra', get: (r: Kajian) => r.namaMitra }, { label: 'Status', get: (r) => r.statusMitra }, { label: 'Jadwal', get: (r) => fmtDate(r.tglDD) },
+              { label: 'Sisa', get: (r) => { const d = ddDays(r, c.today)!; return d < 0 ? <span className="font-semibold text-red-600">Lewat {-d} hari</span> : <span className="text-amber-600">{d} hari lagi</span> } },
+            ]} rows={jadwal} onRow={(r) => open(r.id)} empty="Tidak ada jadwal dekat" />
+            <div className="mt-3 text-xs font-semibold text-slate-600">Mitra Eksisting vs Rencana</div>
+            <BarCard title="" className="!border-0 !p-0" data={[{ name: 'Eksisting', Jumlah: ex('Eksisting') }, { name: 'Rencana', Jumlah: ex('Rencana') }]} keys={['Jumlah']} />
+          </Card>
         </div>
       </div>
     )

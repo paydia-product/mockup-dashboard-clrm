@@ -20,7 +20,7 @@ const age = (r: Layanan, today: string) => diffDays(today, r.tglMasuk)
 const fields: Field<Layanan>[] = [
   { key: 'dept', label: 'Departemen Pemohon', type: 'select', options: (c) => c.master.departemen, required: true },
   { key: 'jenis', label: 'Jenis', type: 'select', options: JENIS, required: true },
-  { key: 'tglMasuk', label: 'Tanggal Masuk', type: 'date', required: true },
+  { key: 'tglMasuk', label: 'Tanggal Masuk', type: 'date', required: true, reasonOnChange: true, help: 'Mengubah Tanggal Masuk menggeser batas waktu; wajib disertai alasan.' },
   { key: 'sla', label: 'SLA (hari kalender)', type: 'number', required: true, reasonOnChange: true, help: 'Mengubah SLA (batas waktu) wajib disertai alasan.' },
   { key: 'batas', label: 'Tanggal Batas', type: 'date', auto: (r) => batas(r) },
   { key: 'status', label: 'Status', type: 'select', options: ['Baru', 'Proses', 'Selesai', 'Batal'], required: true },

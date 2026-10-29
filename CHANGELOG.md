@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 2.2.0 | 2026-10-29 | ~950k |
 | 2.1.0 | 2026-10-29 | ~150k |
 | 2.0.0 | 2026-10-29 | ~2,2 juta |
 | 1.5.0 | 2026-10-29 | ~40k |
@@ -17,6 +18,21 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [2.2.0] - 2026-10-29
+
+Estimasi token: ~950k (QA penuh di prod oleh 3 agent, lalu perbaikan)
+
+### Diperbaiki
+- Regulatory Change: PIC hanya bisa mengubah item tindak lanjut miliknya. PIC tidak bisa menambah, menghapus, atau memindah item.
+- Tracker: Kembalikan wajib alasan. Simulasi menampilkan sampai 3 email per jenis alert. Export tercatat di Log dan mengikuti permission.
+- Import Excel menolak tanggal yang tidak ada dan menampilkan semua error dalam satu baris.
+- Tanggal Masuk di Layanan Hukum dan Kajian wajib alasan saat diubah.
+- Kalender BAP di Permintaan APH menampilkan 30 hari ke depan tanpa pindah halaman.
+- Form Edit menampilkan status otomatis saat ini di bawah Status.
+- Aksi baris (misalnya Selesai di Kajian) mengikuti permission Ubah.
+- Import Kajian menerima status Selesai. Import SOP menerima data belum lengkap.
+- Jumlah visual Reporting, Regulatory Change, dan Kajian sesuai CR. Seed Regulatory Change menjadi 30 data.
 
 ## [2.1.0] - 2026-10-29
 

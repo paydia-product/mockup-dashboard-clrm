@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { addDays, diffDays, fmtDate, todayStr } from '../lib'
 import PageShell from '../kit/PageShell'
-import { BarCard, DonutCard, LineCard, MiniTable, StatCards } from '../kit/charts'
+import { BarCard, DonutCard, LineCard, MiniTable } from '../kit/charts'
 import { ageBucket, ageBuckets, workDaysBetween } from '../kit/dates'
 import { StatusPill } from '../kit/fmt'
 import { addRecord, readModule, useApp } from '../kit/store'
 import type { AlertDef, BaseRec, Column, Ctx, Field, FilterDef, PageConfig } from '../kit/types'
+import { sameName } from '../kit/perms'
 import { Modal } from '../ui'
 import { SopRec, seedSop, sopLabel } from './sop.shared'
 
@@ -63,9 +64,10 @@ const fields: Field<Reg>[] = [
   { key: 'kepatuhan', label: 'Status Kepatuhan', type: 'text', auto: (r) => kep(r) },
   {
     key: 'tindak', label: 'Tindak Lanjut', type: 'list', required: (r) => kep(r) === 'Partial' || kep(r) === 'Gap', wide: true,
+    listLocked: isPic, itemEditableBy: (c, it) => !isPic(c) || sameName(String(it.pic ?? ''), c.user.name), // PIC: hanya item miliknya, tanpa tambah/hapus
     sub: [
       { key: 'uraian', label: 'Uraian', type: 'text', required: true },
-      { key: 'pic', label: 'PIC', type: 'text', required: true },
+      { key: 'pic', label: 'PIC', type: 'text', required: true, editableBy: (c) => !isPic(c) },
       { key: 'batas', label: 'Batas Waktu', type: 'date', required: true },
       { key: 'status', label: 'Status', type: 'select', options: ['Open', 'Proses', 'Selesai'], required: true },
     ],
@@ -186,6 +188,10 @@ function seed(today: string): Reg[] {
     ['Surat Edaran', '10/2026', '2026', 'Lainnya', 'Pedoman pelaporan keluhan konsumen', 'Pelindungan Konsumen', 'Baru', 'Berlaku', -22, 20, -15, null, '', '', [], 'Tidak', null, null, null, ['Support']],
     ['PBI', '11/2026', '2026', 'BI', 'Pencabutan standar pembayaran lama', 'Lainnya', 'Pencabutan', 'Dicabut', -35, -12, -25, 9, 'Rendah', 80, [T('Hapus rujukan standar lama', 'Lina Marlina', 7, 'Proses')], 'Tidak', null, null, -18, ['Operations', 'IT'], [false, false]],
     ['PADG', '15/2026', '2026', 'BI', 'Pembaruan interkoneksi QRIS', 'QRIS', 'Perubahan', 'Berlaku', -4, 14, -3, 8, '', '', [], 'Tidak', null, null, null, ['IT']],
+    ['PBI', '12/2026', '2026', 'BI', 'Penguatan pengawasan penyelenggara jasa pembayaran', 'SNAP', 'Baru', 'Berlaku', -55, -20, -50, null, 'Rendah', 100, [], 'Tidak', null, null, -30, ['Operations']],
+    ['Surat Edaran', '11/2026', '2026', 'PPATK', 'Pembaruan daftar pantauan transaksi', 'APU PPT', 'Perubahan', 'Berlaku', -20, 10, -18, 13, 'Sedang', 60, [T('Perbarui daftar pantauan', 'Rina Kartika', 6, 'Proses')], 'Tidak', null, null, -10, ['Compliance']],
+    ['Surat Imbauan', '9/2026', '2026', 'Komdigi', 'Imbauan keamanan aplikasi pembayaran', 'Ketahanan Siber', 'Imbauan', 'Berlaku', -18, null, -14, null, 'Rendah', 100, [], 'Ya', 9, null, -8, ['IT']],
+    ['Permen', '10/2026', '2026', 'Komdigi', 'Standar layanan pelindungan pengguna', 'Pelindungan Konsumen', 'Baru', 'Berlaku', -10, 40, -6, null, 'Sedang', 35, [T('Gap analysis standar layanan', 'Bima Pratama', 25, 'Open')], 'Tidak', null, null, -3, ['Support', 'Business']],
   ]
   const ids = (n: number) => `regchange-${n}`
   return rows.map((x, i) => {
@@ -242,7 +248,7 @@ const cfg: PageConfig<Reg> = {
     dampak: '', dampakUraian: '', dept: [], pemenuhan: '', tindak: [], perluJawab: '', jawabBatas: '', jawabTgl: '', tglSosialisasi: '', sopList: [], lampiran: null,
   }),
   search: (r) => `${r.no} ${label(r)} ${r.tentang} ${r.kategori}`, searchPlaceholder: 'Cari nama/nomor peraturan, tentang, kategori',
-  canEditRow: (r, c) => (isPic(c) ? r.tindak.some((t) => t.pic === c.user.name) : true),
+  canEditRow: (r, c) => (isPic(c) ? r.tindak.some((t) => sameName(t.pic, c.user.name)) : true),
   approvals: [{ jenis: 'Perubahan Daftar Peraturan', approver: 'Ketua SMKI', needs: () => true, keys: IDENT }],
   validate: (r, _m, c) => {
     const e: Record<string, string> = {}
@@ -265,19 +271,12 @@ const cfg: PageConfig<Reg> = {
     const un = rows.filter(unrated)
     const age = (r: Reg) => diffDays(c.today, r.tglDicatat)
     const lateByDept = c.master.departemen.map((d) => ({ name: d, Terlambat: rows.filter((r) => r.dept.includes(d)).reduce((a, r) => a + lateTindak(r, c.today).length, 0) }))
-    const lateAll = rows.reduce((a, r) => a + lateTindak(r, c.today).length, 0)
     const soon = rows.filter((r) => r.tglBerlaku && r.tglBerlaku >= c.today && diffDays(r.tglBerlaku, c.today) <= 90).map((r) => ({ r, tgl: r.tglBerlaku, jenis: 'Berlaku', d: diffDays(r.tglBerlaku, c.today) }))
     const reply = rows.filter(needReply).map((r) => ({ r, tgl: r.jawabBatas, jenis: 'Jawab imbauan', d: diffDays(r.jawabBatas, c.today) }))
     const agenda = [...soon, ...reply].sort((a, b) => a.tgl.localeCompare(b.tgl))
     const warn = (x: { d: number; jenis: string }) => (x.d <= (x.jenis === 'Berlaku' ? 7 : 1) ? 'red' : 'yellow') as 'red' | 'yellow'
     return (
       <div className="space-y-3">
-        <StatCards items={[
-          { label: 'Total peraturan', value: rows.length, tone: 'blue' },
-          { label: 'Belum dinilai', value: un.length, tone: un.length ? 'yellow' : 'gray' },
-          { label: 'Gap', value: n('Gap'), tone: n('Gap') ? 'red' : 'gray', onClick: () => drill({ kepatuhan: 'Gap' }) },
-          { label: 'Tindak lanjut lewat batas', value: lateAll, tone: lateAll ? 'red' : 'gray' },
-        ]} />
         <div className="grid gap-3 lg:grid-cols-2">
           <BarCard title="Peraturan per regulator dan jenis perubahan" stacked data={REGULATOR.map((g) => ({ name: g, ...Object.fromEntries(JP.map((j) => [j, rows.filter((r) => r.regulator === g && r.jp === j).length])) }))} keys={JP} colors={['#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6']} onClick={(row) => drill({ regulator: row.name })} />
           <LineCard title="Tren peraturan baru dan perubahan per bulan" data={mons.map((m) => ({ name: m, Baru: rows.filter((r) => r.tglDicatat.startsWith(m) && r.jp === 'Baru').length, Perubahan: rows.filter((r) => r.tglDicatat.startsWith(m) && r.jp === 'Perubahan').length }))} keys={['Baru', 'Perubahan']} colors={['#3b82f6', '#f59e0b']} />
