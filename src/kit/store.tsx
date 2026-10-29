@@ -59,7 +59,7 @@ export function useApp() {
     store, setStore, ctx, session,
     can: (m: PermKey, a: Action) => canPerm(store.perms, user.role, m, a),
     log: (module: string, aksi: string, nomor: string | number = '', ket = '') => pushLog(user, module, aksi, nomor, ket),
-    logout: () => { pushLog(user, 'Sesi', 'Logout'); setSession(null) },
+    logout: async () => { pushLog(user, 'Sesi', 'Logout'); setSession(null); try { await fetch('/api/logout', { method: 'POST' }) } catch { /* abaikan */ } location.href = '/login.html' },
   }
 }
 

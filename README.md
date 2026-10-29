@@ -43,9 +43,9 @@ Halaman publik: `/login.html` (+ `login.js`, `login.css`), `/api/login`, `/api/l
 - Batalkan/Kembalikan: status sebelum batal dibaca dari Riwayat (tidak ada kolom tambahan).
 - Pencarian, filter, memakai data yang sama; Export mencakup semua halaman hasil filter.
 
-## Login mock (di dalam app)
+## Akun demo (di dalam app)
 
-Gate server (`middleware.js`, `/login.html`, password saja) tetap ada. Setelah lolos gate, app menampilkan login mock: email + password, lalu kode 2FA `123456`. Link "Lupa password" hanya menampilkan pesan "Link reset dikirim ke email". Link kecil "Keluar dari mockup" memanggil `/api/logout`.
+Login hanya lewat gate server (`middleware.js`, `/login.html`, password saja). Setelah lolos gate, app langsung membuka dashboard sebagai Super Admin, tanpa login kedua. Ganti akun lewat pemilih akun demo di header. Logout memanggil `/api/logout` dan kembali ke `/login.html`.
 
 Semua akun contoh memakai password `Paydia123!` dan PIN `123456`:
 
@@ -73,7 +73,7 @@ Tracker di `clrm.db.v4`. Semua halaman lain, approval, log, master, akun, dan pe
 - Hari kerja = Senin sampai Jumat tanpa libur nasional. SLA Kajian dan Layanan = hari kalender.
 - Status "Batal" (pilihan CR) beda dari "Dibatalkan" (hasil Cancel Head CLRM).
 - Rename master data tidak mengubah data lama.
-- Logout mock kembali ke login mock. Cookie gate server tetap sampai `/api/logout`.
+- Logout menghapus sesi demo dan cookie gate, lalu kembali ke `/login.html`.
 - Export boleh untuk semua peran dan diatur lewat matriks permission.
 - Request perubahan tracker ikut tampil di menu Approval; keputusan yang sudah diambil tidak disimpan di daftar Approval (tercatat di Log).
 - Halaman yang masih stub ("Segera hadir" di Dashboard, 2 kolom): Regulatory Reporting, Regulatory Change, SOP & Dokumen Kontrol, Risk Register, Kajian Risiko, Fraud Case Monitoring, Kontrak, Permintaan APH, Perizinan & Dokumen Legalitas.

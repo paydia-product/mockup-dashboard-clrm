@@ -11,9 +11,18 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
-    v: '2.2.2',
+    v: '2.3.0',
     date: '2026-10-29',
     deployed: true,
+    title: 'Tanpa login kedua',
+    prompt: 'Setelah login mockup, tidak perlu login lagi, langsung ke dashboard',
+    tokens: 25000,
+    changes: ['Login mock email, password, dan 2FA dihapus; setelah gate langsung masuk sebagai Super Admin', 'Logout kembali ke halaman login gate'],
+  },
+  {
+    v: '2.2.2',
+    date: '2026-10-29',
+    deployed: false,
     title: 'Tanggal di pratinjau import',
     prompt: 'Lanjutan QA penuh',
     tokens: 30000,

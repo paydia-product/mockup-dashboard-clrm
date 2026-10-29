@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 2.3.0 | 2026-10-29 | ~25k |
 | 2.2.2 | 2026-10-29 | ~30k |
 | 2.2.1 | 2026-10-29 | ~220k |
 | 2.2.0 | 2026-10-29 | ~950k |
@@ -20,6 +21,14 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [2.3.0] - 2026-10-29
+
+Estimasi token: ~25k
+
+### Diubah
+- Setelah lolos login gate, app langsung membuka dashboard sebagai Super Admin. Login mock email, password, dan 2FA dihapus.
+- Logout menghapus sesi dan kembali ke halaman login gate.
 
 ## [2.2.2] - 2026-10-29
 
