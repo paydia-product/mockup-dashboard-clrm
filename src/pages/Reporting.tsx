@@ -176,18 +176,16 @@ function TrenTerlambat({ rows, today }: { rows: Laporan[]; today: string }) {
   const months: string[] = []
   for (const d = new Date(start + '-01T00:00:00'); ym(d) <= end && months.length < 600; d.setMonth(d.getMonth() + 1)) months.push(ym(d))
   const tren = months.map((m) => ({ name: m, Terlambat: late.filter((r) => monthKey(r.batas) === m).length }))
-  return (
-    <div>
-      <div className="mb-1 flex flex-wrap items-center gap-2 text-xs">
+  const toolbar = (
+      <div className="flex flex-wrap items-center gap-2 text-xs">
         <span className="font-medium text-slate-500">Periode</span>
         <select className="inp !w-auto" value={p} onChange={(e) => setP(e.target.value)}>
           <option value="all">Seluruh Waktu</option>{[3, 6, 9, 12].map((n) => <option key={n} value={n}>{n} bulan terakhir</option>)}<option value="custom">Custom</option>
         </select>
         {p === 'custom' && <><input type="month" className="inp !w-auto" value={from} onChange={(e) => setFrom(e.target.value)} /><span>sampai</span><input type="month" className="inp !w-auto" value={to} onChange={(e) => setTo(e.target.value)} /></>}
       </div>
-      <LineCard title="Tren laporan terlambat per bulan" data={tren} keys={['Terlambat']} colors={{ Terlambat: '#ef4444' }} />
-    </div>
   )
+  return <LineCard title="Tren laporan terlambat per bulan" data={tren} keys={['Terlambat']} colors={{ Terlambat: '#ef4444' }} toolbar={toolbar} />
 }
 function SoonTable({ rows, open }: { rows: Laporan[]; open: (id: string) => void }) {
   const { slice, pager } = usePaged(rows, 5, [5])

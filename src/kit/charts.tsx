@@ -11,9 +11,10 @@ type Row = Record<string, string | number>
 type Colors = string[] | Record<string, string>
 const colorOf = (colors: Colors | undefined, key: string, i: number) => (Array.isArray(colors) ? colors[i] : colors?.[key]) ?? PALETTE[i % PALETTE.length]
 
-export const Card = ({ title, children, className = '' }: { title?: string; children: ReactNode; className?: string }) => (
+export const Card = ({ title, children, className = '', toolbar }: { title?: string; children: ReactNode; className?: string; toolbar?: ReactNode }) => (
   <div className={`rounded-lg border border-slate-200 bg-white p-4 ${className}`}>
     {title && <h3 className="mb-3 text-sm font-semibold text-slate-800">{title}</h3>}
+    {toolbar && <div className="mb-3">{toolbar}</div>}
     {children}
   </div>
 )
@@ -77,9 +78,9 @@ export function DonutCard({ title, data, onClick, className }: { title: string; 
   )
 }
 
-export function LineCard({ title, data, keys, colors, xKey = 'name', height = 240, className }: { title: string; data: Row[]; keys: string[]; colors?: Colors; xKey?: string; height?: number; className?: string }) {
+export function LineCard({ title, data, keys, colors, xKey = 'name', height = 240, className, toolbar }: { title: string; data: Row[]; keys: string[]; colors?: Colors; xKey?: string; height?: number; className?: string; toolbar?: ReactNode }) {
   return (
-    <Card title={title} className={className}>
+    <Card title={title} className={className} toolbar={toolbar}>
       {!hasData(data, keys) ? <Empty /> : (
         <ResponsiveContainer width="100%" height={height}>
           <LineChart data={data}>
