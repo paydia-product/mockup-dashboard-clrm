@@ -45,7 +45,7 @@ Halaman publik: `/login.html` (+ `login.js`, `login.css`), `/api/login`, `/api/l
 
 ## Placeholder ("Segera hadir")
 
-Regulatory Reporting, Regulatory Change, SOP & Dokumen Kontrol, Risk Register, Kajian Risiko, Fraud Case Monitoring, Kontrak, Permintaan APH, Perizinan & Dokumen Legalitas, Permintaan Layanan Hukum, Approval, Admin, Log. File bukti hanya nama dummy. Notifikasi Telegram hanya simulasi.
+Regulatory Reporting, Regulatory Change, SOP & Dokumen Kontrol, Risk Register, Kajian Risiko, Fraud Case Monitoring, Kontrak, Permintaan APH, Perizinan & Dokumen Legalitas, Permintaan Layanan Hukum, Approval, Admin, Log. File bukti hanya nama dummy. Notifikasi email hanya simulasi.
 
 ## Ritual rilis
 

@@ -22,6 +22,16 @@ const Card = ({ title, children, className = '' }: { title: string; children: Re
   </div>
 )
 
+const UnitTip = ({ active, payload }: { active?: boolean; payload?: { payload: { name: string; v: number; selesai: number; open: number } }[] }) => {
+  const d = active && payload?.length ? payload[0].payload : null
+  return d ? (
+    <div className="rounded border border-slate-200 bg-white p-2 text-xs shadow">
+      <div className="mb-1 font-semibold text-slate-800">{d.name}</div>
+      <div>Total: {d.v}</div><div>Selesai: {d.selesai}</div><div>Open: {d.open}</div>
+    </div>
+  ) : null
+}
+
 export default function Dashboard({ findings, audit, filter, setFilter, onOpen }: { findings: Finding[]; audit: Audit[]; filter: Filter; setFilter: (f: Filter) => void; onOpen: (id: string) => void }) {
   const data = useMemo(() => findings.filter((f) => f.status !== 'Dibatalkan' && (!filter.from || f.tglTemuan >= filter.from) && (!filter.to || f.tglTemuan <= filter.to)), [findings, filter.from, filter.to])
   const open = data.filter((f) => f.status !== 'Selesai')
@@ -31,7 +41,7 @@ export default function Dashboard({ findings, audit, filter, setFilter, onOpen }
 
   const byReg = REGULATORS.map((r) => ({ name: r, Open: open.filter((f) => f.regulator === r).length, Selesai: done.filter((f) => f.regulator === r).length }))
   const unitM = count(data, (f) => f.unit)
-  const byUnit = [...unitM].map(([name, v]) => ({ name, v })).sort((a, b) => b.v - a.v)
+  const byUnit = [...unitM].map(([name, v]) => { const selesai = data.filter((f) => f.unit === name && f.status === 'Selesai').length; return { name, v, selesai, open: v - selesai } }).sort((a, b) => b.v - a.v)
   const byArea = [...count(data, (f) => f.area)].map(([name, value]) => ({ name, value }))
   const byBucket = BUCKETS.map((b) => ({ name: b.name, v: overdue.filter((f) => lateDays(f) >= b.min && lateDays(f) <= b.max).length }))
   const bucketOf = (f: Finding) => BUCKETS.find((b) => lateDays(f) >= b.min && lateDays(f) <= b.max)?.name
@@ -89,7 +99,7 @@ export default function Dashboard({ findings, audit, filter, setFilter, onOpen }
         </Card>
         <Card title="Temuan per Unit Kerja">
           <ResponsiveContainer width="100%" height={260}>
-            <BarChart data={byUnit} layout="vertical" margin={{ left: 40 }}><CartesianGrid strokeDasharray="3 3" horizontal={false} /><XAxis type="number" allowDecimals={false} fontSize={12} /><YAxis type="category" dataKey="name" width={130} fontSize={12} /><Tooltip />
+            <BarChart data={byUnit} layout="vertical" margin={{ left: 40 }}><CartesianGrid strokeDasharray="3 3" horizontal={false} /><XAxis type="number" allowDecimals={false} fontSize={12} /><YAxis type="category" dataKey="name" width={130} fontSize={12} /><Tooltip content={<UnitTip />} />
               <Bar dataKey="v" name="Temuan" fill="#1f2ab5" />
             </BarChart>
           </ResponsiveContainer>

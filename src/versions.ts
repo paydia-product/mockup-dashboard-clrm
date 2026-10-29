@@ -11,9 +11,25 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
-    v: '1.2.0',
+    v: '1.3.0',
     date: '2026-10-29',
     deployed: true,
+    title: 'Upload tervalidasi, edit terbatas, notifikasi email',
+    prompt: 'Tooltip unit kerja, data dibatalkan default, hapus kolom alert, simulasi email, edit terbatas, upload tindak lanjut dan surat regulator',
+    tokens: 90000,
+    changes: [
+      'Tooltip Temuan per Unit Kerja menampilkan Total, Selesai, Open',
+      'Data Dibatalkan selalu tampil; checkbox dihapus',
+      'Kolom Alert dihapus; simulasi notifikasi jadi 3 contoh email sesuai aturan alert',
+      'Edit hanya Progress, Batas Waktu (wajib alasan), Tindak Lanjut & Bukti, Bukti Surat Regulator',
+      'Rencana Tindak Lanjut & Bukti jadi teks + 1 file; field baru Bukti Surat Regulator',
+      'Upload: PDF/JPG/JPEG/PNG, ekstensi harus cocok dengan MIME, maks 25 MB, 1 file',
+    ],
+  },
+  {
+    v: '1.2.0',
+    date: '2026-10-29',
+    deployed: false,
     title: 'Filter modal, notifikasi gaya Telegram, aksi Edit/Batalkan',
     prompt: 'Ubah filter jadi modal, hapus Riwayat Export, notifikasi gaya Telegram, aksi Edit/Batalkan, tab Dashboard duluan',
     tokens: 120000,

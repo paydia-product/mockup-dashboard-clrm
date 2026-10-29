@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { FileText, X } from 'lucide-react'
-import { Audit, ChangeReq, Finding, Role, ROLE_USER, alertsFor, fmtDate, fmtTime, userName } from './lib'
+import { Audit, ChangeReq, FileMeta, Finding, Role, ROLE_USER, alertsFor, fmtDate, fmtSize, fmtTime, userName } from './lib'
 import { AlertBadges, Badge, Modal, RiskBadge, StatusBadge } from './ui'
 
 export interface Acts {
@@ -31,6 +31,9 @@ function Decision({ title, opts, rejectOpt, onOk, onClose }: { title: string; op
   )
 }
 
+const Dl = ({ m, empty }: { m: FileMeta | null; empty: string }) =>
+  m ? <span className="inline-flex items-center gap-1 text-brand"><FileText size={12} />{m.name} ({fmtSize(m.size)})</span> : <span className="text-slate-400">{empty}</span>
+
 const Row = ({ l, children }: { l: string; children: React.ReactNode }) => (
   <div><div className="text-xs text-slate-400">{l}</div><div className="mt-0.5 text-slate-800">{children}</div></div>
 )
@@ -38,7 +41,6 @@ const Row = ({ l, children }: { l: string; children: React.ReactNode }) => (
 export default function Drawer({ f, audit, req, role, acts, onClose }: { f: Finding; audit: Audit[]; req?: ChangeReq; role: Role; acts: Acts; onClose: () => void }) {
   const [tab, setTab] = useState<'detail' | 'riwayat'>('detail')
   const [dlg, setDlg] = useState<'validasi' | 'setuju' | null>(null)
-  const [msg, setMsg] = useState('')
   const me = ROLE_USER[role]
   const isCO = role === 'Compliance Officer'
   const isHead = role === 'Head CLRM'
@@ -61,7 +63,6 @@ export default function Drawer({ f, audit, req, role, acts, onClose }: { f: Find
           ))}
         </div>
         <div className="flex-1 overflow-auto p-5">
-          {msg && <p className="mb-3 rounded bg-slate-100 p-2 text-xs">{msg}</p>}
           {tab === 'detail' ? (
             <div className="space-y-5">
               {req && (
@@ -100,18 +101,14 @@ export default function Drawer({ f, audit, req, role, acts, onClose }: { f: Find
               </div>
               <div>
                 <div className="mb-2 text-xs font-semibold text-slate-500">14. RENCANA TINDAK LANJUT & BUKTI</div>
-                <ol className="space-y-2">
-                  {f.tindak.map((t, i) => (
-                    <li key={t.id} className="rounded border border-slate-200 p-2.5">
-                      <div>{i + 1}. {t.text}</div>
-                      <div className="mt-1 flex flex-wrap gap-3 text-xs">
-                        {t.files.length ? t.files.map((n) => (
-                          <a key={n} href="#" className="inline-flex items-center gap-1 text-brand hover:underline" onClick={(e) => { e.preventDefault(); setMsg(`File bukti dummy: ${n} (tidak ada file nyata di mockup)`) }}><FileText size={12} />{n}</a>
-                        )) : <span className="text-slate-400">Belum ada file bukti</span>}
-                      </div>
-                    </li>
-                  ))}
-                </ol>
+                <div className="rounded border border-slate-200 p-2.5">
+                  <div className="whitespace-pre-wrap">{f.tindak || '-'}</div>
+                  <div className="mt-1 text-xs"><Dl m={f.tindakFile} empty="Belum ada file bukti" /></div>
+                </div>
+              </div>
+              <div>
+                <div className="mb-2 text-xs font-semibold text-slate-500">BUKTI SURAT REGULATOR</div>
+                <div className="rounded border border-slate-200 p-2.5 text-xs"><Dl m={f.suratFile} empty="Belum ada file" /></div>
               </div>
             </div>
           ) : (

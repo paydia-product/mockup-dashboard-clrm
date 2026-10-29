@@ -1,6 +1,6 @@
-import { ReactNode, useState } from 'react'
-import { X } from 'lucide-react'
-import { AlertInfo, Status } from './lib'
+import { ReactNode, useRef, useState } from 'react'
+import { Upload, X } from 'lucide-react'
+import { AlertInfo, FILE_ACCEPT, FileMeta, Status, fmtSize, validateFile } from './lib'
 
 const TONE = {
   red: 'border-red-300 text-red-600 bg-red-50',
@@ -24,6 +24,45 @@ export const AlertBadges = ({ list }: { list: AlertInfo[] }) =>
       ))}
     </div>
   ) : <span className="text-slate-300">-</span>
+
+// Satu file saja: pilih baru = ganti, tombol x = hapus, drop >1 file ditolak. Hanya metadata yang disimpan.
+export function FileField({ label, value, onChange, error }: { label: string; value: FileMeta | null; onChange: (m: FileMeta | null) => void; error?: string }) {
+  const ref = useRef<HTMLInputElement>(null)
+  const [local, setLocal] = useState('')
+  const [drag, setDrag] = useState(false)
+  const take = (files: FileList | File[] | null | undefined) => {
+    if (!files || !files.length) return
+    if (files.length > 1) return setLocal('Hanya boleh 1 file')
+    const f = files[0]
+    const err = validateFile(f)
+    setLocal(err ?? '')
+    if (!err) onChange({ name: f.name, size: f.size, type: f.type })
+  }
+  const msg = local || error
+  return (
+    <div>
+      <label className="lbl">{label}</label>
+      <div
+        className={`rounded border border-dashed p-2 text-xs ${drag ? 'border-brand bg-blue-50' : 'border-slate-300'}`}
+        onDragOver={(e) => { e.preventDefault(); setDrag(true) }} onDragLeave={() => setDrag(false)}
+        onDrop={(e) => { e.preventDefault(); setDrag(false); take(e.dataTransfer.files) }}
+      >
+        <div className="flex flex-wrap items-center gap-2">
+          <button type="button" className="btn !py-1" onClick={() => ref.current?.click()}><Upload size={13} />{value ? 'Ganti file' : 'Pilih file'}</button>
+          {value && (
+            <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5">
+              {value.name} ({fmtSize(value.size)})
+              <button type="button" className="text-red-500" aria-label="Hapus file" onClick={() => { onChange(null); setLocal('') }}><X size={12} /></button>
+            </span>
+          )}
+        </div>
+        <p className="mt-1 text-slate-400">PDF, JPG, JPEG, PNG. Maks 25 MB, 1 file.</p>
+        <input ref={ref} type="file" className="hidden" accept={FILE_ACCEPT} onChange={(e) => { take(e.target.files); e.target.value = '' }} />
+      </div>
+      {msg && <p className="err">{msg}</p>}
+    </div>
+  )
+}
 
 export function Modal({ title, onClose, children, wide }: { title: string; onClose: () => void; children: ReactNode; wide?: boolean }) {
   return (

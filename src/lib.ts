@@ -38,7 +38,7 @@ export const ROLE_USER: Record<Role, User> = {
 }
 export const userName = (id: string) => USERS.find((u) => u.id === id)?.name ?? id
 
-export interface Todo { id: string; text: string; files: string[] }
+export interface FileMeta { name: string; size: number; type: string } // hanya metadata, isi file tidak disimpan
 export interface Finding {
   id: string
   no: string // 1 Nomor Temuan
@@ -59,13 +59,15 @@ export interface Finding {
   persetujuanTgl: string
   unit: string // 12
   risiko: Risk // 13
-  tindak: Todo[] // 14
+  tindak: string // 14 (teks rencana tindak lanjut)
+  tindakFile: FileMeta | null // 14 (satu file bukti)
+  suratFile: FileMeta | null // Bukti Surat Regulator
 }
 export interface Audit { id: string; fid: string; time: string; user: string; aksi: string; kolom: string; lama: string; baru: string; alasan: string }
 export interface Filter { q: string; from: string; to: string; status: string; pic: string; unit: string; regulator: string; risiko: string }
 export const EMPTY_FILTER: Filter = { q: '', from: '', to: '', status: '', pic: '', unit: '', regulator: '', risiko: '' }
 export interface ChangeReq { id: string; fid: string; by: string; time: string; alasan: string; changes: { key: keyof Finding; label: string; lama: string; baru: string; value: unknown }[] }
-export interface DB { requests: ChangeReq[]; findings: Finding[]; audit: Audit[]; saved: { name: string; filter: Filter; showCancelled: boolean }[] }
+export interface DB { requests: ChangeReq[]; findings: Finding[]; audit: Audit[]; saved: { name: string; filter: Filter }[] }
 
 // ---- Tanggal ----
 const pad = (n: number) => String(n).padStart(2, '0')
@@ -162,16 +164,15 @@ export function makeSeed(): DB {
     const year = tgl.slice(0, 4)
     const no = `TR-${year}-${String(i + 1).padStart(4, '0')}`
     const pic = PIC_USERS[i < 12 ? (i % 4 === 0 ? 0 : i % 4) : i % 4].id
-    const nTodo = i % 5 === 0 ? ri(3, 4) : i % 3 === 0 ? 2 : 1
-    const tindak: Todo[] = Array.from({ length: nTodo }, (_, k) => ({
-      id: sid(), text: pick(TODO_TEXT),
-      files: k === 0 || r() > 0.5 ? [`bukti_${no.toLowerCase()}_${k + 1}.pdf`] : [],
-    }))
+    const tindak = pick(TODO_TEXT)
+    const tindakFile: FileMeta = { name: `bukti_${no.toLowerCase()}.pdf`, size: ri(80, 900) * 1024, type: 'application/pdf' }
+    const regulator = i < 8 ? REGULATORS[i % 5] : pick(REGULATORS)
+    const suratFile: FileMeta = { name: `surat-${regulator}-${String(i + 1).padStart(3, '0')}.pdf`, size: ri(100, 1500) * 1024, type: 'application/pdf' }
     const f: Finding = {
-      id: `f${i + 1}`, no, regulator: i < 8 ? REGULATORS[i % 5] : pick(REGULATORS), tglTemuan: tgl, area: i < 6 ? AREAS[i % 6] : pick(AREAS),
+      id: `f${i + 1}`, no, regulator, tglTemuan: tgl, area: i < 6 ? AREAS[i % 6] : pick(AREAS),
       rootCause: pick(ROOT_TEXT), rootType: pick(ROOT_TYPES), pic, dueDate: due, status: s.status, progress: 0,
       validasi: 'Belum', validasiOleh: '', validasiTgl: '', persetujuan: 'Menunggu', persetujuanOleh: '', persetujuanTgl: '',
-      unit: i < 6 ? UNITS[i] : pick(UNITS), risiko: pick(RISKS), tindak,
+      unit: i < 6 ? UNITS[i] : pick(UNITS), risiko: pick(RISKS), tindak, tindakFile, suratFile,
     }
     log(f, tgl, 'Rina Kartika', 'Tambah temuan', 'Nomor Temuan', '', no)
     const start = addDays(tgl, 3)
@@ -203,7 +204,8 @@ export function makeSeed(): DB {
 }
 
 // ---- Penyimpanan ----
-const KEY = 'clrm.db.v1'
+// ponytail: v2 supaya data lama (model Todo[] di v1) tidak dimuat dan merusak tampilan
+const KEY = 'clrm.db.v2'
 const ROLE_KEY = 'clrm.role'
 function load(): DB {
   try {
@@ -230,10 +232,9 @@ export function useRole() {
 }
 
 // ---- Filter ----
-export function applyFilter(list: Finding[], f: Filter, showCancelled: boolean): Finding[] {
+export function applyFilter(list: Finding[], f: Filter): Finding[] {
   const q = f.q.trim().toLowerCase()
   return list.filter((x) => {
-    if (x.status === 'Dibatalkan' && !showCancelled && f.status !== 'Dibatalkan') return false
     if (q && !`${x.no} ${x.regulator} ${x.area} ${userName(x.pic)}`.toLowerCase().includes(q)) return false
     if (f.from && x.tglTemuan < f.from) return false
     if (f.to && x.tglTemuan > f.to) return false
@@ -245,8 +246,25 @@ export function applyFilter(list: Finding[], f: Filter, showCancelled: boolean):
     return true
   })
 }
-export const describeFilter = (f: Filter, showCancelled: boolean) => {
-  const p = [f.q && `cari="${f.q}"`, f.from && `dari ${f.from}`, f.to && `sampai ${f.to}`, f.status && `status=${f.status}`, f.pic && `PIC=${userName(f.pic)}`, f.unit && `unit=${f.unit}`, f.regulator && `regulator=${f.regulator}`, f.risiko && `risiko=${f.risiko}`, showCancelled && 'termasuk dibatalkan'].filter(Boolean)
+export const describeFilter = (f: Filter) => {
+  const p = [f.q && `cari="${f.q}"`, f.from && `dari ${f.from}`, f.to && `sampai ${f.to}`, f.status && `status=${f.status}`, f.pic && `PIC=${userName(f.pic)}`, f.unit && `unit=${f.unit}`, f.regulator && `regulator=${f.regulator}`, f.risiko && `risiko=${f.risiko}`].filter(Boolean)
   return p.length ? p.join('; ') : 'Tanpa filter'
 }
-export const todoText = (t: Todo[]) => t.map((x) => x.text + (x.files.length ? ` [${x.files.join(', ')}]` : '')).join(' | ')
+
+// ---- Upload file ----
+export const MAX_FILE_BYTES = 25 * 1024 * 1024
+export const FILE_ACCEPT = '.pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png'
+const EXT_MIME: Record<string, string> = { pdf: 'application/pdf', jpeg: 'image/jpeg', jpg: 'image/jpeg', png: 'image/png' }
+const OK_EXT = Object.keys(EXT_MIME)
+export const fmtSize = (n: number) => (n < 1024 ? `${n} B` : n < 1024 * 1024 ? `${(n / 1024).toFixed(1)} KB` : `${(n / 1024 / 1024).toFixed(1)} MB`)
+// Mengembalikan pesan error (Indonesia) atau null jika valid. Ekstensi DAN MIME harus valid.
+export function validateFile(file: { name: string; size: number; type: string }): string | null {
+  if (file.size === 0) return 'File kosong'
+  const dot = file.name.lastIndexOf('.')
+  const ext = dot >= 0 ? file.name.slice(dot + 1).toLowerCase() : ''
+  if (!OK_EXT.includes(ext)) return 'Format file harus PDF, JPG, JPEG, atau PNG'
+  if (!file.type) return 'Tipe file tidak terbaca. Format file harus PDF, JPG, JPEG, atau PNG'
+  if (EXT_MIME[ext] !== file.type.toLowerCase()) return 'Format file harus PDF, JPG, JPEG, atau PNG'
+  if (file.size > MAX_FILE_BYTES) return 'Ukuran file maksimal 25 MB'
+  return null
+}

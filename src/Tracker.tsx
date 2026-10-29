@@ -2,19 +2,18 @@ import { useEffect, useMemo, useState } from 'react'
 import * as XLSX from 'xlsx'
 import { Bell, ChevronDown, ChevronUp, Download, Eye, History, Pencil, Plus, RotateCcw, Save, Search, SlidersHorizontal, Trash2, XCircle } from 'lucide-react'
 import {
-  Audit, DB, EMPTY_FILTER, Filter, Finding, PIC_USERS, REGULATORS, RISKS, ROLE_USER, Role, STATUSES, UNITS, alertsFor, applyFilter,
-  describeFilter, fmtDate, fmtTime, nowStr, todayStr, todoText, userName,
+  Audit, DB, EMPTY_FILTER, Filter, Finding, PIC_USERS, REGULATORS, AlertInfo, RISKS, ROLE_USER, Role, STATUSES, UNITS, alertsFor, applyFilter,
+  addDays, diffDays, fmtDate, fmtTime, nowStr, todayStr, userName,
 } from './lib'
 import Dashboard from './Dashboard'
 import Drawer, { Acts } from './Drawer'
 import Form from './Form'
-import { AlertBadges, Modal, ReasonModal, RiskBadge, StatusBadge } from './ui'
+import { Modal, ReasonModal, RiskBadge, StatusBadge } from './ui'
 
-const HEAD = { near: '⏰ TEMUAN HAMPIR JATUH TEMPO', overdue: '🔴 TEMUAN LEWAT BATAS WAKTU', stale: '⏳ MENUNGGU VALIDASI TERLALU LAMA' }
-type SortKey = 'no' | 'regulator' | 'tglTemuan' | 'area' | 'pic' | 'dueDate' | 'status' | 'progress' | 'risiko' | 'alert'
+type SortKey = 'no' | 'regulator' | 'tglTemuan' | 'area' | 'pic' | 'dueDate' | 'status' | 'progress' | 'risiko'
 const COLS: { k: SortKey; l: string }[] = [
   { k: 'no', l: 'Nomor Temuan' }, { k: 'regulator', l: 'Regulator' }, { k: 'tglTemuan', l: 'Tanggal Temuan' }, { k: 'area', l: 'Area Temuan' },
-  { k: 'pic', l: 'PIC' }, { k: 'dueDate', l: 'Batas Waktu' }, { k: 'status', l: 'Status' }, { k: 'progress', l: 'Progress' }, { k: 'risiko', l: 'Tingkat Risiko' }, { k: 'alert', l: 'Alert' },
+  { k: 'pic', l: 'PIC' }, { k: 'dueDate', l: 'Batas Waktu' }, { k: 'status', l: 'Status' }, { k: 'progress', l: 'Progress' }, { k: 'risiko', l: 'Tingkat Risiko' },
 ]
 type Pending = { kind: 'add' } | { kind: 'edit'; id: string } | { kind: 'reason'; title: string; danger?: boolean; run: (r: string) => void } | { kind: 'sim' } | null
 
@@ -22,7 +21,6 @@ export default function Tracker({ db, setDb, role }: { db: DB; setDb: React.Disp
   const user = ROLE_USER[role]
   const [tab, setTab] = useState<'table' | 'dashboard'>('dashboard')
   const [filter, setFilter] = useState<Filter>(EMPTY_FILTER)
-  const [showCancelled, setShowCancelled] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
   const [draft, setDraft] = useState<Filter>(EMPTY_FILTER)
   useEffect(() => {
@@ -38,15 +36,14 @@ export default function Tracker({ db, setDb, role }: { db: DB; setDb: React.Disp
   const [pending, setPending] = useState<Pending>(null)
   const [saveName, setSaveName] = useState('')
 
-  const sev = (f: Finding) => { const a = alertsFor(f, db.audit); return a.some((x) => x.color === 'red') ? 2 : a.length ? 1 : 0 }
   const rows = useMemo(() => {
-    const val = (f: Finding): string | number => (sort.k === 'pic' ? userName(f.pic) : sort.k === 'alert' ? sev(f) : (f[sort.k] as string | number))
-    return applyFilter(db.findings, filter, showCancelled).sort((a, b) => {
+    const val = (f: Finding): string | number => (sort.k === 'pic' ? userName(f.pic) : (f[sort.k] as string | number))
+    return applyFilter(db.findings, filter).sort((a, b) => {
       const x = val(a), y = val(b)
       return (typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y))) * sort.dir
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [db, filter, showCancelled, sort])
+  }, [db, filter, sort])
   const pages = Math.max(1, Math.ceil(rows.length / size))
   const cur = Math.min(page, pages)
   const slice = rows.slice((cur - 1) * size, cur * size)
@@ -69,7 +66,7 @@ export default function Tracker({ db, setDb, role }: { db: DB; setDb: React.Disp
     })
   const statusEnt = (aksi: string, from: string, to: string, alasan = ''): Ent => ({ aksi, kolom: 'Status', lama: from, baru: to, alasan })
 
-  const saveForm = (f: Finding, mode: 'add' | 'edit') => {
+  const saveForm = (f: Finding, mode: 'add' | 'edit', alasanDue = '') => {
     if (mode === 'add') {
       const yr = todayStr().slice(0, 4)
       const n = db.findings.filter((x) => x.no.startsWith(`TR-${yr}-`)).length + 1
@@ -79,27 +76,21 @@ export default function Tracker({ db, setDb, role }: { db: DB; setDb: React.Disp
       return
     }
     const old = db.findings.find((x) => x.id === f.id)!
+    const fn = (m: Finding['tindakFile']) => (m ? m.name : '')
     const diffs: [keyof Finding, string, (x: Finding) => string][] = [
-      ['regulator', 'Regulator', (x) => x.regulator], ['tglTemuan', 'Tanggal Temuan', (x) => x.tglTemuan], ['area', 'Area Temuan', (x) => x.area],
-      ['rootCause', 'Penyebab Utama', (x) => `${x.rootCause} (${x.rootType})`], ['pic', 'PIC', (x) => userName(x.pic)], ['dueDate', 'Batas Waktu', (x) => x.dueDate],
-      ['status', 'Status', (x) => x.status], ['progress', 'Persentase Progress', (x) => String(x.progress)], ['unit', 'Unit Kerja', (x) => x.unit],
-      ['risiko', 'Tingkat Risiko', (x) => x.risiko], ['tindak', 'Rencana Tindak Lanjut & Bukti', (x) => todoText(x.tindak)],
+      ['dueDate', 'Batas Waktu', (x) => x.dueDate], ['progress', 'Persentase Progress', (x) => String(x.progress)],
+      ['tindak', 'Rencana Tindak Lanjut', (x) => x.tindak], ['tindakFile', 'File Bukti Tindak Lanjut', (x) => fn(x.tindakFile)], ['suratFile', 'Bukti Surat Regulator', (x) => fn(x.suratFile)],
     ]
-    const make = (alasan: string) =>
-      diffs.filter(([, , g]) => g(old) !== g(f)).map(([k, l, g]): Ent => ({ aksi: 'Ubah temuan', kolom: l, lama: g(old), baru: g(f), alasan: k === 'dueDate' ? alasan : '' }))
-    const doIt = (alasan: string) => {
-      const cs = diffs.filter(([, , g]) => g(old) !== g(f)).map(([k, l, g]) => ({ key: k, label: l, lama: g(old), baru: g(f), value: f[k] as unknown }))
-      if (cs.length) {
-        setDb((d) => ({
-          ...d,
-          requests: [...d.requests.filter((r) => r.fid !== f.id), { id: `r${Date.now()}`, fid: f.id, by: user.name, time: nowStr(), alasan, changes: cs }],
-          audit: [...d.audit, ...mkAudit(f.id, make(alasan).map((e) => ({ ...e, aksi: 'Ajukan perubahan (menunggu Head CLRM)' })))],
-        }))
-      }
-      setPending(null)
+    const changed = diffs.filter(([, , g]) => g(old) !== g(f))
+    if (changed.length) {
+      const cs = changed.map(([k, l, g]) => ({ key: k, label: l, lama: g(old), baru: g(f), value: f[k] as unknown }))
+      setDb((d) => ({
+        ...d,
+        requests: [...d.requests.filter((r) => r.fid !== f.id), { id: `r${Date.now()}`, fid: f.id, by: user.name, time: nowStr(), alasan: alasanDue, changes: cs }],
+        audit: [...d.audit, ...mkAudit(f.id, changed.map(([k, l, g]): Ent => ({ aksi: 'Ajukan perubahan (menunggu Head CLRM)', kolom: l, lama: g(old), baru: g(f), alasan: k === 'dueDate' ? alasanDue : '' })))],
+      }))
     }
-    if (old.dueDate !== f.dueDate) setPending({ kind: 'reason', title: 'Alasan perubahan Batas Waktu', run: doIt })
-    else doIt('')
+    setPending(null)
   }
 
   const actsFor = (f: Finding): Acts => ({
@@ -149,7 +140,7 @@ export default function Tracker({ db, setDb, role }: { db: DB; setDb: React.Disp
       PIC: userName(f.pic), 'Batas Waktu': f.dueDate, Status: f.status, 'Persentase Progress': f.progress,
       'Validasi Ulang': f.validasi === 'Belum' ? 'Belum' : `${f.validasi} - ${f.validasiOleh} - ${f.validasiTgl}`,
       'Persetujuan Penutupan': f.persetujuanOleh ? `${f.persetujuan} - ${f.persetujuanOleh} - ${f.persetujuanTgl}` : f.persetujuan,
-      'Unit Kerja': f.unit, 'Tingkat Risiko': f.risiko, 'Rencana Tindak Lanjut & Bukti': todoText(f.tindak),
+      'Unit Kerja': f.unit, 'Tingkat Risiko': f.risiko, 'Rencana Tindak Lanjut': f.tindak, 'File Bukti Tindak Lanjut': f.tindakFile?.name ?? '', 'Bukti Surat Regulator': f.suratFile?.name ?? '',
     }))
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data), 'Temuan')
@@ -158,17 +149,35 @@ export default function Tracker({ db, setDb, role }: { db: DB; setDb: React.Disp
   }
 
   const sim = useMemo(() => db.findings.flatMap((f) => alertsFor(f, db.audit).map((a) => ({ f, a }))), [db])
+  const mails = useMemo(() => {
+    const t = todayStr()
+    const first = (k: AlertInfo['key']) => sim.find((x) => x.a.key === k)
+    const sample = { id: 'sample', no: 'TR-2026-0000', regulator: 'BI', area: 'QRIS', pic: 'u4', dueDate: addDays(t, 3), status: 'Proses' } as unknown as Finding
+    const cfg: [AlertInfo['key'], string, string, string][] = [
+      ['near', 'Temuan hampir jatuh tempo', 'yellow', 'Batas waktu tinggal 7 hari atau kurang dan temuan belum selesai.'],
+      ['overdue', 'Temuan lewat batas waktu', 'red', 'Batas waktu terlewat dan temuan belum selesai. Lewat lebih dari 7 hari juga dikirim ke Direktur terkait.'],
+      ['stale', 'Menunggu validasi terlalu lama', 'yellow', 'Status Menunggu Validasi lebih dari 7 hari.'],
+    ]
+    return cfg.map(([key, label, color, rule]) => {
+      const hit = first(key)
+      const f = hit?.f ?? { ...sample, dueDate: key === 'overdue' ? addDays(t, -3) : sample.dueDate, status: key === 'stale' ? 'Menunggu Validasi' : 'Proses' } as Finding
+      const d = diffDays(f.dueDate, t)
+      const detail = hit?.a.detail ?? (key === 'near' ? `${d} hari lagi` : key === 'overdue' ? `Lewat ${-d} hari` : '9 hari menunggu')
+      const to = hit?.a.to ?? (key === 'near' ? ['PIC'] : key === 'overdue' ? ['PIC', 'Head CLRM'] : ['Compliance Officer', 'Head CLRM'])
+      return { key, label, color, rule, f, detail, to, sample: !hit }
+    })
+  }, [sim])
   const dashFilter = (nf: Filter) => setFilter({ ...EMPTY_FILTER, from: nf.from, to: nf.to })
   const editing = pending?.kind === 'edit' ? db.findings.find((f) => f.id === pending.id) : null
   const blank = (): Finding => ({
     id: '', no: `TR-${todayStr().slice(0, 4)}-(otomatis)`, regulator: '', tglTemuan: '', area: '', rootCause: '', rootType: '', pic: '', dueDate: '', status: 'Open', progress: 0,
-    validasi: 'Belum', validasiOleh: '', validasiTgl: '', persetujuan: 'Menunggu', persetujuanOleh: '', persetujuanTgl: '', unit: '', risiko: '' as never, tindak: [{ id: crypto.randomUUID(), text: '', files: [] }],
+    validasi: 'Belum', validasiOleh: '', validasiTgl: '', persetujuan: 'Menunggu', persetujuanOleh: '', persetujuanTgl: '', unit: '', risiko: '' as never, tindak: '', tindakFile: null, suratFile: null,
   })
   const sel = (k: keyof Filter, opts: [string, string][], ph: string) => (
     <select className="inp" value={draft[k]} onChange={(e) => setDraft({ ...draft, [k]: e.target.value })}><option value="">{ph}</option>{opts.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select>
   )
   const apply = () => { setFilter({ ...draft, q: filter.q }); setPage(1); setShowFilters(false) }
-  const clearAll = () => { setDraft({ ...EMPTY_FILTER }); setFilter({ ...EMPTY_FILTER }); setShowCancelled(false); setPage(1) }
+  const clearAll = () => { setDraft({ ...EMPTY_FILTER }); setFilter({ ...EMPTY_FILTER }); setPage(1) }
 
   return (
     <div>
@@ -203,13 +212,13 @@ export default function Tracker({ db, setDb, role }: { db: DB; setDb: React.Disp
                     <div className="mt-4 border-t pt-3">
                       <div className="flex gap-2">
                         <input className="inp" placeholder="Nama filter" value={saveName} onChange={(e) => setSaveName(e.target.value)} />
-                        <button className="btn whitespace-nowrap" disabled={!saveName.trim()} onClick={() => { const n = saveName.trim(); setDb((d) => ({ ...d, saved: [...d.saved.filter((x) => x.name !== n), { name: n, filter: { ...draft, q: '' }, showCancelled }] })); setSaveName('') }}><Save size={14} />Simpan Filter</button>
+                        <button className="btn whitespace-nowrap" disabled={!saveName.trim()} onClick={() => { const n = saveName.trim(); setDb((d) => ({ ...d, saved: [...d.saved.filter((x) => x.name !== n), { name: n, filter: { ...draft, q: '' } }] })); setSaveName('') }}><Save size={14} />Simpan Filter</button>
                       </div>
                       {db.saved.length > 0 && (
                         <div className="mt-2 flex flex-wrap gap-1.5">
                           {db.saved.map((sv) => (
                             <span key={sv.name} className="inline-flex items-center overflow-hidden rounded border border-slate-300 text-xs">
-                              <button className="px-2 py-1 hover:bg-slate-50" onClick={() => { setDraft(sv.filter); setFilter({ ...sv.filter, q: filter.q }); setShowCancelled(sv.showCancelled); setPage(1); setShowFilters(false) }}>{sv.name}</button>
+                              <button className="px-2 py-1 hover:bg-slate-50" onClick={() => { setDraft(sv.filter); setFilter({ ...sv.filter, q: filter.q }); setPage(1); setShowFilters(false) }}>{sv.name}</button>
                               <button className="border-l px-1.5 py-1 text-red-500 hover:bg-red-50" aria-label={`Hapus ${sv.name}`} onClick={() => setDb((d) => ({ ...d, saved: d.saved.filter((x) => x.name !== sv.name) }))}><Trash2 size={12} /></button>
                             </span>
                           ))}
@@ -224,7 +233,6 @@ export default function Tracker({ db, setDb, role }: { db: DB; setDb: React.Disp
                 </>
               )}
             </div>
-            <label className="flex items-center gap-1.5 text-xs"><input type="checkbox" checked={showCancelled} onChange={(e) => { setShowCancelled(e.target.checked); setPage(1) }} />Tampilkan yang dibatalkan</label>
             <div className="ml-auto flex flex-wrap gap-2">
               <button className="btn" onClick={() => setPending({ kind: 'sim' })}><Bell size={14} />Simulasi notifikasi ({sim.length})</button>
               <button className="btn" onClick={doExport}><Download size={14} />Export Excel</button>
@@ -256,7 +264,6 @@ export default function Tracker({ db, setDb, role }: { db: DB; setDb: React.Disp
                     <td className="px-3 py-2.5"><StatusBadge s={f.status} /></td>
                     <td className="px-3 py-2.5"><div className="flex items-center gap-2"><div className="h-1.5 w-20 rounded bg-slate-200"><div className="h-1.5 rounded bg-brand" style={{ width: `${f.progress}%` }} /></div><span className="text-xs">{f.progress}%</span></div></td>
                     <td className="px-3 py-2.5"><RiskBadge r={f.risiko} /></td>
-                    <td className="px-3 py-2.5"><AlertBadges list={alertsFor(f, db.audit)} /></td>
                     <td className="px-3 py-2.5">
                       <div className="flex gap-1">
                         {canEdit(f) && <button className="btn !px-2 !py-1" onClick={() => setPending({ kind: 'edit', id: f.id })}><Pencil size={13} />Edit</button>}
@@ -267,7 +274,7 @@ export default function Tracker({ db, setDb, role }: { db: DB; setDb: React.Disp
                     </td>
                   </tr>
                 ))}
-                {!slice.length && <tr><td colSpan={11} className="p-8 text-center text-slate-400">Tidak ada data</td></tr>}
+                {!slice.length && <tr><td colSpan={10} className="p-8 text-center text-slate-400">Tidak ada data</td></tr>}
               </tbody>
             </table>
           </div>
@@ -290,22 +297,31 @@ export default function Tracker({ db, setDb, role }: { db: DB; setDb: React.Disp
       )}
 
       {open && <Drawer f={open} audit={db.audit} req={db.requests.find((r) => r.fid === open.id)} role={role} acts={actsFor(open)} onClose={() => setOpenId(null)} />}
-      {pending?.kind === 'add' && <Form mode="add" role={role} init={blank()} onSave={(f) => saveForm(f, 'add')} onClose={() => setPending(null)} />}
-      {editing && <Form mode="edit" role={role} init={editing} onSave={(f) => saveForm(f, 'edit')} onClose={() => setPending(null)} />}
+      {pending?.kind === 'add' && <Form mode="add" init={blank()} onSave={(f) => saveForm(f, 'add')} onClose={() => setPending(null)} />}
+      {editing && <Form mode="edit" init={editing} onSave={(f, al) => saveForm(f, 'edit', al)} onClose={() => setPending(null)} />}
       {pending?.kind === 'reason' && <ReasonModal title={pending.title} danger={pending.danger} onClose={() => setPending(null)} onConfirm={pending.run} />}
       {pending?.kind === 'sim' && (
-        <Modal wide title={`Simulasi notifikasi Telegram, hari ini ${fmtDate(todayStr())}`} onClose={() => setPending(null)}>
-          <div className="max-h-[65vh] space-y-3 overflow-auto rounded-lg bg-[#e7ebf0] p-3">
-            {sim.map(({ f, a }) => (
-              <div key={f.id + a.key} className="max-w-[520px] whitespace-pre-wrap rounded-2xl rounded-tl-sm bg-white p-3 font-mono text-xs leading-relaxed text-slate-800 shadow-sm">
-                {`${HEAD[a.key]}\n\nNomor Temuan:   ${f.no}\nRegulator:      ${f.regulator}\nArea Temuan:    ${f.area}\nPIC:            ${userName(f.pic)}\nBatas Waktu:    ${fmtDate(f.dueDate)} (${a.detail.toLowerCase()})\nPenerima:       ${a.to.join(', ')}\n🕐 ${todayStr()} 08:00:00`}
+        <Modal wide title={`Simulasi notifikasi email, hari ini ${fmtDate(todayStr())}`} onClose={() => setPending(null)}>
+          <div className="max-h-[65vh] space-y-3 overflow-auto rounded-lg bg-slate-100 p-3">
+            {mails.map((m) => (
+              <div key={m.key} className={`rounded border border-slate-200 border-l-4 bg-white p-4 text-xs leading-relaxed text-slate-800 shadow-sm ${m.color === 'red' ? '!border-l-red-500' : '!border-l-yellow-400'}`}>
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <span className={`rounded px-2 py-0.5 font-medium ${m.color === 'red' ? 'bg-red-50 text-red-600' : 'bg-yellow-50 text-yellow-700'}`}>{m.color === 'red' ? 'Merah' : 'Kuning'}</span>
+                  {m.sample && <span className="text-slate-400">Contoh statis (tidak ada temuan yang cocok hari ini)</span>}
+                </div>
+                <div><b>From:</b> noreply-clrm@paydia.co.id</div>
+                <div><b>To:</b> {m.to.map((r) => (r === 'PIC' ? `PIC (${userName(m.f.pic)})` : r)).join('; ')}</div>
+                <div className="mb-2"><b>Subject:</b> [CLRM] {m.label}: {m.f.no}</div>
+                <div className="space-y-0.5 border-t pt-2">
+                  <div>Nomor Temuan: {m.f.no}</div><div>Regulator: {m.f.regulator}</div><div>Area Temuan: {m.f.area}</div><div>PIC: {userName(m.f.pic)}</div>
+                  <div>Batas Waktu: {fmtDate(m.f.dueDate)} ({m.detail.toLowerCase()})</div><div>Status: {m.f.status}</div>
+                  <div className="pt-1 text-slate-500">Alasan notifikasi: {m.rule}</div>
+                </div>
               </div>
             ))}
-            {!sim.length && <p className="p-6 text-center text-slate-400">Tidak ada alert hari ini</p>}
           </div>
         </Modal>
       )}
     </div>
   )
 }
-

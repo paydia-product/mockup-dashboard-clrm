@@ -6,10 +6,27 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 1.3.0 | 2026-10-29 | ~90k |
 | 1.2.0 | 2026-10-29 | ~120k |
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [1.3.0] - 2026-10-29
+
+Estimasi token: ~90k
+
+### Diubah
+- Tooltip Temuan per Unit Kerja menampilkan Total, Selesai, dan Open.
+- Data Dibatalkan selalu tampil di tabel. Checkbox "Tampilkan yang dibatalkan" dihapus.
+- Kolom Alert dihapus. Simulasi notifikasi menjadi 3 contoh email sesuai aturan alert.
+- Modal Edit hanya mengubah Progress, Batas Waktu, Tindak Lanjut & Bukti, dan Bukti Surat Regulator. Perubahan Batas Waktu wajib diberi alasan.
+- Rencana Tindak Lanjut & Bukti menjadi satu teks dan satu file.
+
+### Ditambah
+- Field Bukti Surat Regulator.
+- Komponen upload `FileField` dan fungsi `validateFile`: PDF, JPG, JPEG, PNG, ekstensi cocok dengan MIME, maks 25 MB, 1 file. Cek: `node scripts/check-upload.ts`.
+- Key localStorage naik ke `clrm.db.v2`.
 
 ## [1.2.0] - 2026-10-29
 
