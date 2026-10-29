@@ -11,9 +11,18 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
-    v: '1.3.0',
+    v: '1.3.1',
     date: '2026-10-29',
     deployed: true,
+    title: 'File bukti tindak lanjut wajib',
+    prompt: 'Jadikan wajib',
+    tokens: 15000,
+    changes: ['File bukti Rencana Tindak Lanjut wajib diunggah di Tambah dan Edit'],
+  },
+  {
+    v: '1.3.0',
+    date: '2026-10-29',
+    deployed: false,
     title: 'Upload tervalidasi, edit terbatas, notifikasi email',
     prompt: 'Tooltip unit kerja, data dibatalkan default, hapus kolom alert, simulasi email, edit terbatas, upload tindak lanjut dan surat regulator',
     tokens: 90000,

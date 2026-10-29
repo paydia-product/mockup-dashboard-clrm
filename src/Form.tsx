@@ -13,6 +13,7 @@ export function validate(f: Finding, alasan = '', needAlasan = false): Errs {
   if (f.dueDate && f.tglTemuan && f.dueDate < f.tglTemuan) e.dueDate = 'Batas Waktu tidak boleh sebelum Tanggal Temuan'
   if (!(f.progress >= 0 && f.progress <= 100) || Number.isNaN(f.progress)) e.progress = 'Progress harus 0 sampai 100'
   if (!f.tindak.trim()) e.tindak = 'Rencana Tindak Lanjut wajib diisi'
+  if (!f.tindakFile) e.tindakFile = 'File bukti tindak lanjut wajib diunggah'
   if (!f.suratFile) e.suratFile = 'Bukti Surat Regulator wajib diunggah'
   if (needAlasan && !alasan.trim()) e.alasan = 'Alasan perubahan batas waktu wajib diisi'
   return e
@@ -54,7 +55,7 @@ export default function Form({ init, mode, onSave, onClose }: { init: Finding; m
         <label className="lbl">Rencana Tindak Lanjut & Bukti *</label>
         <textarea className="inp" rows={3} placeholder="Rencana tindak lanjut" value={f.tindak} onChange={(e) => set('tindak', e.target.value)} />
         {errs.tindak && <p className="err">{errs.tindak}</p>}
-        <div className="mt-2"><FileField label="File bukti" value={f.tindakFile} onChange={(m) => set('tindakFile', m)} /></div>
+        <div className="mt-2"><FileField label="File bukti *" value={f.tindakFile} onChange={(m) => set('tindakFile', m)} error={errs.tindakFile} /></div>
       </div>
       <div className="mt-4"><FileField label="Bukti Surat Regulator *" value={f.suratFile} onChange={(m) => set('suratFile', m)} error={errs.suratFile} /></div>
     </>

@@ -6,11 +6,19 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 1.3.1 | 2026-10-29 | ~15k |
 | 1.3.0 | 2026-10-29 | ~90k |
 | 1.2.0 | 2026-10-29 | ~120k |
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [1.3.1] - 2026-10-29
+
+Estimasi token: ~15k
+
+### Diubah
+- File bukti Rencana Tindak Lanjut wajib diunggah di Tambah dan Edit.
 
 ## [1.3.0] - 2026-10-29
 
