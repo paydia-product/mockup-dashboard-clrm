@@ -1,15 +1,16 @@
 import { useEffect, useMemo, useState } from 'react'
 import * as XLSX from 'xlsx'
-import { Bell, ChevronDown, ChevronUp, Download, Eye, History, Pencil, Plus, RotateCcw, Save, Search, SlidersHorizontal, Trash2, XCircle } from 'lucide-react'
+import { Bell, ChevronDown, ChevronUp, Download, Eye, History, Pencil, Plus, RotateCcw, Save, Search, SlidersHorizontal, Trash2, Upload, XCircle } from 'lucide-react'
 import {
   Audit, DB, EMPTY_FILTER, Filter, Finding, REGULATORS, AlertInfo, RISKS, ROLE_USER, Role, STATUSES, UNITS, alertsFor, applyFilter,
-  addDays, applyTrackerRequest, diffDays, fmtDate, fmtTime, isPendingReq, nowStr, todayStr,
+  addDays, diffDays, fmtDate, fmtTime, isPendingReq, nowStr, todayStr,
 } from './lib'
 import { getStore, setStore } from './kit/store'
 import type { Action } from './kit/types'
 import Dashboard from './Dashboard'
 import Drawer, { Acts } from './Drawer'
 import Form from './Form'
+import TrackerImport from './TrackerImport'
 import { Modal, ReasonModal, RiskBadge, StatusBadge } from './ui'
 
 type SortKey = 'no' | 'regulator' | 'tglTemuan' | 'area' | 'pic' | 'dueDate' | 'status' | 'risiko'
@@ -17,7 +18,7 @@ const COLS: { k: SortKey; l: string }[] = [
   { k: 'no', l: 'Nomor Temuan' }, { k: 'regulator', l: 'Regulator' }, { k: 'tglTemuan', l: 'Tanggal Temuan' }, { k: 'area', l: 'Area Temuan' },
   { k: 'pic', l: 'PIC' }, { k: 'dueDate', l: 'Batas Waktu' }, { k: 'status', l: 'Status' }, { k: 'risiko', l: 'Tingkat Risiko' },
 ]
-type Pending = { kind: 'add' } | { kind: 'edit'; id: string } | { kind: 'reason'; title: string; danger?: boolean; run: (r: string) => void } | { kind: 'sim' } | null
+type Pending = { kind: 'add' } | { kind: 'edit'; id: string } | { kind: 'reason'; title: string; danger?: boolean; run: (r: string) => void } | { kind: 'sim' } | { kind: 'import' } | null
 
 export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb: React.Dispatch<React.SetStateAction<DB>>; role: Role; user: { name: string }; can: (a: Action) => boolean }) {
   const [tab, setTab] = useState<'table' | 'dashboard'>('dashboard')
@@ -84,17 +85,26 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
       ...(selesai ? [['validasi', 'Validasi Ulang', (x: Finding) => x.validasi], ['validasiOleh', 'Nama Validator', (x: Finding) => x.validasiOleh]] as [keyof Finding, string, (x: Finding) => string][] : []),
     ]
     const changed = diffs.filter(([, , g]) => g(old) !== g(f))
-    if (changed.length) {
+    if (changed.length && selesai) {
       const cs = changed.map(([k, l, g]) => ({ key: k, label: l, lama: g(old), baru: g(f), value: f[k] as unknown }))
       const no = (getStore().seq.approval ?? 0) + 1 // nomor request satu urutan dengan approval modul lain
       setStore((s) => ({ ...s, seq: { ...s.seq, approval: no } }))
       setDb((d) => ({
         ...d,
-        requests: [...d.requests.filter((r) => !(r.fid === f.id && isPendingReq(r))), { id: `r${Date.now()}`, no, status: 'Menunggu' as const, fid: f.id, by: user.name, time: nowStr(), alasan, changes: cs }],
-        audit: [...d.audit, ...mkAudit(f.id, changed.map(([, l, g]): Ent => ({ aksi: 'Ajukan perubahan (menunggu Head CLRM)', kolom: l, lama: g(old), baru: g(f), alasan })))],
+        requests: [...d.requests, { id: `r${Date.now()}`, no, status: 'Menunggu' as const, fid: f.id, by: user.name, time: nowStr(), alasan, changes: cs }],
+        audit: [...d.audit, ...mkAudit(f.id, changed.map(([, l, g]): Ent => ({ aksi: 'Ajukan penutupan (menunggu Head CLRM)', kolom: l, lama: g(old), baru: g(f), alasan })))],
       }))
+    } else if (changed.length) {
+      commit(f, changed.map(([, l, g]): Ent => ({ aksi: 'Ubah temuan', kolom: l, lama: g(old), baru: g(f), alasan })))
     }
     setPending(null)
+  }
+
+  const importRows = (list: Finding[]) => {
+    let n = db.findings.reduce((m, x) => Math.max(m, x.no), 0)
+    const stamp = Date.now()
+    const nfs = list.map((f, i) => ({ ...f, no: ++n, id: `f${stamp}-${i}` }))
+    setDb((d) => ({ ...d, findings: [...nfs.slice().reverse(), ...d.findings], audit: [...d.audit, ...nfs.flatMap((nf) => mkAudit(nf.id, [{ aksi: 'Import Excel', kolom: 'Nomor Temuan', baru: String(nf.no) }]))] }))
   }
 
   const actsFor = (f: Finding): Acts => ({
@@ -104,22 +114,7 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
       if (v === 'Tidak Valid') { next.status = 'Proses'; ents.push(statusEnt('Validasi ulang', f.status, 'Proses', alasan)) }
       commit(next, ents)
     },
-    approve: (v, alasan) => {
-      const ents: Ent[] = [{ aksi: 'Persetujuan penutupan', kolom: 'Persetujuan Penutupan', lama: f.persetujuan, baru: v, alasan }]
-      const to = v === 'Disetujui' ? 'Selesai' : 'Proses'
-      ents.push(statusEnt('Persetujuan penutupan', f.status, to, alasan))
-      commit({ ...f, persetujuan: v, persetujuanOleh: user.name, persetujuanTgl: todayStr(), status: to }, ents)
-    },
     cancel: () => setPending({ kind: 'reason', title: `Batalkan temuan ${f.no}`, danger: true, run: (r) => { commit({ ...f, status: 'Dibatalkan' }, [statusEnt('Batalkan temuan', f.status, 'Dibatalkan', r)]); setPending(null) } }),
-    reqApprove: () => {
-      const r = db.requests.find((x) => x.fid === f.id && isPendingReq(x))
-      if (r) setDb((d) => applyTrackerRequest(d, r.id, user.name, true))
-    },
-    reqReject: () => setPending({ kind: 'reason', title: `Tolak perubahan temuan ${f.no}`, danger: true, run: (alasan) => {
-      const r = db.requests.find((x) => x.fid === f.id && isPendingReq(x))
-      if (r) setDb((d) => applyTrackerRequest(d, r.id, user.name, false, alasan))
-      setPending(null)
-    } }),
     restore: () => {
       const last = db.audit.filter((a) => a.fid === f.id && a.kolom === 'Status' && a.baru === 'Dibatalkan').sort((a, b) => b.time.localeCompare(a.time))[0]
       const to = (last?.lama as Finding['status']) || 'Open'
@@ -127,7 +122,8 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
     },
   })
 
-  const canEdit = (f: Finding) => !db.requests.some((r) => r.fid === f.id && isPendingReq(r)) && f.status !== 'Dibatalkan' && f.status !== 'Selesai' && can('Ubah') && (role !== 'PIC' || f.pic === user.name)
+  const hasReq = (f: Finding) => db.requests.some((r) => r.fid === f.id && isPendingReq(r))
+  const canEdit = (f: Finding) => !hasReq(f) && f.status !== 'Dibatalkan' && f.status !== 'Selesai' && can('Ubah') && (role !== 'PIC' || f.pic === user.name)
 
   const doExport = () => {
     const data = rows.map((f) => ({
@@ -230,6 +226,7 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
             </div>
             <div className="ml-auto flex flex-wrap gap-2">
               <button className="btn" onClick={() => setPending({ kind: 'sim' })}><Bell size={14} />Simulasi notifikasi ({sim.length})</button>
+              {can('Tambah') && <button className="btn" onClick={() => setPending({ kind: 'import' })}><Upload size={14} />Import Excel</button>}
               <button className="btn" onClick={doExport}><Download size={14} />Export Excel</button>
               {can('Tambah') && <button className="btn btn-primary" onClick={() => setPending({ kind: 'add' })}><Plus size={14} />Tambah</button>}
             </div>
@@ -262,7 +259,7 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
                       <div className="flex gap-1">
                         <button className="btn !px-2 !py-1" onClick={() => setOpenId(f.id)}><Eye size={13} />Lihat Detail</button>
                         {canEdit(f) && <button className="btn !px-2 !py-1" onClick={() => setPending({ kind: 'edit', id: f.id })}><Pencil size={13} />Edit</button>}
-                        {can('Cancel') && f.status !== 'Dibatalkan' && <button className="btn !px-2 !py-1 text-red-600" onClick={() => actsFor(f).cancel()}><XCircle size={13} />Batalkan</button>}
+                        {can('Cancel') && !hasReq(f) && f.status !== 'Dibatalkan' && <button className="btn !px-2 !py-1 text-red-600" onClick={() => actsFor(f).cancel()}><XCircle size={13} />Batalkan</button>}
                         {can('Cancel') && f.status === 'Dibatalkan' && <button className="btn !px-2 !py-1 text-green-700" onClick={() => actsFor(f).restore()}><RotateCcw size={13} />Kembalikan</button>}
                       </div>
                     </td>
@@ -293,6 +290,7 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
       {open && <Drawer f={open} audit={db.audit} req={db.requests.find((r) => r.fid === open.id && isPendingReq(r))} role={role} acts={actsFor(open)} onClose={() => setOpenId(null)} />}
       {pending?.kind === 'add' && <Form mode="add" init={blank()} onSave={(f) => saveForm(f, 'add')} onClose={() => setPending(null)} />}
       {editing && <Form mode="edit" init={editing} onSave={(f, al) => saveForm(f, 'edit', al)} onClose={() => setPending(null)} />}
+      {pending?.kind === 'import' && <TrackerImport blank={blank} onImport={importRows} onClose={() => setPending(null)} />}
       {pending?.kind === 'reason' && <ReasonModal title={pending.title} danger={pending.danger} onClose={() => setPending(null)} onConfirm={pending.run} />}
       {pending?.kind === 'sim' && (
         <Modal wide title={`Simulasi notifikasi email, hari ini ${fmtDate(todayStr())}`} onClose={() => setPending(null)}>

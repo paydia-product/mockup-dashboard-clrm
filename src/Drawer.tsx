@@ -5,11 +5,8 @@ import { AlertBadges, Badge, Modal, RiskBadge, StatusBadge } from './ui'
 
 export interface Acts {
   validate: (v: 'Valid' | 'Tidak Valid', alasan: string) => void
-  approve: (v: 'Disetujui' | 'Ditolak', alasan: string) => void
   cancel: () => void
   restore: () => void
-  reqApprove: () => void
-  reqReject: () => void
 }
 
 function Decision({ title, opts, rejectOpt, onOk, onClose }: { title: string; opts: string[]; rejectOpt: string; onOk: (v: string, a: string) => void; onClose: () => void }) {
@@ -37,7 +34,7 @@ const Row = ({ l, children }: { l: string; children: React.ReactNode }) => (
 )
 
 export default function Drawer({ f, audit, req, role, acts, onClose }: { f: Finding; audit: Audit[]; req?: ChangeReq; role: Role; acts: Acts; onClose: () => void }) {
-  const [dlg, setDlg] = useState<'validasi' | 'setuju' | null>(null)
+  const [dlg, setDlg] = useState<'validasi' | null>(null)
   const isCO = role === 'Compliance Officer'
   const isHead = role === 'Head CLRM'
   return (
@@ -46,10 +43,8 @@ export default function Drawer({ f, audit, req, role, acts, onClose }: { f: Find
         <div className="space-y-5">
           <AlertBadges list={alertsFor(f, audit)} />
           {req && (
-            <div className="rounded border border-yellow-300 bg-yellow-50 p-3 text-xs">
-              <div className="mb-1 font-semibold text-yellow-800">Perubahan menunggu persetujuan Head CLRM</div>
-              <div className="mb-2 text-slate-600">Diajukan oleh {req.by}, {fmtTime(req.time)}{req.alasan ? `. Alasan: ${req.alasan}` : ''}</div>
-              <ul className="space-y-1">{req.changes.map((c) => <li key={c.label}><b>{c.label}:</b> <span className="text-red-600 line-through">{c.lama || '-'}</span> {'->'} <span className="text-green-700">{c.baru || '-'}</span></li>)}</ul>
+            <div className="rounded border border-yellow-300 bg-yellow-50 p-3 text-xs text-yellow-800">
+              Menunggu persetujuan Head CLRM (Penutupan Temuan). <a className="font-medium underline" href={`#/approval?id=t-${req.id}`}>Lihat di menu Approval</a>
             </div>
           )}
           <div className="grid grid-cols-2 gap-x-6 gap-y-3">
@@ -87,15 +82,12 @@ export default function Drawer({ f, audit, req, role, acts, onClose }: { f: Find
         <div className="mt-5 flex flex-wrap justify-end gap-2 border-t pt-3">
           {role === 'Viewer' && <span className="mr-auto self-center text-xs text-slate-400">Viewer: hanya dapat melihat.</span>}
           {f.status === 'Menunggu Validasi' && f.validasi === 'Belum' && isCO && <button className="btn btn-primary" onClick={() => setDlg('validasi')}>Isi Validasi Ulang</button>}
-          {f.status === 'Menunggu Validasi' && f.validasi === 'Valid' && isHead && <button className="btn btn-primary" onClick={() => setDlg('setuju')}>Persetujuan Penutupan</button>}
-          {req && isHead && <><button className="btn btn-primary" onClick={acts.reqApprove}>Setujui Perubahan</button><button className="btn btn-danger" onClick={acts.reqReject}>Tolak Perubahan</button></>}
-          {isHead && f.status !== 'Dibatalkan' && <button className="btn btn-danger" onClick={acts.cancel}>Batalkan</button>}
+          {isHead && !req && f.status !== 'Dibatalkan' && <button className="btn btn-danger" onClick={acts.cancel}>Batalkan</button>}
           {isHead && f.status === 'Dibatalkan' && <button className="btn btn-primary" onClick={acts.restore}>Kembalikan</button>}
           <button className="btn" onClick={onClose}>Tutup</button>
         </div>
       </Modal>
       {dlg === 'validasi' && <Decision title="Validasi Ulang" opts={['Valid', 'Tidak Valid']} rejectOpt="Tidak Valid" onClose={() => setDlg(null)} onOk={(v, a) => { acts.validate(v as 'Valid' | 'Tidak Valid', a); setDlg(null) }} />}
-      {dlg === 'setuju' && <Decision title="Persetujuan Penutupan" opts={['Disetujui', 'Ditolak']} rejectOpt="Ditolak" onClose={() => setDlg(null)} onOk={(v, a) => { acts.approve(v as 'Disetujui' | 'Ditolak', a); setDlg(null) }} />}
     </>
   )
 }

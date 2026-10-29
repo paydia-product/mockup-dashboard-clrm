@@ -562,16 +562,16 @@ Reporting, RegChange, Sop, RiskRegister, Kajian, Fraud, Kontrak, Aph, Perizinan.
 - Integrator terakhir: build penuh, satu entri versi/CHANGELOG, deploy.
 
 ## E. Konflik terbuka dan asumsi
-Konflik keputusan user (sudah ada di tracker) vs MD, tidak diubah di tracker tanpa keputusan baru:
-- C1. Tracker meminta approval Head CLRM untuk **semua** edit dan memutusnya di halaman (Drawer). G4/T5 meminta approval hanya untuk penutupan, diputus di menu Approval. Plan: request tracker ikut tampil dan bisa diputus di menu Approval (adapter); alur tracker tidak diubah.
-- C2. Detail tanpa Riwayat dan tanpa tombol Ajukan/Ubah, sedangkan CR/MD menyebut riwayat dan prompt revisi C meminta status request + link Approval di detail. Plan: riwayat hanya di menu Log; halaman baru cukup menampilkan baris "Menunggu persetujuan" + link (bukan tombol aksi).
-- C3. Nomor urut biasa, sedangkan CR memakai format (RR-00001, EDD/26/10/0001, SOP-077-PAY). Plan: `no` urut biasa; No Dokumen SOP dan Nomor PKS tetap teks input karena itu data bisnis.
-- C4. Tepat 1 file per FileField, sedangkan T3/T4 dan prompt meminta "satu atau lebih file". Plan: 1 file.
-- C5. Tracker tanpa progress dan memakai unit list sendiri, sedangkan T1/T2 meminta progress manual dan Departemen. Plan: hanya tracker; halaman lain memakai Departemen.
-- C6. Kolom 15 tracker bernama "Bukti Surat Regulator" (prompt revisi: "Surat dari Regulator"). Tracker tidak diubah.
+Keputusan konflik tracker vs MD:
+- C1. SELESAI. Approval hanya untuk penutupan: edit yang mengubah status ke Selesai (dengan Validasi Ulang dan Nama Validator) membuat request "Penutupan Temuan" ke Head CLRM, semua field edit masuk request. Selama menunggu, baris tidak bisa diedit dan tidak bisa dibatalkan. Edit lain tersimpan langsung dengan audit/Log (alasan wajib bila Batas Waktu berubah). Approve/Reject hanya di menu Approval; tombol Setujui/Tolak dan dialog Persetujuan Penutupan di detail tracker dihapus. Approve: status Selesai, Persetujuan Penutupan Disetujui + nama + tanggal. Reject (catatan wajib): status tetap, Persetujuan Penutupan Ditolak + nama + tanggal.
+- C2. SELESAI. Detail menampilkan baris kuning "Menunggu persetujuan Head CLRM (Penutupan Temuan)" dengan link `#/approval?id=t-<id request>`; halaman Approval membuka detail request dari query id. Tanpa tombol aksi. Riwayat tetap di menu Log.
+- C3. Dipertahankan atas permintaan eksplisit user: `no` urut biasa; No Dokumen SOP dan Nomor PKS tetap teks input karena data bisnis.
+- C4. Dipertahankan atas permintaan eksplisit user: 1 file per FileField.
+- C5. Dipertahankan atas permintaan eksplisit user: tracker tanpa progress dan memakai unit list sendiri; halaman lain memakai Departemen.
+- C6. Dipertahankan atas permintaan eksplisit user: kolom 15 tetap "Bukti Surat Regulator".
 - C7. Kanal email: sudah diterapkan, tidak ada konflik.
-- C8. Import Excel (G7) belum ada di tracker. Plan: kit menyediakan, tracker belum memakainya; perlu keputusan apakah tracker ikut.
-- C9. Validasi Ulang tracker hanya muncul saat Selesai dan diisi di form edit, berbeda dengan langkah T5. Tidak diubah.
+- C8. SELESAI. Tab Table tracker punya tombol Import Excel (`src/TrackerImport.tsx`): template tanpa kolom otomatis dan file, preview validasi per baris, impor baris valid, unduh baris gagal, entri audit/Log "Import Excel". Nomor urut otomatis; file kosong dan diisi lewat Edit (form Edit tetap mewajibkan file).
+- C9. SELESAI. Validasi Ulang dan Nama Validator diisi di form edit saat status Selesai, lalu ikut request penutupan (lihat C1).
 
 Asumsi untuk halaman baru (dicatat di README/PRD):
 - A1. Peran Fraud Investigator dan Ketua SMKI ditambah (ada di CR, tidak ada di daftar peran prompt revisi).

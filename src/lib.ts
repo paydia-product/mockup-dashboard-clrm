@@ -236,11 +236,14 @@ export function applyTrackerRequest(db: DB, reqId: string, userName: string, app
   const ok = approve && !!f
   const requests = db.requests.map((x) => (x.id === reqId ? { ...x, status: ok ? ('Disetujui' as const) : ('Ditolak' as const), decidedBy: userName, decidedAt: nowStr(), catatan: note } : x))
   const mk = (aksi: string, alasan: string): Audit[] => r.changes.map((c, i) => ({ id: `${r.fid}-${Date.now()}-${i}`, fid: r.fid, time: nowStr(), user: userName, aksi, kolom: c.label, lama: c.lama, baru: c.baru, alasan }))
-  if (!ok || !f) return { ...db, requests, audit: [...db.audit, ...mk('Tolak perubahan', note)] }
+  if (!ok || !f) {
+    const rej = f ? { ...f, persetujuan: 'Ditolak' as const, persetujuanOleh: userName, persetujuanTgl: todayStr() } : null
+    return { ...db, requests, findings: rej ? db.findings.map((x) => (x.id === f!.id ? rej : x)) : db.findings, audit: [...db.audit, ...mk('Tolak penutupan', note)] }
+  }
   const next = { ...f } as Record<string, unknown>
   r.changes.forEach((c) => { next[c.key] = c.value })
   if (next.status === 'Selesai' && f.status !== 'Selesai') { next.validasiTgl = todayStr(); next.persetujuan = 'Disetujui'; next.persetujuanOleh = userName; next.persetujuanTgl = todayStr() }
-  return { ...db, requests, findings: db.findings.map((x) => (x.id === f.id ? (next as unknown as Finding) : x)), audit: [...db.audit, ...mk('Setujui perubahan', r.alasan)] }
+  return { ...db, requests, findings: db.findings.map((x) => (x.id === f.id ? (next as unknown as Finding) : x)), audit: [...db.audit, ...mk('Setujui penutupan', r.alasan)] }
 }
 
 // ---- Filter ----

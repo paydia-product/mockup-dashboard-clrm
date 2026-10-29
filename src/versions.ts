@@ -11,9 +11,22 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
-    v: '2.0.0',
+    v: '2.1.0',
     date: '2026-10-29',
     deployed: true,
+    title: 'Konflik tracker diselesaikan',
+    prompt: 'Solve conflict kemudian QA penuh seluruhnya',
+    tokens: 150000,
+    changes: [
+      'Tracker: approval hanya untuk penutupan (status ke Selesai), diputus di menu Approval; edit lain langsung tersimpan',
+      'Detail tracker menampilkan status request menunggu dan link ke Approval',
+      'Tracker punya Import Excel',
+    ],
+  },
+  {
+    v: '2.0.0',
+    date: '2026-10-29',
+    deployed: false,
     title: 'Seluruh halaman CR + fitur pendukung',
     prompt: 'Judul detail jadi Detail; kerjakan seluruh halaman lain sesuai rencana kerja baru dan lama, dasar dari tracker, core feature sesuai CR',
     tokens: 2200000,

@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 2.1.0 | 2026-10-29 | ~150k |
 | 2.0.0 | 2026-10-29 | ~2,2 juta |
 | 1.5.0 | 2026-10-29 | ~40k |
 | 1.4.1 | 2026-10-29 | ~10k |
@@ -16,6 +17,17 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [2.1.0] - 2026-10-29
+
+Estimasi token: ~150k
+
+### Diubah
+- Tracker: approval hanya untuk penutupan temuan (status ke Selesai), diputus di menu Approval. Edit lain langsung tersimpan.
+- Detail tracker menampilkan status request yang menunggu dan link ke menu Approval. Tombol Setujui dan Tolak di detail dihapus.
+
+### Ditambah
+- Import Excel di tracker.
 
 ## [2.0.0] - 2026-10-29
 

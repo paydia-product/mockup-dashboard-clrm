@@ -76,7 +76,7 @@ export default function Form({ init, mode, onSave, onClose }: { init: Finding; m
           <div className="grid grid-cols-2 gap-3 rounded bg-slate-50 p-3 text-xs sm:grid-cols-5">
             <Sum l="Nomor">{init.no}</Sum><Sum l="Regulator">{init.regulator}</Sum><Sum l="Area">{init.area}</Sum><Sum l="PIC">{init.pic}</Sum><Sum l="Status">{init.status}</Sum>
           </div>
-          <p className="mt-2 text-xs text-slate-500">Semua perubahan, termasuk status Selesai, menunggu persetujuan Head CLRM.</p>
+          <p className="mt-2 text-xs text-slate-500">Perubahan lain tersimpan langsung. Mengubah status ke Selesai mengajukan penutupan temuan yang menunggu persetujuan Head CLRM.</p>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             {statusField(EDIT_STATUS)}
             {date('dueDate', 'Batas Waktu (Due Date)')}

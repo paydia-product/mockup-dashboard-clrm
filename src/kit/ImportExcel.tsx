@@ -11,7 +11,7 @@ const SKIP = ['file', 'list', 'checklist']
 const optsOf = (f: Field<any>, c: Ctx) => (f.type === 'yesno' ? ['Ya', 'Tidak'] : typeof f.options === 'function' ? f.options(c) : f.options ?? []) // eslint-disable-line @typescript-eslint/no-explicit-any
 export const importFields = <T extends BaseRec>(cfg: PageConfig<T>) => fieldsFor(cfg, 'add').filter((f) => !f.noImport && !SKIP.includes(f.type))
 
-function toDate(raw: unknown): string {
+export function toDate(raw: unknown): string {
   if (raw instanceof Date) return new Date(raw.getTime() + 43200000).toISOString().slice(0, 10) // toleransi zona waktu SheetJS
   const s = String(raw).trim()
   const m = s.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})/)
