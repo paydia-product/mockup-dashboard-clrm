@@ -66,7 +66,7 @@ export default function Dashboard({ findings, audit, filter, setFilter, onOpen }
     })
     let rows = [...m.values()].sort((a, b) => a.bulan.localeCompare(b.bulan))
     if (trendP === 'custom') rows = rows.filter((r) => (!trendFrom || r.bulan >= trendFrom.slice(0, 7)) && (!trendTo || r.bulan <= trendTo.slice(0, 7)))
-    else if (trendP !== 'all') { const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - (Number(trendP) - 1)); const min = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; // waktu lokal, bukan UTC rows = rows.filter((r) => r.bulan >= min) }
+    else if (trendP !== 'all') { const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - (Number(trendP) - 1)); const min = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; rows = rows.filter((r) => r.bulan >= min) } // min pakai waktu lokal, bukan UTC
     return rows
   }, [findings, audit, trendP, trendFrom, trendTo])
 
