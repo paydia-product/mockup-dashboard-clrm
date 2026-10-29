@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 2.4.1 | 2026-10-30 | ~10k |
 | 2.4.0 | 2026-10-30 | ~60k |
 | 2.3.0 | 2026-10-29 | ~25k |
 | 2.2.2 | 2026-10-29 | ~30k |
@@ -22,6 +23,13 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [2.4.1] - 2026-10-30
+
+Estimasi token: ~10k
+
+### Diperbaiki
+- Filter Tren 3, 6, 9, 12 bulan terakhir menampilkan tepat N bulan termasuk bulan ini. Sebelumnya ada 1 bulan tambahan karena perhitungan memakai UTC.
 
 ## [2.4.0] - 2026-10-30
 

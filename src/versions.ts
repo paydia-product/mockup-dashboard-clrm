@@ -11,9 +11,18 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
-    v: '2.4.0',
+    v: '2.4.1',
     date: '2026-10-30',
     deployed: true,
+    title: 'Filter Tren tepat N bulan',
+    prompt: 'Tepat 3 bulan',
+    tokens: 10000,
+    changes: ['Filter Tren 3/6/9/12 bulan terakhir tepat N bulan termasuk bulan ini (sebelumnya lebih 1 bulan karena zona waktu UTC)'],
+  },
+  {
+    v: '2.4.0',
+    date: '2026-10-30',
+    deployed: false,
     title: 'Dashboard dan tabel tracker, import disembunyikan',
     prompt: 'Hapus kolom nomor di Lewat Batas Waktu, filter waktu sendiri di Tren, label Nomor, hapus "-" di detail, alasan perubahan due date terlihat, sembunyikan Import Excel',
     tokens: 60000,
