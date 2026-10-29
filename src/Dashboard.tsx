@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { Audit, EMPTY_FILTER, Filter, Finding, REGULATORS, RISKS, STATUSES, fmtDate, lateDays, userName } from './lib'
+import { Audit, EMPTY_FILTER, Filter, Finding, REGULATORS, RISKS, STATUSES, fmtDate, lateDays } from './lib'
 import { RiskBadge, StatusBadge } from './ui'
 
 const COLORS = ['#1f2ab5', '#3b82f6', '#06b6d4', '#10b981', '#f59e0b', '#8b5cf6']
@@ -99,7 +99,7 @@ export default function Dashboard({ findings, audit, filter, setFilter, onOpen }
         </Card>
         <Card title="Temuan per Unit Kerja">
           <ResponsiveContainer width="100%" height={260}>
-            <BarChart data={byUnit} layout="vertical" margin={{ left: 40 }}><CartesianGrid strokeDasharray="3 3" horizontal={false} /><XAxis type="number" allowDecimals={false} fontSize={12} /><YAxis type="category" dataKey="name" width={130} fontSize={12} /><Tooltip content={<UnitTip />} />
+            <BarChart data={byUnit} layout="vertical" margin={{ left: 40 }}><CartesianGrid strokeDasharray="3 3" horizontal={false} /><XAxis type="number" allowDecimals={false} fontSize={12} /><YAxis type="category" dataKey="name" width={170} fontSize={12} /><Tooltip content={<UnitTip />} />
               <Bar dataKey="v" name="Temuan" fill="#1f2ab5" />
             </BarChart>
           </ResponsiveContainer>
@@ -133,7 +133,7 @@ export default function Dashboard({ findings, audit, filter, setFilter, onOpen }
               <tbody>
                 {overdue.map((f) => (
                   <tr key={f.id} onClick={() => onOpen(f.id)} className="cursor-pointer border-t hover:bg-red-50">
-                    <td className="px-2 py-1.5 font-medium text-brand">{f.no}</td><td className="px-2">{userName(f.pic)}</td><td className="px-2">{fmtDate(f.dueDate)}</td>
+                    <td className="px-2 py-1.5 font-medium">{f.no}</td><td className="px-2">{f.pic}</td><td className="px-2">{fmtDate(f.dueDate)}</td>
                     <td className="px-2 font-medium text-red-600">{lateDays(f)} hari</td><td className="px-2">{bucketOf(f)}</td><td className="px-2"><StatusBadge s={f.status} /></td><td className="px-2"><RiskBadge r={f.risiko} /></td>
                   </tr>
                 ))}

@@ -10,7 +10,8 @@ export const AREAS = ['APU PPT', 'QRIS', 'SNAP', 'Pelindungan Konsumen', 'Ketaha
 export const ROOT_TYPES = ['Orang', 'Proses', 'Sistem', 'Kebijakan', 'Pihak Ketiga']
 export const STATUSES = ['Open', 'Proses', 'Menunggu Validasi', 'Selesai', 'Dibatalkan'] as const
 export const RISKS = ['High', 'Medium', 'Low'] as const
-export const UNITS = ['Operasional', 'Teknologi Informasi', 'Produk & Bisnis', 'Layanan Merchant', 'Keuangan', 'Keamanan Informasi']
+export const UNITS = ['IT', 'Operation', 'Business', 'Support (HRD & GA)', 'Compliance', 'Legal & Risk Management', 'Finance', 'Accounting, Tax & Treasury']
+const VALIDATORS = ['Rina Kartika', 'Arief Nugraha']
 export const ROLES = ['Compliance Officer', 'PIC', 'Head CLRM', 'Viewer'] as const
 
 export type Role = (typeof ROLES)[number]
@@ -41,18 +42,17 @@ export const userName = (id: string) => USERS.find((u) => u.id === id)?.name ?? 
 export interface FileMeta { name: string; size: number; type: string } // hanya metadata, isi file tidak disimpan
 export interface Finding {
   id: string
-  no: string // 1 Nomor Temuan
+  no: number // 1 Nomor Temuan (urutan 1, 2, 3 ...)
   regulator: string // 2
   tglTemuan: string // 3
   area: string // 4
   rootCause: string // 5 (teks)
   rootType: string // 5 (pilihan)
-  pic: string // 6 (id user)
+  pic: string // 6 (nama PIC, teks bebas)
   dueDate: string // 7
   status: Status // 8
-  progress: number // 9
-  validasi: 'Belum' | 'Valid' | 'Tidak Valid' // 10
-  validasiOleh: string
+  validasi: 'Belum' | 'Valid' | 'Tidak Valid' // 10 (tampil di detail hanya jika Selesai)
+  validasiOleh: string // nama validator
   validasiTgl: string
   persetujuan: 'Menunggu' | 'Disetujui' | 'Ditolak' // 11
   persetujuanOleh: string
@@ -161,40 +161,34 @@ export function makeSeed(): DB {
     let tgl = addDays(due, -ri(30, 150))
     if (diffDays(tgl, t) > -5) tgl = addDays(t, -ri(10, 60))
     if (s.status === 'Selesai' && diffDays(due, tgl) < 10) tgl = addDays(due, -30)
-    const year = tgl.slice(0, 4)
-    const no = `TR-${year}-${String(i + 1).padStart(4, '0')}`
-    const pic = PIC_USERS[i < 12 ? (i % 4 === 0 ? 0 : i % 4) : i % 4].id
+    const no = i + 1
+    const pic = PIC_USERS[i < 12 ? (i % 4 === 0 ? 0 : i % 4) : i % 4].name
     const tindak = pick(TODO_TEXT)
-    const tindakFile: FileMeta = { name: `bukti_${no.toLowerCase()}.pdf`, size: ri(80, 900) * 1024, type: 'application/pdf' }
+    const tindakFile: FileMeta = { name: `bukti_temuan-${no}.pdf`, size: ri(80, 900) * 1024, type: 'application/pdf' }
     const regulator = i < 8 ? REGULATORS[i % 5] : pick(REGULATORS)
     const suratFile: FileMeta = { name: `surat-${regulator}-${String(i + 1).padStart(3, '0')}.pdf`, size: ri(100, 1500) * 1024, type: 'application/pdf' }
     const f: Finding = {
       id: `f${i + 1}`, no, regulator, tglTemuan: tgl, area: i < 6 ? AREAS[i % 6] : pick(AREAS),
-      rootCause: pick(ROOT_TEXT), rootType: pick(ROOT_TYPES), pic, dueDate: due, status: s.status, progress: 0,
+      rootCause: pick(ROOT_TEXT), rootType: pick(ROOT_TYPES), pic, dueDate: due, status: s.status,
       validasi: 'Belum', validasiOleh: '', validasiTgl: '', persetujuan: 'Menunggu', persetujuanOleh: '', persetujuanTgl: '',
       unit: i < 6 ? UNITS[i] : pick(UNITS), risiko: pick(RISKS), tindak, tindakFile, suratFile,
     }
-    log(f, tgl, 'Rina Kartika', 'Tambah temuan', 'Nomor Temuan', '', no)
+    log(f, tgl, 'Rina Kartika', 'Tambah temuan', 'Nomor Temuan', '', String(no))
     const start = addDays(tgl, 3)
-    if (s.status === 'Open') f.progress = ri(0, 25)
     if (s.status === 'Proses' || s.status === 'Dibatalkan') {
-      f.progress = ri(20, 80)
-      log(f, start, userName(pic), 'Ubah temuan', 'Status', 'Open', 'Proses')
-      log(f, addDays(start, 5), userName(pic), 'Ubah temuan', 'Persentase Progress', '0', String(f.progress))
+      log(f, start, pic, 'Ubah temuan', 'Status', 'Open', 'Proses')
     }
     if (s.status === 'Menunggu Validasi') {
-      f.progress = 100
-      log(f, start, userName(pic), 'Ubah temuan', 'Status', 'Open', 'Proses')
-      log(f, addDays(t, -(s.wait ?? 3)), userName(pic), 'Ajukan penutupan', 'Status', 'Proses', 'Menunggu Validasi')
+      log(f, start, pic, 'Ubah temuan', 'Status', 'Open', 'Proses')
+      log(f, addDays(t, -(s.wait ?? 3)), pic, 'Ajukan penutupan', 'Status', 'Proses', 'Menunggu Validasi')
     }
     if (s.status === 'Selesai') {
-      f.progress = 100
       const closeAt = addDays(tgl, Math.min(ri(15, 100), Math.max(15, diffDays(t, tgl) - 1)))
       const close = diffDays(closeAt, t) > 0 ? t : closeAt
-      f.validasi = 'Valid'; f.validasiOleh = 'Rina Kartika'; f.validasiTgl = addDays(close, -2)
+      f.validasi = 'Valid'; f.validasiOleh = pick(VALIDATORS); f.validasiTgl = addDays(close, -2)
       f.persetujuan = 'Disetujui'; f.persetujuanOleh = 'Dewi Anggraini'; f.persetujuanTgl = close
-      log(f, addDays(close, -5), userName(pic), 'Ajukan penutupan', 'Status', 'Proses', 'Menunggu Validasi')
-      log(f, f.validasiTgl, 'Rina Kartika', 'Validasi ulang', 'Validasi Ulang', 'Belum', 'Valid')
+      log(f, addDays(close, -5), pic, 'Ajukan penutupan', 'Status', 'Proses', 'Menunggu Validasi')
+      log(f, f.validasiTgl, f.validasiOleh, 'Validasi ulang', 'Validasi Ulang', 'Belum', 'Valid')
       log(f, close, 'Dewi Anggraini', 'Persetujuan penutupan', 'Status', 'Menunggu Validasi', 'Selesai')
     }
     if (s.status === 'Dibatalkan') log(f, addDays(t, -3), 'Dewi Anggraini', 'Batalkan temuan', 'Status', 'Proses', 'Dibatalkan', 'Temuan duplikat dengan laporan regulator sebelumnya')
@@ -204,8 +198,8 @@ export function makeSeed(): DB {
 }
 
 // ---- Penyimpanan ----
-// ponytail: v2 supaya data lama (model Todo[] di v1) tidak dimuat dan merusak tampilan
-const KEY = 'clrm.db.v2'
+// ponytail: v3 supaya data v2 (no 'TR-...', pic berupa id, ada progress) tidak dimuat dan merusak tampilan
+const KEY = 'clrm.db.v3'
 const ROLE_KEY = 'clrm.role'
 function load(): DB {
   try {
@@ -235,7 +229,7 @@ export function useRole() {
 export function applyFilter(list: Finding[], f: Filter): Finding[] {
   const q = f.q.trim().toLowerCase()
   return list.filter((x) => {
-    if (q && !`${x.no} ${x.regulator} ${x.area} ${userName(x.pic)}`.toLowerCase().includes(q)) return false
+    if (q && !`${x.no} ${x.regulator} ${x.area} ${x.pic}`.toLowerCase().includes(q)) return false
     if (f.from && x.tglTemuan < f.from) return false
     if (f.to && x.tglTemuan > f.to) return false
     if (f.status && x.status !== f.status) return false
@@ -247,7 +241,7 @@ export function applyFilter(list: Finding[], f: Filter): Finding[] {
   })
 }
 export const describeFilter = (f: Filter) => {
-  const p = [f.q && `cari="${f.q}"`, f.from && `dari ${f.from}`, f.to && `sampai ${f.to}`, f.status && `status=${f.status}`, f.pic && `PIC=${userName(f.pic)}`, f.unit && `unit=${f.unit}`, f.regulator && `regulator=${f.regulator}`, f.risiko && `risiko=${f.risiko}`].filter(Boolean)
+  const p = [f.q && `cari="${f.q}"`, f.from && `dari ${f.from}`, f.to && `sampai ${f.to}`, f.status && `status=${f.status}`, f.pic && `PIC=${f.pic}`, f.unit && `unit=${f.unit}`, f.regulator && `regulator=${f.regulator}`, f.risiko && `risiko=${f.risiko}`].filter(Boolean)
   return p.length ? p.join('; ') : 'Tanpa filter'
 }
 

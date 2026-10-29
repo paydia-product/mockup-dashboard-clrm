@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { FileText, X } from 'lucide-react'
-import { Audit, ChangeReq, FileMeta, Finding, Role, ROLE_USER, alertsFor, fmtDate, fmtSize, fmtTime, userName } from './lib'
+import { Audit, ChangeReq, FileMeta, Finding, Role, ROLE_USER, alertsFor, fmtDate, fmtSize, fmtTime } from './lib'
 import { AlertBadges, Badge, Modal, RiskBadge, StatusBadge } from './ui'
 
 export interface Acts {
@@ -44,7 +44,7 @@ export default function Drawer({ f, audit, req, role, acts, onClose }: { f: Find
   const me = ROLE_USER[role]
   const isCO = role === 'Compliance Officer'
   const isHead = role === 'Head CLRM'
-  const own = role === 'PIC' && f.pic === me.id
+  const own = role === 'PIC' && f.pic === me.name
   const live = f.status !== 'Dibatalkan' && f.status !== 'Selesai'
   const hist = audit.filter((a) => a.fid === f.id).sort((a, b) => b.time.localeCompare(a.time))
   return (
@@ -52,7 +52,7 @@ export default function Drawer({ f, audit, req, role, acts, onClose }: { f: Find
       <div className="flex h-full w-full max-w-[760px] flex-col bg-white shadow-xl" onMouseDown={(e) => e.stopPropagation()}>
         <div className="flex items-start justify-between border-b px-5 py-4">
           <div>
-            <h2 className="text-base font-semibold text-slate-800">{f.no}</h2>
+            <h2 className="text-base font-semibold text-slate-800">Temuan {f.no}</h2>
             <div className="mt-1 flex flex-wrap items-center gap-2"><StatusBadge s={f.status} /><RiskBadge r={f.risiko} /><AlertBadges list={alertsFor(f, audit)} /></div>
           </div>
           <button onClick={onClose} aria-label="Tutup"><X size={18} /></button>
@@ -68,7 +68,7 @@ export default function Drawer({ f, audit, req, role, acts, onClose }: { f: Find
               {req && (
                 <div className="rounded border border-yellow-300 bg-yellow-50 p-3 text-xs">
                   <div className="mb-1 font-semibold text-yellow-800">Perubahan menunggu persetujuan Head CLRM</div>
-                  <div className="mb-2 text-slate-600">Diajukan oleh {req.by}, {fmtTime(req.time)}{req.alasan ? `. Alasan Batas Waktu: ${req.alasan}` : ''}</div>
+                  <div className="mb-2 text-slate-600">Diajukan oleh {req.by}, {fmtTime(req.time)}{req.alasan ? `. Alasan: ${req.alasan}` : ''}</div>
                   <ul className="space-y-1">{req.changes.map((c) => <li key={c.label}><b>{c.label}:</b> <span className="text-red-600 line-through">{c.lama || '-'}</span> {'->'} <span className="text-green-700">{c.baru || '-'}</span></li>)}</ul>
                 </div>
               )}
@@ -78,21 +78,20 @@ export default function Drawer({ f, audit, req, role, acts, onClose }: { f: Find
                 <Row l="3. Tanggal Temuan">{fmtDate(f.tglTemuan)}</Row>
                 <Row l="4. Area Temuan">{f.area}</Row>
                 <Row l="5. Penyebab Utama (Root Cause)">{f.rootCause} <Badge tone="gray">{f.rootType}</Badge></Row>
-                <Row l="6. PIC">{userName(f.pic)}</Row>
+                <Row l="6. PIC">{f.pic}</Row>
                 <Row l="7. Batas Waktu (Due Date)">{fmtDate(f.dueDate)}</Row>
                 <Row l="8. Status"><StatusBadge s={f.status} /></Row>
-                <Row l="9. Persentase Progress">
-                  <div className="flex items-center gap-2"><div className="h-2 w-32 rounded bg-slate-200"><div className="h-2 rounded bg-brand" style={{ width: `${f.progress}%` }} /></div>{f.progress}%</div>
-                </Row>
                 <Row l="12. Unit Kerja">{f.unit}</Row>
                 <Row l="13. Tingkat Risiko"><RiskBadge r={f.risiko} /></Row>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div className="rounded border border-slate-200 p-3">
-                  <div className="mb-2 text-xs font-semibold text-slate-500">10. VALIDASI ULANG</div>
-                  <Badge tone={f.validasi === 'Valid' ? 'green' : f.validasi === 'Tidak Valid' ? 'red' : 'gray'}>{f.validasi}</Badge>
-                  <div className="mt-2 text-xs text-slate-500">Validator: {f.validasiOleh || '-'}<br />Tanggal: {fmtDate(f.validasiTgl)}</div>
-                </div>
+                {f.status === 'Selesai' && (
+                  <div className="rounded border border-slate-200 p-3">
+                    <div className="mb-2 text-xs font-semibold text-slate-500">10. VALIDASI ULANG</div>
+                    <Badge tone={f.validasi === 'Valid' ? 'green' : f.validasi === 'Tidak Valid' ? 'red' : 'gray'}>{f.validasi}</Badge>
+                    <div className="mt-2 text-xs text-slate-500">Nama Validator: {f.validasiOleh || '-'}</div>
+                  </div>
+                )}
                 <div className="rounded border border-slate-200 p-3">
                   <div className="mb-2 text-xs font-semibold text-slate-500">11. PERSETUJUAN PENUTUPAN</div>
                   <Badge tone={f.persetujuan === 'Disetujui' ? 'green' : f.persetujuan === 'Ditolak' ? 'red' : 'gray'}>{f.persetujuan}</Badge>
@@ -100,7 +99,7 @@ export default function Drawer({ f, audit, req, role, acts, onClose }: { f: Find
                 </div>
               </div>
               <div>
-                <div className="mb-2 text-xs font-semibold text-slate-500">14. RENCANA TINDAK LANJUT & BUKTI</div>
+                <div className="mb-2 text-xs font-semibold text-slate-500">14. RENCANA TINDAK LANJUT</div>
                 <div className="rounded border border-slate-200 p-2.5">
                   <div className="whitespace-pre-wrap">{f.tindak || '-'}</div>
                   <div className="mt-1 text-xs"><Dl m={f.tindakFile} empty="Belum ada file bukti" /></div>

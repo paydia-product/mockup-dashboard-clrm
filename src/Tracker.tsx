@@ -2,18 +2,18 @@ import { useEffect, useMemo, useState } from 'react'
 import * as XLSX from 'xlsx'
 import { Bell, ChevronDown, ChevronUp, Download, Eye, History, Pencil, Plus, RotateCcw, Save, Search, SlidersHorizontal, Trash2, XCircle } from 'lucide-react'
 import {
-  Audit, DB, EMPTY_FILTER, Filter, Finding, PIC_USERS, REGULATORS, AlertInfo, RISKS, ROLE_USER, Role, STATUSES, UNITS, alertsFor, applyFilter,
-  addDays, diffDays, fmtDate, fmtTime, nowStr, todayStr, userName,
+  Audit, DB, EMPTY_FILTER, Filter, Finding, REGULATORS, AlertInfo, RISKS, ROLE_USER, Role, STATUSES, UNITS, alertsFor, applyFilter,
+  addDays, diffDays, fmtDate, fmtTime, nowStr, todayStr,
 } from './lib'
 import Dashboard from './Dashboard'
 import Drawer, { Acts } from './Drawer'
 import Form from './Form'
 import { Modal, ReasonModal, RiskBadge, StatusBadge } from './ui'
 
-type SortKey = 'no' | 'regulator' | 'tglTemuan' | 'area' | 'pic' | 'dueDate' | 'status' | 'progress' | 'risiko'
+type SortKey = 'no' | 'regulator' | 'tglTemuan' | 'area' | 'pic' | 'dueDate' | 'status' | 'risiko'
 const COLS: { k: SortKey; l: string }[] = [
   { k: 'no', l: 'Nomor Temuan' }, { k: 'regulator', l: 'Regulator' }, { k: 'tglTemuan', l: 'Tanggal Temuan' }, { k: 'area', l: 'Area Temuan' },
-  { k: 'pic', l: 'PIC' }, { k: 'dueDate', l: 'Batas Waktu' }, { k: 'status', l: 'Status' }, { k: 'progress', l: 'Progress' }, { k: 'risiko', l: 'Tingkat Risiko' },
+  { k: 'pic', l: 'PIC' }, { k: 'dueDate', l: 'Batas Waktu' }, { k: 'status', l: 'Status' }, { k: 'risiko', l: 'Tingkat Risiko' },
 ]
 type Pending = { kind: 'add' } | { kind: 'edit'; id: string } | { kind: 'reason'; title: string; danger?: boolean; run: (r: string) => void } | { kind: 'sim' } | null
 
@@ -37,7 +37,7 @@ export default function Tracker({ db, setDb, role }: { db: DB; setDb: React.Disp
   const [saveName, setSaveName] = useState('')
 
   const rows = useMemo(() => {
-    const val = (f: Finding): string | number => (sort.k === 'pic' ? userName(f.pic) : (f[sort.k] as string | number))
+    const val = (f: Finding): string | number => f[sort.k]
     return applyFilter(db.findings, filter).sort((a, b) => {
       const x = val(a), y = val(b)
       return (typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y))) * sort.dir
@@ -66,28 +66,29 @@ export default function Tracker({ db, setDb, role }: { db: DB; setDb: React.Disp
     })
   const statusEnt = (aksi: string, from: string, to: string, alasan = ''): Ent => ({ aksi, kolom: 'Status', lama: from, baru: to, alasan })
 
-  const saveForm = (f: Finding, mode: 'add' | 'edit', alasanDue = '') => {
+  const saveForm = (f: Finding, mode: 'add' | 'edit', alasan = '') => {
     if (mode === 'add') {
-      const yr = todayStr().slice(0, 4)
-      const n = db.findings.filter((x) => x.no.startsWith(`TR-${yr}-`)).length + 1
-      const nf = { ...f, no: `TR-${yr}-${String(n).padStart(4, '0')}`, id: `f${Date.now()}` }
-      commit(nf, [{ aksi: 'Tambah temuan', kolom: 'Nomor Temuan', baru: nf.no }])
+      const n = db.findings.reduce((m, x) => Math.max(m, x.no), 0) + 1
+      const nf = { ...f, no: n, id: `f${Date.now()}` }
+      commit(nf, [{ aksi: 'Tambah temuan', kolom: 'Nomor Temuan', baru: String(n) }])
       setPending(null)
       return
     }
     const old = db.findings.find((x) => x.id === f.id)!
     const fn = (m: Finding['tindakFile']) => (m ? m.name : '')
+    const selesai = f.status === 'Selesai' && old.status !== 'Selesai'
     const diffs: [keyof Finding, string, (x: Finding) => string][] = [
-      ['dueDate', 'Batas Waktu', (x) => x.dueDate], ['progress', 'Persentase Progress', (x) => String(x.progress)],
+      ['status', 'Status', (x) => x.status], ['dueDate', 'Batas Waktu', (x) => x.dueDate],
       ['tindak', 'Rencana Tindak Lanjut', (x) => x.tindak], ['tindakFile', 'File Bukti Tindak Lanjut', (x) => fn(x.tindakFile)], ['suratFile', 'Bukti Surat Regulator', (x) => fn(x.suratFile)],
+      ...(selesai ? [['validasi', 'Validasi Ulang', (x: Finding) => x.validasi], ['validasiOleh', 'Nama Validator', (x: Finding) => x.validasiOleh]] as [keyof Finding, string, (x: Finding) => string][] : []),
     ]
     const changed = diffs.filter(([, , g]) => g(old) !== g(f))
     if (changed.length) {
       const cs = changed.map(([k, l, g]) => ({ key: k, label: l, lama: g(old), baru: g(f), value: f[k] as unknown }))
       setDb((d) => ({
         ...d,
-        requests: [...d.requests.filter((r) => r.fid !== f.id), { id: `r${Date.now()}`, fid: f.id, by: user.name, time: nowStr(), alasan: alasanDue, changes: cs }],
-        audit: [...d.audit, ...mkAudit(f.id, changed.map(([k, l, g]): Ent => ({ aksi: 'Ajukan perubahan (menunggu Head CLRM)', kolom: l, lama: g(old), baru: g(f), alasan: k === 'dueDate' ? alasanDue : '' })))],
+        requests: [...d.requests.filter((r) => r.fid !== f.id), { id: `r${Date.now()}`, fid: f.id, by: user.name, time: nowStr(), alasan, changes: cs }],
+        audit: [...d.audit, ...mkAudit(f.id, changed.map(([, l, g]): Ent => ({ aksi: 'Ajukan perubahan (menunggu Head CLRM)', kolom: l, lama: g(old), baru: g(f), alasan })))],
       }))
     }
     setPending(null)
@@ -97,8 +98,7 @@ export default function Tracker({ db, setDb, role }: { db: DB; setDb: React.Disp
     edit: () => setPending({ kind: 'edit', id: f.id }),
     submit: () => {
       const ents = [statusEnt('Ajukan penutupan', f.status, 'Menunggu Validasi')]
-      if (f.progress !== 100) ents.push({ aksi: 'Ajukan penutupan', kolom: 'Persentase Progress', lama: String(f.progress), baru: '100' })
-      commit({ ...f, status: 'Menunggu Validasi', progress: 100, validasi: 'Belum', validasiOleh: '', validasiTgl: '', persetujuan: 'Menunggu', persetujuanOleh: '', persetujuanTgl: '' }, ents)
+      commit({ ...f, status: 'Menunggu Validasi', validasi: 'Belum', validasiOleh: '', validasiTgl: '', persetujuan: 'Menunggu', persetujuanOleh: '', persetujuanTgl: '' }, ents)
     },
     validate: (v, alasan) => {
       const ents: Ent[] = [{ aksi: 'Validasi ulang', kolom: 'Validasi Ulang', lama: f.validasi, baru: v, alasan }]
@@ -112,15 +112,16 @@ export default function Tracker({ db, setDb, role }: { db: DB; setDb: React.Disp
       ents.push(statusEnt('Persetujuan penutupan', f.status, to, alasan))
       commit({ ...f, persetujuan: v, persetujuanOleh: user.name, persetujuanTgl: todayStr(), status: to }, ents)
     },
-    cancel: () => setPending({ kind: 'reason', title: `Batalkan ${f.no}`, danger: true, run: (r) => { commit({ ...f, status: 'Dibatalkan' }, [statusEnt('Batalkan temuan', f.status, 'Dibatalkan', r)]); setPending(null) } }),
+    cancel: () => setPending({ kind: 'reason', title: `Batalkan temuan ${f.no}`, danger: true, run: (r) => { commit({ ...f, status: 'Dibatalkan' }, [statusEnt('Batalkan temuan', f.status, 'Dibatalkan', r)]); setPending(null) } }),
     reqApprove: () => {
       const r = db.requests.find((x) => x.fid === f.id)
       if (!r) return
       const next = { ...f } as Record<string, unknown>
       r.changes.forEach((c) => { next[c.key] = c.value })
-      commit(next as unknown as Finding, r.changes.map((c): Ent => ({ aksi: 'Setujui perubahan', kolom: c.label, lama: c.lama, baru: c.baru, alasan: c.key === 'dueDate' ? r.alasan : '' })), true)
+      if (next.status === 'Selesai' && f.status !== 'Selesai') { next.validasiTgl = todayStr(); next.persetujuan = 'Disetujui'; next.persetujuanOleh = user.name; next.persetujuanTgl = todayStr() }
+      commit(next as unknown as Finding, r.changes.map((c): Ent => ({ aksi: 'Setujui perubahan', kolom: c.label, lama: c.lama, baru: c.baru, alasan: r.alasan })), true)
     },
-    reqReject: () => setPending({ kind: 'reason', title: `Tolak perubahan ${f.no}`, danger: true, run: (alasan) => {
+    reqReject: () => setPending({ kind: 'reason', title: `Tolak perubahan temuan ${f.no}`, danger: true, run: (alasan) => {
       const r = db.requests.find((x) => x.fid === f.id)
       if (r) setDb((d) => ({ ...d, requests: d.requests.filter((x) => x.fid !== f.id), audit: [...d.audit, ...mkAudit(f.id, r.changes.map((c): Ent => ({ aksi: 'Tolak perubahan', kolom: c.label, lama: c.lama, baru: c.baru, alasan })))] }))
       setPending(null)
@@ -132,12 +133,12 @@ export default function Tracker({ db, setDb, role }: { db: DB; setDb: React.Disp
     },
   })
 
-  const canEdit = (f: Finding) => !db.requests.some((r) => r.fid === f.id) && f.status !== 'Dibatalkan' && f.status !== 'Selesai' && (role === 'Compliance Officer' || (role === 'PIC' && f.pic === user.id))
+  const canEdit = (f: Finding) => !db.requests.some((r) => r.fid === f.id) && f.status !== 'Dibatalkan' && f.status !== 'Selesai' && (role === 'Compliance Officer' || (role === 'PIC' && f.pic === user.name))
 
   const doExport = () => {
     const data = rows.map((f) => ({
       'Nomor Temuan': f.no, Regulator: f.regulator, 'Tanggal Temuan': f.tglTemuan, 'Area Temuan': f.area, 'Penyebab Utama (Root Cause)': `${f.rootCause} (${f.rootType})`,
-      PIC: userName(f.pic), 'Batas Waktu': f.dueDate, Status: f.status, 'Persentase Progress': f.progress,
+      PIC: f.pic, 'Batas Waktu': f.dueDate, Status: f.status,
       'Validasi Ulang': f.validasi === 'Belum' ? 'Belum' : `${f.validasi} - ${f.validasiOleh} - ${f.validasiTgl}`,
       'Persetujuan Penutupan': f.persetujuanOleh ? `${f.persetujuan} - ${f.persetujuanOleh} - ${f.persetujuanTgl}` : f.persetujuan,
       'Unit Kerja': f.unit, 'Tingkat Risiko': f.risiko, 'Rencana Tindak Lanjut': f.tindak, 'File Bukti Tindak Lanjut': f.tindakFile?.name ?? '', 'Bukti Surat Regulator': f.suratFile?.name ?? '',
@@ -152,7 +153,7 @@ export default function Tracker({ db, setDb, role }: { db: DB; setDb: React.Disp
   const mails = useMemo(() => {
     const t = todayStr()
     const first = (k: AlertInfo['key']) => sim.find((x) => x.a.key === k)
-    const sample = { id: 'sample', no: 'TR-2026-0000', regulator: 'BI', area: 'QRIS', pic: 'u4', dueDate: addDays(t, 3), status: 'Proses' } as unknown as Finding
+    const sample = { id: 'sample', no: 1, regulator: 'BI', area: 'QRIS', pic: ROLE_USER.PIC.name, dueDate: addDays(t, 3), status: 'Proses' } as unknown as Finding
     const cfg: [AlertInfo['key'], string, string, string][] = [
       ['near', 'Temuan hampir jatuh tempo', 'yellow', 'Batas waktu tinggal 7 hari atau kurang dan temuan belum selesai.'],
       ['overdue', 'Temuan lewat batas waktu', 'red', 'Batas waktu terlewat dan temuan belum selesai. Lewat lebih dari 7 hari juga dikirim ke Direktur terkait.'],
@@ -170,7 +171,7 @@ export default function Tracker({ db, setDb, role }: { db: DB; setDb: React.Disp
   const dashFilter = (nf: Filter) => setFilter({ ...EMPTY_FILTER, from: nf.from, to: nf.to })
   const editing = pending?.kind === 'edit' ? db.findings.find((f) => f.id === pending.id) : null
   const blank = (): Finding => ({
-    id: '', no: `TR-${todayStr().slice(0, 4)}-(otomatis)`, regulator: '', tglTemuan: '', area: '', rootCause: '', rootType: '', pic: '', dueDate: '', status: 'Open', progress: 0,
+    id: '', no: 0, regulator: '', tglTemuan: '', area: '', rootCause: '', rootType: '', pic: '', dueDate: '', status: 'Open',
     validasi: 'Belum', validasiOleh: '', validasiTgl: '', persetujuan: 'Menunggu', persetujuanOleh: '', persetujuanTgl: '', unit: '', risiko: '' as never, tindak: '', tindakFile: null, suratFile: null,
   })
   const sel = (k: keyof Filter, opts: [string, string][], ph: string) => (
@@ -204,7 +205,7 @@ export default function Tracker({ db, setDb, role }: { db: DB; setDb: React.Disp
                       <div><label className="lbl">Periode</label>
                         <div className="flex items-center gap-2"><input type="date" className="inp" value={draft.from} onChange={(e) => setDraft({ ...draft, from: e.target.value })} /><span>-</span><input type="date" className="inp" value={draft.to} onChange={(e) => setDraft({ ...draft, to: e.target.value })} /></div></div>
                       <div><label className="lbl">Status</label>{sel('status', STATUSES.map((x) => [x, x]), 'Pilih Status')}</div>
-                      <div><label className="lbl">PIC</label>{sel('pic', PIC_USERS.map((u) => [u.id, u.name]), 'Pilih PIC')}</div>
+                      <div><label className="lbl">PIC</label>{sel('pic', [...new Set(db.findings.map((x) => x.pic))].sort().map((n) => [n, n]), 'Pilih PIC')}</div>
                       <div><label className="lbl">Unit Kerja</label>{sel('unit', UNITS.map((x) => [x, x]), 'Pilih Unit Kerja')}</div>
                       <div><label className="lbl">Regulator</label>{sel('regulator', REGULATORS.map((x) => [x, x]), 'Pilih Regulator')}</div>
                       <div><label className="lbl">Tingkat Risiko</label>{sel('risiko', RISKS.map((x) => [x, x]), 'Pilih Tingkat Risiko')}</div>
@@ -255,21 +256,20 @@ export default function Tracker({ db, setDb, role }: { db: DB; setDb: React.Disp
               <tbody>
                 {slice.map((f) => (
                   <tr key={f.id} className={`border-t align-top hover:bg-slate-50 ${f.status === 'Dibatalkan' ? 'text-slate-400' : ''}`}>
-                    <td className="whitespace-nowrap px-3 py-2.5"><button className="font-medium text-brand hover:underline" onClick={() => setOpenId(f.id)}>{f.no}</button></td>
+                    <td className="whitespace-nowrap px-3 py-2.5 font-medium">{f.no}</td>
                     <td className="px-3 py-2.5">{f.regulator}</td>
                     <td className="whitespace-nowrap px-3 py-2.5">{fmtDate(f.tglTemuan)}</td>
                     <td className="px-3 py-2.5">{f.area}</td>
-                    <td className="whitespace-nowrap px-3 py-2.5">{userName(f.pic)}</td>
+                    <td className="whitespace-nowrap px-3 py-2.5">{f.pic}</td>
                     <td className="whitespace-nowrap px-3 py-2.5">{fmtDate(f.dueDate)}</td>
                     <td className="px-3 py-2.5"><StatusBadge s={f.status} /></td>
-                    <td className="px-3 py-2.5"><div className="flex items-center gap-2"><div className="h-1.5 w-20 rounded bg-slate-200"><div className="h-1.5 rounded bg-brand" style={{ width: `${f.progress}%` }} /></div><span className="text-xs">{f.progress}%</span></div></td>
                     <td className="px-3 py-2.5"><RiskBadge r={f.risiko} /></td>
                     <td className="px-3 py-2.5">
                       <div className="flex gap-1">
+                        <button className="btn !px-2 !py-1" onClick={() => setOpenId(f.id)}><Eye size={13} />Lihat Detail</button>
                         {canEdit(f) && <button className="btn !px-2 !py-1" onClick={() => setPending({ kind: 'edit', id: f.id })}><Pencil size={13} />Edit</button>}
                         {role === 'Head CLRM' && f.status !== 'Dibatalkan' && <button className="btn !px-2 !py-1 text-red-600" onClick={() => actsFor(f).cancel()}><XCircle size={13} />Batalkan</button>}
                         {role === 'Head CLRM' && f.status === 'Dibatalkan' && <button className="btn !px-2 !py-1 text-green-700" onClick={() => actsFor(f).restore()}><RotateCcw size={13} />Kembalikan</button>}
-                        {!canEdit(f) && !(role === 'Head CLRM') && <span className="text-slate-300">-</span>}
                       </div>
                     </td>
                   </tr>
@@ -310,10 +310,10 @@ export default function Tracker({ db, setDb, role }: { db: DB; setDb: React.Disp
                   {m.sample && <span className="text-slate-400">Contoh statis (tidak ada temuan yang cocok hari ini)</span>}
                 </div>
                 <div><b>From:</b> noreply-clrm@paydia.co.id</div>
-                <div><b>To:</b> {m.to.map((r) => (r === 'PIC' ? `PIC (${userName(m.f.pic)})` : r)).join('; ')}</div>
-                <div className="mb-2"><b>Subject:</b> [CLRM] {m.label}: {m.f.no}</div>
+                <div><b>To:</b> {m.to.map((r) => (r === 'PIC' ? `PIC (${m.f.pic})` : r)).join('; ')}</div>
+                <div className="mb-2"><b>Subject:</b> [CLRM] {m.label}: Temuan {m.f.no}</div>
                 <div className="space-y-0.5 border-t pt-2">
-                  <div>Nomor Temuan: {m.f.no}</div><div>Regulator: {m.f.regulator}</div><div>Area Temuan: {m.f.area}</div><div>PIC: {userName(m.f.pic)}</div>
+                  <div>Nomor Temuan: {m.f.no}</div><div>Regulator: {m.f.regulator}</div><div>Area Temuan: {m.f.area}</div><div>PIC: {m.f.pic}</div>
                   <div>Batas Waktu: {fmtDate(m.f.dueDate)} ({m.detail.toLowerCase()})</div><div>Status: {m.f.status}</div>
                   <div className="pt-1 text-slate-500">Alasan notifikasi: {m.rule}</div>
                 </div>

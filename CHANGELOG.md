@@ -6,12 +6,28 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 1.4.0 | 2026-10-29 | ~80k |
 | 1.3.1 | 2026-10-29 | ~15k |
 | 1.3.0 | 2026-10-29 | ~90k |
 | 1.2.0 | 2026-10-29 | ~120k |
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [1.4.0] - 2026-10-29
+
+Estimasi token: ~80k
+
+### Diubah
+- Nomor Temuan menjadi angka urut dan tidak lagi bisa diklik. Field Nomor dihapus dari form. Tombol Lihat Detail ada di kolom Aksi.
+- Pilihan Unit Kerja diganti.
+- Label "Rencana Tindak Lanjut & Bukti" menjadi "Rencana Tindak Lanjut".
+- PIC menjadi isian teks.
+- Status di Tambah: Open, Proses, Menunggu Validasi. Edit juga bisa memilih Selesai. Selesai wajib diisi Validasi Ulang dan Nama Validator, lalu menunggu persetujuan Head CLRM.
+- Field Alasan di Edit. Alasan wajib jika Batas Waktu diubah.
+
+### Dihapus
+- Progress dari tabel, form, detail, dan export.
 
 ## [1.3.1] - 2026-10-29
 

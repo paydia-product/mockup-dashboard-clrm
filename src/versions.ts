@@ -11,9 +11,26 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
-    v: '1.3.1',
+    v: '1.4.0',
     date: '2026-10-29',
     deployed: true,
+    title: 'Nomor angka, PIC teks, status Selesai dengan validasi, tanpa progress',
+    prompt: 'Nomor angka biasa + Lihat Detail, unit kerja baru, label Rencana Tindak Lanjut, PIC teks, status, validasi ulang, alasan, hapus progress',
+    tokens: 80000,
+    changes: [
+      'Nomor Temuan jadi angka urut, tidak ada di form; tombol Lihat Detail di Aksi',
+      'Pilihan Unit Kerja baru',
+      'Label jadi Rencana Tindak Lanjut',
+      'PIC jadi isian teks',
+      'Status di Tambah: Open sampai Menunggu Validasi; Edit bisa ke Selesai dengan Validasi Ulang + Nama Validator, wajib persetujuan Head CLRM',
+      'Field Alasan di Edit, wajib jika Batas Waktu diubah',
+      'Progress dihapus dari tabel, form, detail, dan export',
+    ],
+  },
+  {
+    v: '1.3.1',
+    date: '2026-10-29',
+    deployed: false,
     title: 'File bukti tindak lanjut wajib',
     prompt: 'Jadikan wajib',
     tokens: 15000,
