@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import * as XLSX from 'xlsx'
 import { Bell, ChevronDown, ChevronUp, Download, Eye, History, Pencil, Plus, RotateCcw, Save, Search, SlidersHorizontal, Trash2, XCircle } from 'lucide-react'
 import {
@@ -10,19 +10,27 @@ import Drawer, { Acts } from './Drawer'
 import Form from './Form'
 import { AlertBadges, Modal, ReasonModal, RiskBadge, StatusBadge } from './ui'
 
+const HEAD = { near: '⏰ TEMUAN HAMPIR JATUH TEMPO', overdue: '🔴 TEMUAN LEWAT BATAS WAKTU', stale: '⏳ MENUNGGU VALIDASI TERLALU LAMA' }
 type SortKey = 'no' | 'regulator' | 'tglTemuan' | 'area' | 'pic' | 'dueDate' | 'status' | 'progress' | 'risiko' | 'alert'
 const COLS: { k: SortKey; l: string }[] = [
   { k: 'no', l: 'Nomor Temuan' }, { k: 'regulator', l: 'Regulator' }, { k: 'tglTemuan', l: 'Tanggal Temuan' }, { k: 'area', l: 'Area Temuan' },
   { k: 'pic', l: 'PIC' }, { k: 'dueDate', l: 'Batas Waktu' }, { k: 'status', l: 'Status' }, { k: 'progress', l: 'Progress' }, { k: 'risiko', l: 'Tingkat Risiko' }, { k: 'alert', l: 'Alert' },
 ]
-type Pending = { kind: 'add' } | { kind: 'edit'; id: string } | { kind: 'reason'; title: string; danger?: boolean; run: (r: string) => void } | { kind: 'sim' } | { kind: 'exports' } | { kind: 'saveFilter' } | null
+type Pending = { kind: 'add' } | { kind: 'edit'; id: string } | { kind: 'reason'; title: string; danger?: boolean; run: (r: string) => void } | { kind: 'sim' } | null
 
 export default function Tracker({ db, setDb, role }: { db: DB; setDb: React.Dispatch<React.SetStateAction<DB>>; role: Role }) {
   const user = ROLE_USER[role]
-  const [tab, setTab] = useState<'table' | 'dashboard'>('table')
+  const [tab, setTab] = useState<'table' | 'dashboard'>('dashboard')
   const [filter, setFilter] = useState<Filter>(EMPTY_FILTER)
   const [showCancelled, setShowCancelled] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
+  const [draft, setDraft] = useState<Filter>(EMPTY_FILTER)
+  useEffect(() => {
+    if (!showFilters) return
+    const h = (e: KeyboardEvent) => e.key === 'Escape' && setShowFilters(false)
+    addEventListener('keydown', h)
+    return () => removeEventListener('keydown', h)
+  }, [showFilters])
   const [sort, setSort] = useState<{ k: SortKey; dir: 1 | -1 }>({ k: 'no', dir: -1 })
   const [page, setPage] = useState(1)
   const [size, setSize] = useState(10)
@@ -147,7 +155,6 @@ export default function Tracker({ db, setDb, role }: { db: DB; setDb: React.Disp
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data), 'Temuan')
     const file = `Temuan_Regulator_${todayStr()}.xlsx`
     XLSX.writeFile(wb, file)
-    setDb((d) => ({ ...d, exports: [{ id: String(Date.now()), time: nowStr(), user: user.name, filter: describeFilter(filter, showCancelled), rows: rows.length, file }, ...d.exports] }))
   }
 
   const sim = useMemo(() => db.findings.flatMap((f) => alertsFor(f, db.audit).map((a) => ({ f, a }))), [db])
@@ -158,13 +165,15 @@ export default function Tracker({ db, setDb, role }: { db: DB; setDb: React.Disp
     validasi: 'Belum', validasiOleh: '', validasiTgl: '', persetujuan: 'Menunggu', persetujuanOleh: '', persetujuanTgl: '', unit: '', risiko: '' as never, tindak: [{ id: crypto.randomUUID(), text: '', files: [] }],
   })
   const sel = (k: keyof Filter, opts: [string, string][], ph: string) => (
-    <select className="inp" value={filter[k]} onChange={(e) => upd({ [k]: e.target.value })}><option value="">{ph}</option>{opts.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select>
+    <select className="inp" value={draft[k]} onChange={(e) => setDraft({ ...draft, [k]: e.target.value })}><option value="">{ph}</option>{opts.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select>
   )
+  const apply = () => { setFilter({ ...draft, q: filter.q }); setPage(1); setShowFilters(false) }
+  const clearAll = () => { setDraft({ ...EMPTY_FILTER }); setFilter({ ...EMPTY_FILTER }); setShowCancelled(false); setPage(1) }
 
   return (
     <div>
       <div className="mb-3 flex gap-1 border-b border-slate-200">
-        {(['table', 'dashboard'] as const).map((t) => (
+        {(['dashboard', 'table'] as const).map((t) => (
           <button key={t} onClick={() => setTab(t)} className={`border-b-2 px-4 py-2 text-sm font-medium ${tab === t ? 'border-brand text-brand' : 'border-transparent text-slate-500'}`}>{t === 'table' ? 'Table' : 'Dashboard'}</button>
         ))}
       </div>
@@ -176,40 +185,52 @@ export default function Tracker({ db, setDb, role }: { db: DB; setDb: React.Disp
           <div className="flex flex-wrap items-center gap-2 border-b p-3">
             <div className="relative w-64"><Search size={14} className="absolute left-2.5 top-2.5 text-slate-400" />
               <input className="inp !pl-8" placeholder="Cari nomor, regulator, area, PIC" value={filter.q} onChange={(e) => upd({ q: e.target.value })} /></div>
-            <button className="btn" onClick={() => setShowFilters(!showFilters)}><SlidersHorizontal size={14} />Filter{showFilters ? <ChevronUp size={14} /> : <ChevronDown size={14} />}</button>
+            <div className="relative">
+              <button className="btn btn-primary" onClick={() => { setDraft(filter); setShowFilters(!showFilters) }}><SlidersHorizontal size={14} />Filter</button>
+              {showFilters && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setShowFilters(false)} />
+                  <div className="absolute left-0 top-11 z-50 w-[380px] max-w-[92vw] rounded-xl border border-slate-200 bg-white p-6 shadow-xl">
+                    <div className="space-y-4">
+                      <div><label className="lbl">Periode</label>
+                        <div className="flex items-center gap-2"><input type="date" className="inp" value={draft.from} onChange={(e) => setDraft({ ...draft, from: e.target.value })} /><span>-</span><input type="date" className="inp" value={draft.to} onChange={(e) => setDraft({ ...draft, to: e.target.value })} /></div></div>
+                      <div><label className="lbl">Status</label>{sel('status', STATUSES.map((x) => [x, x]), 'Pilih Status')}</div>
+                      <div><label className="lbl">PIC</label>{sel('pic', PIC_USERS.map((u) => [u.id, u.name]), 'Pilih PIC')}</div>
+                      <div><label className="lbl">Unit Kerja</label>{sel('unit', UNITS.map((x) => [x, x]), 'Pilih Unit Kerja')}</div>
+                      <div><label className="lbl">Regulator</label>{sel('regulator', REGULATORS.map((x) => [x, x]), 'Pilih Regulator')}</div>
+                      <div><label className="lbl">Tingkat Risiko</label>{sel('risiko', RISKS.map((x) => [x, x]), 'Pilih Tingkat Risiko')}</div>
+                    </div>
+                    <div className="mt-4 border-t pt-3">
+                      <div className="flex gap-2">
+                        <input className="inp" placeholder="Nama filter" value={saveName} onChange={(e) => setSaveName(e.target.value)} />
+                        <button className="btn whitespace-nowrap" disabled={!saveName.trim()} onClick={() => { const n = saveName.trim(); setDb((d) => ({ ...d, saved: [...d.saved.filter((x) => x.name !== n), { name: n, filter: { ...draft, q: '' }, showCancelled }] })); setSaveName('') }}><Save size={14} />Simpan Filter</button>
+                      </div>
+                      {db.saved.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {db.saved.map((sv) => (
+                            <span key={sv.name} className="inline-flex items-center overflow-hidden rounded border border-slate-300 text-xs">
+                              <button className="px-2 py-1 hover:bg-slate-50" onClick={() => { setDraft(sv.filter); setFilter({ ...sv.filter, q: filter.q }); setShowCancelled(sv.showCancelled); setPage(1); setShowFilters(false) }}>{sv.name}</button>
+                              <button className="border-l px-1.5 py-1 text-red-500 hover:bg-red-50" aria-label={`Hapus ${sv.name}`} onClick={() => setDb((d) => ({ ...d, saved: d.saved.filter((x) => x.name !== sv.name) }))}><Trash2 size={12} /></button>
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <div className="mt-5 flex gap-3">
+                      <button className="flex-1 rounded-full border border-slate-300 bg-white py-2 text-sm font-medium text-slate-700 hover:bg-slate-50" onClick={clearAll}>Clear All</button>
+                      <button className="flex-1 rounded-full bg-[#1f2ab5] py-2 text-sm font-medium text-white hover:bg-[#18228f]" onClick={apply}>Apply Filters</button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
             <label className="flex items-center gap-1.5 text-xs"><input type="checkbox" checked={showCancelled} onChange={(e) => { setShowCancelled(e.target.checked); setPage(1) }} />Tampilkan yang dibatalkan</label>
             <div className="ml-auto flex flex-wrap gap-2">
               <button className="btn" onClick={() => setPending({ kind: 'sim' })}><Bell size={14} />Simulasi notifikasi ({sim.length})</button>
-              <button className="btn" onClick={() => setPending({ kind: 'exports' })}><History size={14} />Riwayat Export</button>
               <button className="btn" onClick={doExport}><Download size={14} />Export Excel</button>
               {role === 'Compliance Officer' && <button className="btn btn-primary" onClick={() => setPending({ kind: 'add' })}><Plus size={14} />Tambah</button>}
             </div>
           </div>
-
-          {showFilters && (
-            <div className="space-y-3 border-b bg-slate-50 p-3">
-              <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-6">
-                <div><label className="lbl">Tanggal Temuan dari</label><input type="date" className="inp" value={filter.from} onChange={(e) => upd({ from: e.target.value })} /></div>
-                <div><label className="lbl">sampai</label><input type="date" className="inp" value={filter.to} onChange={(e) => upd({ to: e.target.value })} /></div>
-                <div><label className="lbl">Status</label>{sel('status', STATUSES.map((s) => [s, s]), 'Semua')}</div>
-                <div><label className="lbl">PIC</label>{sel('pic', PIC_USERS.map((u) => [u.id, u.name]), 'Semua')}</div>
-                <div><label className="lbl">Unit Kerja</label>{sel('unit', UNITS.map((s) => [s, s]), 'Semua')}</div>
-                <div><label className="lbl">Regulator</label>{sel('regulator', REGULATORS.map((s) => [s, s]), 'Semua')}</div>
-                <div><label className="lbl">Tingkat Risiko</label>{sel('risiko', RISKS.map((s) => [s, s]), 'Semua')}</div>
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <button className="btn" onClick={() => { setFilter({ ...EMPTY_FILTER }); setShowCancelled(false); setPage(1) }}><XCircle size={14} />Reset filter</button>
-                <button className="btn" onClick={() => { setSaveName(''); setPending({ kind: 'saveFilter' }) }}><Save size={14} />Simpan Filter</button>
-                {db.saved.length > 0 && <span className="ml-2 text-xs text-slate-500">Filter tersimpan:</span>}
-                {db.saved.map((s) => (
-                  <span key={s.name} className="inline-flex items-center overflow-hidden rounded border border-slate-300 bg-white text-xs">
-                    <button className="px-2 py-1 hover:bg-slate-50" onClick={() => { setFilter(s.filter); setShowCancelled(s.showCancelled); setPage(1) }}>{s.name}</button>
-                    <button className="border-l px-1.5 py-1 text-red-500 hover:bg-red-50" aria-label={`Hapus ${s.name}`} onClick={() => setDb((d) => ({ ...d, saved: d.saved.filter((x) => x.name !== s.name) }))}><Trash2 size={12} /></button>
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
 
           <div className="overflow-x-auto">
             <table className="w-full text-left">
@@ -225,8 +246,8 @@ export default function Tracker({ db, setDb, role }: { db: DB; setDb: React.Disp
               </thead>
               <tbody>
                 {slice.map((f) => (
-                  <tr key={f.id} onClick={() => setOpenId(f.id)} className={`cursor-pointer border-t align-top hover:bg-slate-50 ${f.status === 'Dibatalkan' ? 'text-slate-400' : ''}`}>
-                    <td className="whitespace-nowrap px-3 py-2.5 font-medium text-brand">{f.no}</td>
+                  <tr key={f.id} className={`border-t align-top hover:bg-slate-50 ${f.status === 'Dibatalkan' ? 'text-slate-400' : ''}`}>
+                    <td className="whitespace-nowrap px-3 py-2.5"><button className="font-medium text-brand hover:underline" onClick={() => setOpenId(f.id)}>{f.no}</button></td>
                     <td className="px-3 py-2.5">{f.regulator}</td>
                     <td className="whitespace-nowrap px-3 py-2.5">{fmtDate(f.tglTemuan)}</td>
                     <td className="px-3 py-2.5">{f.area}</td>
@@ -236,12 +257,12 @@ export default function Tracker({ db, setDb, role }: { db: DB; setDb: React.Disp
                     <td className="px-3 py-2.5"><div className="flex items-center gap-2"><div className="h-1.5 w-20 rounded bg-slate-200"><div className="h-1.5 rounded bg-brand" style={{ width: `${f.progress}%` }} /></div><span className="text-xs">{f.progress}%</span></div></td>
                     <td className="px-3 py-2.5"><RiskBadge r={f.risiko} /></td>
                     <td className="px-3 py-2.5"><AlertBadges list={alertsFor(f, db.audit)} /></td>
-                    <td className="px-3 py-2.5" onClick={(e) => e.stopPropagation()}>
+                    <td className="px-3 py-2.5">
                       <div className="flex gap-1">
-                        <button className="btn !px-1.5 !py-1" title="Detail" onClick={() => setOpenId(f.id)}><Eye size={14} /></button>
-                        {canEdit(f) && <button className="btn !px-1.5 !py-1" title="Ubah" onClick={() => setPending({ kind: 'edit', id: f.id })}><Pencil size={14} /></button>}
-                        {role === 'Head CLRM' && f.status !== 'Dibatalkan' && <button className="btn !px-1.5 !py-1 text-red-600" title="Batalkan" onClick={() => actsFor(f).cancel()}><XCircle size={14} /></button>}
-                        {role === 'Head CLRM' && f.status === 'Dibatalkan' && <button className="btn !px-1.5 !py-1 text-green-700" title="Kembalikan" onClick={() => actsFor(f).restore()}><RotateCcw size={14} /></button>}
+                        {canEdit(f) && <button className="btn !px-2 !py-1" onClick={() => setPending({ kind: 'edit', id: f.id })}><Pencil size={13} />Edit</button>}
+                        {role === 'Head CLRM' && f.status !== 'Dibatalkan' && <button className="btn !px-2 !py-1 text-red-600" onClick={() => actsFor(f).cancel()}><XCircle size={13} />Batalkan</button>}
+                        {role === 'Head CLRM' && f.status === 'Dibatalkan' && <button className="btn !px-2 !py-1 text-green-700" onClick={() => actsFor(f).restore()}><RotateCcw size={13} />Kembalikan</button>}
+                        {!canEdit(f) && !(role === 'Head CLRM') && <span className="text-slate-300">-</span>}
                       </div>
                     </td>
                   </tr>
@@ -272,29 +293,16 @@ export default function Tracker({ db, setDb, role }: { db: DB; setDb: React.Disp
       {pending?.kind === 'add' && <Form mode="add" role={role} init={blank()} onSave={(f) => saveForm(f, 'add')} onClose={() => setPending(null)} />}
       {editing && <Form mode="edit" role={role} init={editing} onSave={(f) => saveForm(f, 'edit')} onClose={() => setPending(null)} />}
       {pending?.kind === 'reason' && <ReasonModal title={pending.title} danger={pending.danger} onClose={() => setPending(null)} onConfirm={pending.run} />}
-      {pending?.kind === 'saveFilter' && (
-        <Modal title="Simpan Filter" onClose={() => setPending(null)}>
-          <label className="lbl">Nama filter *</label>
-          <input className="inp" autoFocus value={saveName} onChange={(e) => setSaveName(e.target.value)} />
-          <p className="mt-2 text-xs text-slate-500">{describeFilter(filter, showCancelled)}</p>
-          <div className="mt-4 flex justify-end gap-2"><button className="btn" onClick={() => setPending(null)}>Batal</button>
-            <button className="btn btn-primary" disabled={!saveName.trim()} onClick={() => { setDb((d) => ({ ...d, saved: [...d.saved.filter((s) => s.name !== saveName.trim()), { name: saveName.trim(), filter, showCancelled }] })); setPending(null) }}>Simpan</button></div>
-        </Modal>
-      )}
-      {pending?.kind === 'exports' && (
-        <Modal wide title="Riwayat Export" onClose={() => setPending(null)}>
-          <table className="w-full text-left text-xs"><thead className="bg-slate-50 text-slate-500"><tr>{['Waktu', 'User', 'File', 'Baris', 'Filter aktif'].map((h) => <th key={h} className="px-2 py-2 font-medium">{h}</th>)}</tr></thead>
-            <tbody>{db.exports.map((e) => <tr key={e.id} className="border-t"><td className="px-2 py-2">{fmtTime(e.time)}</td><td className="px-2">{e.user}</td><td className="px-2">{e.file}</td><td className="px-2">{e.rows}</td><td className="px-2">{e.filter}</td></tr>)}
-              {!db.exports.length && <tr><td colSpan={5} className="p-6 text-center text-slate-400">Belum ada export</td></tr>}</tbody></table>
-        </Modal>
-      )}
       {pending?.kind === 'sim' && (
         <Modal wide title={`Simulasi notifikasi Telegram, hari ini ${fmtDate(todayStr())}`} onClose={() => setPending(null)}>
-          <table className="w-full text-left text-xs"><thead className="bg-slate-50 text-slate-500"><tr>{['Temuan', 'Alert', 'Keterangan', 'Penerima'].map((h) => <th key={h} className="px-2 py-2 font-medium">{h}</th>)}</tr></thead>
-            <tbody>{sim.map(({ f, a }) => (
-              <tr key={f.id + a.key} className="cursor-pointer border-t hover:bg-slate-50" onClick={() => { setPending(null); setOpenId(f.id) }}>
-                <td className="px-2 py-2 font-medium text-brand">{f.no}</td><td className="px-2"><span className={a.color === 'red' ? 'text-red-600' : 'text-yellow-700'}>{a.label}</span></td><td className="px-2">{a.detail}</td><td className="px-2">{a.to.join(', ')}</td></tr>
-            ))}</tbody></table>
+          <div className="max-h-[65vh] space-y-3 overflow-auto rounded-lg bg-[#e7ebf0] p-3">
+            {sim.map(({ f, a }) => (
+              <div key={f.id + a.key} className="max-w-[520px] whitespace-pre-wrap rounded-2xl rounded-tl-sm bg-white p-3 font-mono text-xs leading-relaxed text-slate-800 shadow-sm">
+                {`${HEAD[a.key]}\n\nNomor Temuan:   ${f.no}\nRegulator:      ${f.regulator}\nArea Temuan:    ${f.area}\nPIC:            ${userName(f.pic)}\nBatas Waktu:    ${fmtDate(f.dueDate)} (${a.detail.toLowerCase()})\nPenerima:       ${a.to.join(', ')}\n🕐 ${todayStr()} 08:00:00`}
+              </div>
+            ))}
+            {!sim.length && <p className="p-6 text-center text-slate-400">Tidak ada alert hari ini</p>}
+          </div>
         </Modal>
       )}
     </div>

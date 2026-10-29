@@ -64,9 +64,8 @@ export interface Finding {
 export interface Audit { id: string; fid: string; time: string; user: string; aksi: string; kolom: string; lama: string; baru: string; alasan: string }
 export interface Filter { q: string; from: string; to: string; status: string; pic: string; unit: string; regulator: string; risiko: string }
 export const EMPTY_FILTER: Filter = { q: '', from: '', to: '', status: '', pic: '', unit: '', regulator: '', risiko: '' }
-export interface ExportLog { id: string; time: string; user: string; filter: string; rows: number; file: string }
 export interface ChangeReq { id: string; fid: string; by: string; time: string; alasan: string; changes: { key: keyof Finding; label: string; lama: string; baru: string; value: unknown }[] }
-export interface DB { requests: ChangeReq[]; findings: Finding[]; audit: Audit[]; saved: { name: string; filter: Filter; showCancelled: boolean }[]; exports: ExportLog[] }
+export interface DB { requests: ChangeReq[]; findings: Finding[]; audit: Audit[]; saved: { name: string; filter: Filter; showCancelled: boolean }[] }
 
 // ---- Tanggal ----
 const pad = (n: number) => String(n).padStart(2, '0')
@@ -200,7 +199,7 @@ export function makeSeed(): DB {
     if (s.status === 'Dibatalkan') log(f, addDays(t, -3), 'Dewi Anggraini', 'Batalkan temuan', 'Status', 'Proses', 'Dibatalkan', 'Temuan duplikat dengan laporan regulator sebelumnya')
     findings.push(f)
   })
-  return { requests: [], findings, audit, saved: [], exports: [] }
+  return { requests: [], findings, audit, saved: [] }
 }
 
 // ---- Penyimpanan ----

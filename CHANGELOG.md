@@ -6,9 +6,23 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 1.2.0 | 2026-10-29 | ~120k |
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [1.2.0] - 2026-10-29
+
+Estimasi token: ~120k
+
+### Diubah
+- Filter menjadi popover di bawah tombol Filter; berlaku setelah Apply Filters, Clear All mereset. Simpan Filter dan daftar tersimpan ada di dalamnya.
+- Simulasi notifikasi ditampilkan sebagai bubble pesan Telegram.
+- Kolom Aksi memakai tombol Edit, Batalkan, Kembalikan sesuai peran; baris tidak lagi bisa diklik, detail dibuka dari link Nomor Temuan.
+- Tab Dashboard menjadi default dan pertama.
+
+### Dihapus
+- Tombol dan riwayat Riwayat Export (export tetap berfungsi).
 
 ## [1.1.1] - 2026-10-29
 

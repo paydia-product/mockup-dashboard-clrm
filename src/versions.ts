@@ -11,9 +11,24 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
-    v: '1.1.1',
+    v: '1.2.0',
     date: '2026-10-29',
     deployed: true,
+    title: 'Filter modal, notifikasi gaya Telegram, aksi Edit/Batalkan',
+    prompt: 'Ubah filter jadi modal, hapus Riwayat Export, notifikasi gaya Telegram, aksi Edit/Batalkan, tab Dashboard duluan',
+    tokens: 120000,
+    changes: [
+      'Filter menjadi popover di bawah tombol Filter (Clear All / Apply Filters)',
+      'Tombol Riwayat Export dihapus',
+      'Simulasi notifikasi tampil sebagai bubble pesan Telegram',
+      'Kolom Aksi: tombol Edit / Batalkan / Kembalikan; detail hanya lewat link Nomor Temuan',
+      'Tab Dashboard jadi default dan di urutan pertama',
+    ],
+  },
+  {
+    v: '1.1.1',
+    date: '2026-10-29',
+    deployed: false,
     title: 'Menu Risk, Fraud, Legal kembali',
     prompt: 'Kembalikan menu placeholder Risk, Fraud, Legal',
     tokens: 40000,

@@ -41,7 +41,7 @@ Halaman publik: `/login.html` (+ `login.js`, `login.css`), `/api/login`, `/api/l
 - Edit oleh PIC/Compliance Officer membuat permintaan perubahan (menunggu Head CLRM, tersimpan sebagai metadata, bukan kolom data). Head CLRM menyetujui (diff diterapkan) atau menolak (alasan wajib). Satu permintaan aktif per temuan. Alur penutupan tetap terpisah.
 - "Ajukan Penutupan" otomatis mengisi progress 100%.
 - Batalkan/Kembalikan: status sebelum batal dibaca dari Riwayat (tidak ada kolom tambahan).
-- Pencarian, filter, dan export memakai data yang sama; export mencakup semua halaman hasil filter.
+- Pencarian, filter, memakai data yang sama; Export mencakup semua halaman hasil filter.
 
 ## Placeholder ("Segera hadir")
 
