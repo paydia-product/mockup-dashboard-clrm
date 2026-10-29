@@ -42,9 +42,9 @@ export default function Drawer({ f, audit, req, role, acts, onClose }: { f: Find
   const isHead = role === 'Head CLRM'
   return (
     <>
-      <Modal wide title={`Detail Temuan ${f.no}`} onClose={onClose}>
+      <Modal wide title="Detail" onClose={onClose}>
         <div className="space-y-5">
-          <div className="flex flex-wrap items-center gap-2"><StatusBadge s={f.status} /><RiskBadge r={f.risiko} /><AlertBadges list={alertsFor(f, audit)} /></div>
+          <AlertBadges list={alertsFor(f, audit)} />
           {req && (
             <div className="rounded border border-yellow-300 bg-yellow-50 p-3 text-xs">
               <div className="mb-1 font-semibold text-yellow-800">Perubahan menunggu persetujuan Head CLRM</div>

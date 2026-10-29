@@ -199,7 +199,7 @@ export function makeSeed(): DB {
 
 // ---- Penyimpanan ----
 // ponytail: v3 supaya data v2 (no 'TR-...', pic berupa id, ada progress) tidak dimuat dan merusak tampilan
-const KEY = 'clrm.db.v4'
+export const KEY = 'clrm.db.v4'
 const ROLE_KEY = 'clrm.role'
 function load(): DB {
   try {
@@ -223,6 +223,21 @@ export function useRole() {
   })
   useEffect(() => { try { localStorage.setItem(ROLE_KEY, role) } catch { /* abaikan */ } }, [role])
   return [role, setRole] as const
+}
+
+// ---- Request perubahan tracker: dipakai Tracker (Drawer) dan menu Approval ----
+// Setuju: terapkan changes ke temuan + audit 'Setujui perubahan'. Tolak: buang request + audit 'Tolak perubahan' (note = alasan).
+export function applyTrackerRequest(db: DB, reqId: string, userName: string, approve: boolean, note = ''): DB {
+  const r = db.requests.find((x) => x.id === reqId)
+  if (!r) return db
+  const f = db.findings.find((x) => x.id === r.fid)
+  const requests = db.requests.filter((x) => x.fid !== r.fid)
+  const mk = (aksi: string, alasan: string): Audit[] => r.changes.map((c, i) => ({ id: `${r.fid}-${Date.now()}-${i}`, fid: r.fid, time: nowStr(), user: userName, aksi, kolom: c.label, lama: c.lama, baru: c.baru, alasan }))
+  if (!approve || !f) return { ...db, requests, audit: [...db.audit, ...mk('Tolak perubahan', note)] }
+  const next = { ...f } as Record<string, unknown>
+  r.changes.forEach((c) => { next[c.key] = c.value })
+  if (next.status === 'Selesai' && f.status !== 'Selesai') { next.validasiTgl = todayStr(); next.persetujuan = 'Disetujui'; next.persetujuanOleh = userName; next.persetujuanTgl = todayStr() }
+  return { ...db, requests, findings: db.findings.map((x) => (x.id === f.id ? (next as unknown as Finding) : x)), audit: [...db.audit, ...mk('Setujui perubahan', r.alasan)] }
 }
 
 // ---- Filter ----

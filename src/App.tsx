@@ -1,43 +1,67 @@
 import { useEffect, useState } from 'react'
 import {
-  Bell, ChevronDown, ChevronRight, ClipboardCheck, FileSignature, FileText, Gavel, GitBranch, History, LayoutDashboard, ListChecks, LogOut, Menu, RotateCcw,
-  Scale, ScrollText, ShieldAlert, ShieldCheck, Siren, Tag, UserCog,
+  Bell, ChevronDown, ChevronRight, ClipboardCheck, Database, FileSignature, FileText, Gavel, GitBranch, History, KeyRound, LayoutDashboard, ListChecks, LogOut, Menu, RotateCcw,
+  Scale, ScrollText, ShieldAlert, ShieldCheck, Siren, Tag, UserCog, Users,
 } from 'lucide-react'
-import { ROLES, Role, ROLE_USER, useDB, useRole } from './lib'
+import { KEY as DB_KEY, Role as TrackerRole, useDB } from './lib'
+import { APP_KEY, pushLog, setSession, useApp, useSession } from './kit/store'
+import type { PermKey, Role } from './kit/types'
 import Tracker from './Tracker'
+import { PAGES } from './pages'
+import { Akun, Permission } from './shared/Admin'
+import Approval, { pendingCount } from './shared/Approval'
+import Log from './shared/Log'
+import Login from './shared/Login'
+import MasterData from './shared/MasterData'
+import Profile from './shared/Profile'
 import { versions } from './versions'
 
-type Item = { id: string; label: string; icon: React.ElementType }
+type Item = { id: string; label: string; icon: React.ElementType; perm: PermKey }
 type Group = { id: string; label: string; icon: React.ElementType; items: Item[] }
 const TRACKER = 'compliance/regulatory-findings-tracker'
 const GROUPS: Group[] = [
   { id: 'compliance', label: 'Compliance', icon: ShieldCheck, items: [
-    { id: TRACKER, label: 'Regulatory Findings Tracker', icon: ListChecks },
-    { id: 'compliance/regulatory-reporting', label: 'Regulatory Reporting', icon: FileText },
-    { id: 'compliance/regulatory-change', label: 'Regulatory Change', icon: GitBranch },
-    { id: 'compliance/sop-dokumen-kontrol', label: 'SOP & Dokumen Kontrol', icon: ClipboardCheck },
+    { id: TRACKER, label: 'Regulatory Findings Tracker', icon: ListChecks, perm: 'tracker' },
+    { id: 'compliance/regulatory-reporting', label: 'Regulatory Reporting', icon: FileText, perm: 'reporting' },
+    { id: 'compliance/regulatory-change', label: 'Regulatory Change', icon: GitBranch, perm: 'regchange' },
+    { id: 'compliance/sop-dokumen-kontrol', label: 'SOP & Dokumen Kontrol', icon: ClipboardCheck, perm: 'sop' },
   ] },
   { id: 'risk', label: 'Risk', icon: ShieldAlert, items: [
-    { id: 'risk/risk-register', label: 'Risk Register', icon: ScrollText },
-    { id: 'risk/kajian-risiko', label: 'Kajian Risiko', icon: LayoutDashboard },
+    { id: 'risk/risk-register', label: 'Risk Register', icon: ScrollText, perm: 'risk' },
+    { id: 'risk/kajian-risiko', label: 'Kajian Risiko', icon: LayoutDashboard, perm: 'kajian' },
   ] },
-  { id: 'fraud', label: 'Fraud', icon: Siren, items: [{ id: 'fraud/fraud-case-monitoring', label: 'Fraud Case Monitoring', icon: Siren }] },
+  { id: 'fraud', label: 'Fraud', icon: Siren, items: [{ id: 'fraud/fraud-case-monitoring', label: 'Fraud Case Monitoring', icon: Siren, perm: 'fraud' }] },
   { id: 'legal', label: 'Legal', icon: Scale, items: [
-    { id: 'legal/kontrak', label: 'Kontrak', icon: FileSignature },
-    { id: 'legal/permintaan-aph', label: 'Permintaan APH', icon: Gavel },
-    { id: 'legal/perizinan', label: 'Perizinan & Dokumen Legalitas', icon: FileText },
-    { id: 'legal/layanan-hukum', label: 'Permintaan Layanan Hukum', icon: Scale },
+    { id: 'legal/kontrak', label: 'Kontrak', icon: FileSignature, perm: 'kontrak' },
+    { id: 'legal/permintaan-aph', label: 'Permintaan APH', icon: Gavel, perm: 'aph' },
+    { id: 'legal/perizinan', label: 'Perizinan & Dokumen Legalitas', icon: FileText, perm: 'perizinan' },
+    { id: 'legal/layanan-hukum', label: 'Permintaan Layanan Hukum', icon: Scale, perm: 'layanan' },
   ] },
 ]
-const SINGLES: Item[] = [
-  { id: 'approval', label: 'Approval', icon: ClipboardCheck },
-  { id: 'admin', label: 'Admin', icon: UserCog },
-  { id: 'log', label: 'Log', icon: History },
+const APPROVAL: Item = { id: 'approval', label: 'Approval', icon: ClipboardCheck, perm: 'approval' }
+const LOG: Item = { id: 'log', label: 'Log', icon: History, perm: 'log' }
+const LOWER: Group[] = [
+  { id: 'master', label: 'Master Data', icon: Database, items: [
+    { id: 'master/departemen', label: 'Departemen', icon: Database, perm: 'master' },
+    { id: 'master/produk', label: 'Produk', icon: Database, perm: 'master' },
+    { id: 'master/pihak-pelapor', label: 'Pihak Pelapor', icon: Database, perm: 'master' },
+  ] },
+  { id: 'admin', label: 'Admin', icon: UserCog, items: [
+    { id: 'admin/akun', label: 'Akun', icon: Users, perm: 'admin' },
+    { id: 'admin/permission', label: 'Permission', icon: KeyRound, perm: 'admin' },
+  ] },
 ]
-const labelOf = (id: string) => [...GROUPS.flatMap((g) => g.items), ...SINGLES].find((i) => i.id === id)?.label ?? id
-const groupOf = (id: string) => GROUPS.find((g) => g.items.some((i) => i.id === id))?.label
+const PROFIL: Item[] = [
+  { id: 'profil/password', label: 'Ganti Password', icon: KeyRound, perm: 'approval' },
+  { id: 'profil/pin', label: 'Ganti PIN', icon: KeyRound, perm: 'approval' },
+]
+const ITEMS = [...GROUPS, ...LOWER].flatMap((g) => g.items).concat(APPROVAL, LOG, PROFIL)
+const labelOf = (id: string) => ITEMS.find((i) => i.id === id)?.label ?? id
+const groupOf = (id: string) => [...GROUPS, ...LOWER].find((g) => g.items.some((i) => i.id === id))?.label
+// peran sesi -> peran tracker (dipakai Drawer tracker)
+const trackerRole = (r: Role): TrackerRole => (r === 'Head CLRM' || r === 'Super Admin' ? 'Head CLRM' : r === 'Compliance Officer' ? 'Compliance Officer' : r === 'PIC' ? 'PIC' : 'Viewer')
 
-const hashRoute = () => location.hash.replace(/^#\/?/, '') || TRACKER
+const hashRoute = () => location.hash.replace(/^#\/?/, '').split('?')[0] || TRACKER
 
 function VersionPicker() {
   const [open, setOpen] = useState(false)
@@ -70,25 +94,73 @@ function VersionPicker() {
 }
 
 export default function App() {
-  const { db, setDb, reset } = useDB()
-  const [role, setRole] = useRole()
+  const session = useSession()
+  const { store } = useApp()
+  const ok = session?.verified2fa && store.accounts.some((a) => a.id === session.accountId && a.status === 'Aktif')
+  return ok ? <Shell /> : <Login />
+}
+
+function Shell() {
+  const { db, setDb } = useDB()
+  const { ctx, store, can, logout } = useApp()
   const [route, setRoute] = useState(hashRoute)
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
   const [side, setSide] = useState(true)
+  const [menu, setMenu] = useState(false)
   useEffect(() => {
     const h = () => setRoute(hashRoute())
     addEventListener('hashchange', h)
     return () => removeEventListener('hashchange', h)
   }, [])
-  const logout = async () => {
-    try { await fetch('/api/logout', { method: 'POST' }) } catch { /* abaikan */ }
-    location.href = '/login.html'
+  const user = ctx.user
+  const pending = pendingCount(store, db, user.role, can)
+  const reset = () => {
+    if (!confirm('Kembalikan semua data ke data contoh awal?')) return
+    try { localStorage.removeItem(DB_KEY); localStorage.removeItem(APP_KEY) } catch { /* abaikan */ }
+    location.reload()
+  }
+  const demo = (() => {
+    const per = store.accounts.filter((a) => a.status === 'Aktif').filter((a, i, l) => l.findIndex((x) => x.role === a.role) === i)
+    return per.some((a) => a.id === user.id) ? per : [...per, user]
+  })()
+  const switchTo = (id: string) => {
+    const to = store.accounts.find((a) => a.id === id)
+    if (!to) return
+    pushLog(user, 'Sesi', 'Ganti akun demo', '', `${user.name} -> ${to.name}`)
+    setSession({ accountId: id, verified2fa: true })
   }
   const nav = (i: Item) => (
     <a key={i.id} href={`#/${i.id}`} className={`flex items-center gap-2.5 rounded px-3 py-2 text-[13px] ${route === i.id ? 'bg-blue-50 font-medium text-brand' : 'text-slate-600 hover:bg-slate-50'}`}>
-      <i.icon size={16} />{i.label}
+      <i.icon size={16} /><span className="flex-1">{i.label}</span>
+      {i.id === 'approval' && pending > 0 && <span className="rounded-full bg-red-500 px-1.5 text-[11px] font-semibold text-white">{pending}</span>}
     </a>
   )
+  const group = (g: Group) => {
+    const items = g.items.filter((i) => can(i.perm, 'Lihat'))
+    return items.length > 0 && (
+      <div key={g.id}>
+        <button className="flex w-full items-center gap-2.5 px-3 py-2 text-[13px] font-medium text-slate-700 hover:bg-slate-50" onClick={() => setCollapsed({ ...collapsed, [g.id]: !collapsed[g.id] })}>
+          <g.icon size={16} /><span className="flex-1 text-left">{g.label}</span>{collapsed[g.id] ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
+        </button>
+        {!collapsed[g.id] && <div className="ml-3 space-y-0.5 border-l pl-2">{items.map(nav)}</div>}
+      </div>
+    )
+  }
+  const item = ITEMS.find((i) => i.id === route)
+  const Page = PAGES[route]
+  const content = !item ? <div className="rounded-lg border border-slate-200 bg-white p-16 text-center text-slate-400">Halaman tidak ditemukan</div>
+    : !can(item.perm, 'Lihat') ? <div className="rounded-lg border border-slate-200 bg-white p-16 text-center text-slate-400">Anda tidak memiliki akses ke halaman ini</div>
+    : route === TRACKER ? <Tracker db={db} setDb={setDb} role={trackerRole(user.role)} user={user} can={(a) => can('tracker', a)} />
+    : route === 'approval' ? <Approval tdb={db} setTdb={setDb} />
+    : route === 'log' ? <Log tdb={db} />
+    : route === 'master/departemen' ? <MasterData kind="departemen" />
+    : route === 'master/produk' ? <MasterData kind="produk" />
+    : route === 'master/pihak-pelapor' ? <MasterData kind="pihakPelapor" />
+    : route === 'admin/akun' ? <Akun />
+    : route === 'admin/permission' ? <Permission />
+    : route === 'profil/password' ? <Profile kind="password" />
+    : route === 'profil/pin' ? <Profile kind="pin" />
+    : Page ? <Page key={route} /> : null
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-30 flex h-14 items-center justify-between bg-[#1f2ab5] px-4 text-white">
@@ -97,44 +169,48 @@ export default function App() {
           <button onClick={() => setSide(!side)} aria-label="Menu"><Menu size={20} /></button>
         </div>
         <div className="flex items-center gap-3">
-          <select aria-label="Peran demo" className="rounded border border-white/30 bg-white/10 px-2 py-1 text-xs text-white" value={role} onChange={(e) => setRole(e.target.value as Role)}>
-            {ROLES.map((r) => <option key={r} value={r} className="text-slate-800">Peran demo: {r}</option>)}
+          <select aria-label="Akun demo" className="rounded border border-white/30 bg-white/10 px-2 py-1 text-xs text-white" value={user.id} onChange={(e) => switchTo(e.target.value)}>
+            {demo.map((a) => <option key={a.id} value={a.id} className="text-slate-800">Akun demo: {a.name} ({a.role})</option>)}
           </select>
           <VersionPicker />
-          <button title="Reset data contoh" onClick={() => { if (confirm('Kembalikan semua data ke data contoh awal?')) reset() }} className="rounded bg-white/10 p-1.5 hover:bg-white/20"><RotateCcw size={14} /></button>
-          <Bell size={18} />
-          <div className="flex items-center gap-2"><div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-xs font-semibold">O</div><span className="text-sm">Officer</span></div>
-          <button title="Logout" onClick={logout} className="rounded bg-white/10 p-1.5 hover:bg-white/20"><LogOut size={14} /></button>
+          <button title="Reset data contoh" onClick={reset} className="rounded bg-white/10 p-1.5 hover:bg-white/20"><RotateCcw size={14} /></button>
+          <a href="#/approval" title="Approval" className="relative"><Bell size={18} />{pending > 0 && <span className="absolute -right-2 -top-2 rounded-full bg-red-500 px-1 text-[10px] font-semibold">{pending}</span>}</a>
+          <div className="relative">
+            <button className="flex items-center gap-2" onClick={() => setMenu(!menu)}><div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-xs font-semibold">{user.name[0]}</div><span className="text-sm">{user.name}</span><ChevronDown size={12} /></button>
+            {menu && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setMenu(false)} />
+                <div className="absolute right-0 top-10 z-50 w-44 rounded-lg border bg-white py-1 text-[13px] text-slate-700 shadow-xl">
+                  <a href="#/profil/password" className="block px-3 py-2 hover:bg-slate-50" onClick={() => setMenu(false)}>Ganti Password</a>
+                  <a href="#/profil/pin" className="block px-3 py-2 hover:bg-slate-50" onClick={() => setMenu(false)}>Ganti PIN</a>
+                  <button className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-slate-50" onClick={() => { setMenu(false); logout() }}><LogOut size={13} />Logout</button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </header>
       <div className="flex flex-1">
         {side && (
           <aside className="w-[216px] shrink-0 border-r bg-white">
             <div className="flex items-center gap-2.5 border-b p-4">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-brand">O</div>
-              <div className="min-w-0"><div className="text-sm font-semibold text-slate-800">Officer</div><div className="truncate text-[11px] text-slate-400">{ROLE_USER[role].name.toLowerCase().replace(' ', '.')}@paydia.id</div></div>
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-brand">{user.name[0]}</div>
+              <div className="min-w-0"><div className="truncate text-sm font-semibold text-slate-800">{user.name}</div><div className="truncate text-[11px] text-slate-400">{user.email}</div></div>
             </div>
             <div className="px-4 pb-1 pt-4 text-[11px] font-semibold uppercase tracking-wide text-slate-400">Menu</div>
             <nav className="space-y-0.5 px-2 pb-6">
-              {GROUPS.map((g) => (
-                <div key={g.id}>
-                  <button className="flex w-full items-center gap-2.5 px-3 py-2 text-[13px] font-medium text-slate-700 hover:bg-slate-50" onClick={() => setCollapsed({ ...collapsed, [g.id]: !collapsed[g.id] })}>
-                    <g.icon size={16} /><span className="flex-1 text-left">{g.label}</span>{collapsed[g.id] ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
-                  </button>
-                  {!collapsed[g.id] && <div className="ml-3 space-y-0.5 border-l pl-2">{g.items.map(nav)}</div>}
-                </div>
-              ))}
+              {GROUPS.map(group)}
               <div className="my-2 border-t" />
-              {SINGLES.map(nav)}
+              {can('approval', 'Lihat') && nav(APPROVAL)}
+              {LOWER.map(group)}
+              {can('log', 'Lihat') && nav(LOG)}
             </nav>
           </aside>
         )}
         <main className="min-w-0 flex-1 bg-page p-6">
           <div className="mb-1 text-xs text-slate-400">home / {groupOf(route) ? `${groupOf(route)} / ` : ''}{labelOf(route)}</div>
           <h1 className="mb-4 text-xl font-semibold text-slate-800">{labelOf(route)}</h1>
-          {route === TRACKER ? <Tracker db={db} setDb={setDb} role={role} /> : (
-            <div className="rounded-lg border border-slate-200 bg-white p-16 text-center text-slate-400">Segera hadir</div>
-          )}
+          {content}
         </main>
       </div>
     </div>

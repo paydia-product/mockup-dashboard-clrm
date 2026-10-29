@@ -3,8 +3,9 @@ import * as XLSX from 'xlsx'
 import { Bell, ChevronDown, ChevronUp, Download, Eye, History, Pencil, Plus, RotateCcw, Save, Search, SlidersHorizontal, Trash2, XCircle } from 'lucide-react'
 import {
   Audit, DB, EMPTY_FILTER, Filter, Finding, REGULATORS, AlertInfo, RISKS, ROLE_USER, Role, STATUSES, UNITS, alertsFor, applyFilter,
-  addDays, diffDays, fmtDate, fmtTime, nowStr, todayStr,
+  addDays, applyTrackerRequest, diffDays, fmtDate, fmtTime, nowStr, todayStr,
 } from './lib'
+import type { Action } from './kit/types'
 import Dashboard from './Dashboard'
 import Drawer, { Acts } from './Drawer'
 import Form from './Form'
@@ -17,8 +18,7 @@ const COLS: { k: SortKey; l: string }[] = [
 ]
 type Pending = { kind: 'add' } | { kind: 'edit'; id: string } | { kind: 'reason'; title: string; danger?: boolean; run: (r: string) => void } | { kind: 'sim' } | null
 
-export default function Tracker({ db, setDb, role }: { db: DB; setDb: React.Dispatch<React.SetStateAction<DB>>; role: Role }) {
-  const user = ROLE_USER[role]
+export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb: React.Dispatch<React.SetStateAction<DB>>; role: Role; user: { name: string }; can: (a: Action) => boolean }) {
   const [tab, setTab] = useState<'table' | 'dashboard'>('dashboard')
   const [filter, setFilter] = useState<Filter>(EMPTY_FILTER)
   const [showFilters, setShowFilters] = useState(false)
@@ -110,15 +110,11 @@ export default function Tracker({ db, setDb, role }: { db: DB; setDb: React.Disp
     cancel: () => setPending({ kind: 'reason', title: `Batalkan temuan ${f.no}`, danger: true, run: (r) => { commit({ ...f, status: 'Dibatalkan' }, [statusEnt('Batalkan temuan', f.status, 'Dibatalkan', r)]); setPending(null) } }),
     reqApprove: () => {
       const r = db.requests.find((x) => x.fid === f.id)
-      if (!r) return
-      const next = { ...f } as Record<string, unknown>
-      r.changes.forEach((c) => { next[c.key] = c.value })
-      if (next.status === 'Selesai' && f.status !== 'Selesai') { next.validasiTgl = todayStr(); next.persetujuan = 'Disetujui'; next.persetujuanOleh = user.name; next.persetujuanTgl = todayStr() }
-      commit(next as unknown as Finding, r.changes.map((c): Ent => ({ aksi: 'Setujui perubahan', kolom: c.label, lama: c.lama, baru: c.baru, alasan: r.alasan })), true)
+      if (r) setDb((d) => applyTrackerRequest(d, r.id, user.name, true))
     },
     reqReject: () => setPending({ kind: 'reason', title: `Tolak perubahan temuan ${f.no}`, danger: true, run: (alasan) => {
       const r = db.requests.find((x) => x.fid === f.id)
-      if (r) setDb((d) => ({ ...d, requests: d.requests.filter((x) => x.fid !== f.id), audit: [...d.audit, ...mkAudit(f.id, r.changes.map((c): Ent => ({ aksi: 'Tolak perubahan', kolom: c.label, lama: c.lama, baru: c.baru, alasan })))] }))
+      if (r) setDb((d) => applyTrackerRequest(d, r.id, user.name, false, alasan))
       setPending(null)
     } }),
     restore: () => {
@@ -128,7 +124,7 @@ export default function Tracker({ db, setDb, role }: { db: DB; setDb: React.Disp
     },
   })
 
-  const canEdit = (f: Finding) => !db.requests.some((r) => r.fid === f.id) && f.status !== 'Dibatalkan' && f.status !== 'Selesai' && (role === 'Compliance Officer' || (role === 'PIC' && f.pic === user.name))
+  const canEdit = (f: Finding) => !db.requests.some((r) => r.fid === f.id) && f.status !== 'Dibatalkan' && f.status !== 'Selesai' && can('Ubah') && (role !== 'PIC' || f.pic === user.name)
 
   const doExport = () => {
     const data = rows.map((f) => ({
@@ -232,7 +228,7 @@ export default function Tracker({ db, setDb, role }: { db: DB; setDb: React.Disp
             <div className="ml-auto flex flex-wrap gap-2">
               <button className="btn" onClick={() => setPending({ kind: 'sim' })}><Bell size={14} />Simulasi notifikasi ({sim.length})</button>
               <button className="btn" onClick={doExport}><Download size={14} />Export Excel</button>
-              {role === 'Compliance Officer' && <button className="btn btn-primary" onClick={() => setPending({ kind: 'add' })}><Plus size={14} />Tambah</button>}
+              {can('Tambah') && <button className="btn btn-primary" onClick={() => setPending({ kind: 'add' })}><Plus size={14} />Tambah</button>}
             </div>
           </div>
 
@@ -263,8 +259,8 @@ export default function Tracker({ db, setDb, role }: { db: DB; setDb: React.Disp
                       <div className="flex gap-1">
                         <button className="btn !px-2 !py-1" onClick={() => setOpenId(f.id)}><Eye size={13} />Lihat Detail</button>
                         {canEdit(f) && <button className="btn !px-2 !py-1" onClick={() => setPending({ kind: 'edit', id: f.id })}><Pencil size={13} />Edit</button>}
-                        {role === 'Head CLRM' && f.status !== 'Dibatalkan' && <button className="btn !px-2 !py-1 text-red-600" onClick={() => actsFor(f).cancel()}><XCircle size={13} />Batalkan</button>}
-                        {role === 'Head CLRM' && f.status === 'Dibatalkan' && <button className="btn !px-2 !py-1 text-green-700" onClick={() => actsFor(f).restore()}><RotateCcw size={13} />Kembalikan</button>}
+                        {can('Cancel') && f.status !== 'Dibatalkan' && <button className="btn !px-2 !py-1 text-red-600" onClick={() => actsFor(f).cancel()}><XCircle size={13} />Batalkan</button>}
+                        {can('Cancel') && f.status === 'Dibatalkan' && <button className="btn !px-2 !py-1 text-green-700" onClick={() => actsFor(f).restore()}><RotateCcw size={13} />Kembalikan</button>}
                       </div>
                     </td>
                   </tr>

@@ -1,6 +1,6 @@
 # Dashboard Monitoring CLRM (mockup)
 
-Mockup klik untuk Dashboard Monitoring CLRM (Compliance, Legal & Risk Management). Halaman lengkap saat ini: **Compliance > Regulatory Findings Tracker**. Tidak ada backend; data contoh disimpan di `localStorage` (tombol reset di header).
+Mockup klik untuk Dashboard Monitoring CLRM (Compliance, Legal & Risk Management). Halaman lengkap saat ini: **Compliance > Regulatory Findings Tracker** dan **Legal > Permintaan Layanan Hukum** (halaman referensi page kit). Approval, Master Data, Admin (Akun, Permission), Log, dan profil juga sudah jalan. Tidak ada backend; data contoh disimpan di `localStorage` (tombol reset di header).
 
 Stack: React + Vite + TypeScript + Tailwind + Recharts + lucide-react + xlsx. Source "dashboard admin" Paydia tidak ada di workspace, jadi tampilan meniru gayanya (header biru royal, sidebar putih, tabel dengan badge outline).
 
@@ -43,9 +43,40 @@ Halaman publik: `/login.html` (+ `login.js`, `login.css`), `/api/login`, `/api/l
 - Batalkan/Kembalikan: status sebelum batal dibaca dari Riwayat (tidak ada kolom tambahan).
 - Pencarian, filter, memakai data yang sama; Export mencakup semua halaman hasil filter.
 
-## Placeholder ("Segera hadir")
+## Login mock (di dalam app)
 
-Regulatory Reporting, Regulatory Change, SOP & Dokumen Kontrol, Risk Register, Kajian Risiko, Fraud Case Monitoring, Kontrak, Permintaan APH, Perizinan & Dokumen Legalitas, Permintaan Layanan Hukum, Approval, Admin, Log. File bukti hanya nama dummy. Notifikasi email hanya simulasi.
+Gate server (`middleware.js`, `/login.html`, password saja) tetap ada. Setelah lolos gate, app menampilkan login mock: email + password, lalu kode 2FA `123456`. Link "Lupa password" hanya menampilkan pesan "Link reset dikirim ke email". Link kecil "Keluar dari mockup" memanggil `/api/logout`.
+
+Semua akun contoh memakai password `Paydia123!` dan PIN `123456`:
+
+| Email | Peran |
+| --- | --- |
+| admin@paydia.id | Super Admin |
+| dewi.anggraini@paydia.id | Head CLRM |
+| rina.kartika@paydia.id, arief.nugraha@paydia.id | Compliance Officer |
+| rudi.hartono@paydia.id | Risk Officer |
+| lina.marlina@paydia.id | Legal Officer |
+| fajar.ramadhan@paydia.id | Fraud Investigator |
+| yusuf.hakim@paydia.id | Ketua SMKI |
+| bima.pratama@paydia.id | PIC |
+| tono.santoso@paydia.id | Viewer |
+
+Pemilih "Akun demo" di header berganti akun tanpa login ulang. Tombol reset menghapus `clrm.db.v4` dan `clrm.app.v1`.
+
+## Penyimpanan
+
+Tracker di `clrm.db.v4`. Semua halaman lain, approval, log, master, akun, dan permission di `clrm.app.v1`. Sesi di `clrm.session`. Kontrak page kit ada di `docs/plan-halaman.md` bagian A, keputusan desain di `docs/keputusan-desain.md`.
+
+## Asumsi tambahan (halaman baru)
+
+- Peran Fraud Investigator dan Ketua SMKI ditambah (ada di CR).
+- Hari kerja = Senin sampai Jumat tanpa libur nasional. SLA Kajian dan Layanan = hari kalender.
+- Status "Batal" (pilihan CR) beda dari "Dibatalkan" (hasil Cancel Head CLRM).
+- Rename master data tidak mengubah data lama.
+- Logout mock kembali ke login mock. Cookie gate server tetap sampai `/api/logout`.
+- Export boleh untuk semua peran dan diatur lewat matriks permission.
+- Request perubahan tracker ikut tampil di menu Approval; keputusan yang sudah diambil tidak disimpan di daftar Approval (tercatat di Log).
+- Halaman yang masih stub ("Segera hadir" di Dashboard, 2 kolom): Regulatory Reporting, Regulatory Change, SOP & Dokumen Kontrol, Risk Register, Kajian Risiko, Fraud Case Monitoring, Kontrak, Permintaan APH, Perizinan & Dokumen Legalitas.
 
 ## Ritual rilis
 
