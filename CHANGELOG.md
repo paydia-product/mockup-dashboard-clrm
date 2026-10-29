@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 1.4.1 | 2026-10-29 | ~10k |
 | 1.4.0 | 2026-10-29 | ~80k |
 | 1.3.1 | 2026-10-29 | ~15k |
 | 1.3.0 | 2026-10-29 | ~90k |
@@ -13,6 +14,14 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [1.4.1] - 2026-10-29
+
+Estimasi token: ~10k
+
+### Diubah
+- Unit Kerja Finance dan Accounting, Tax & Treasury digabung menjadi "Finance, Accounting, Tax & Treasury".
+- Key localStorage naik ke `clrm.db.v4`.
 
 ## [1.4.0] - 2026-10-29
 

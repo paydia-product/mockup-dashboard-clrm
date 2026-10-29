@@ -10,7 +10,7 @@ export const AREAS = ['APU PPT', 'QRIS', 'SNAP', 'Pelindungan Konsumen', 'Ketaha
 export const ROOT_TYPES = ['Orang', 'Proses', 'Sistem', 'Kebijakan', 'Pihak Ketiga']
 export const STATUSES = ['Open', 'Proses', 'Menunggu Validasi', 'Selesai', 'Dibatalkan'] as const
 export const RISKS = ['High', 'Medium', 'Low'] as const
-export const UNITS = ['IT', 'Operation', 'Business', 'Support (HRD & GA)', 'Compliance', 'Legal & Risk Management', 'Finance', 'Accounting, Tax & Treasury']
+export const UNITS = ['IT', 'Operation', 'Business', 'Support (HRD & GA)', 'Compliance', 'Legal & Risk Management', 'Finance, Accounting, Tax & Treasury']
 const VALIDATORS = ['Rina Kartika', 'Arief Nugraha']
 export const ROLES = ['Compliance Officer', 'PIC', 'Head CLRM', 'Viewer'] as const
 
@@ -199,7 +199,7 @@ export function makeSeed(): DB {
 
 // ---- Penyimpanan ----
 // ponytail: v3 supaya data v2 (no 'TR-...', pic berupa id, ada progress) tidak dimuat dan merusak tampilan
-const KEY = 'clrm.db.v3'
+const KEY = 'clrm.db.v4'
 const ROLE_KEY = 'clrm.role'
 function load(): DB {
   try {

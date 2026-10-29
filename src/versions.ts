@@ -11,9 +11,18 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
-    v: '1.4.0',
+    v: '1.4.1',
     date: '2026-10-29',
     deployed: true,
+    title: 'Unit Finance digabung',
+    prompt: 'Gabung jadi satu',
+    tokens: 10000,
+    changes: ['Unit Kerja Finance dan Accounting, Tax & Treasury digabung jadi satu'],
+  },
+  {
+    v: '1.4.0',
+    date: '2026-10-29',
+    deployed: false,
     title: 'Nomor angka, PIC teks, status Selesai dengan validasi, tanpa progress',
     prompt: 'Nomor angka biasa + Lihat Detail, unit kerja baru, label Rencana Tindak Lanjut, PIC teks, status, validasi ulang, alasan, hapus progress',
     tokens: 80000,
