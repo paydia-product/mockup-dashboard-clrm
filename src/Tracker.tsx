@@ -95,11 +95,6 @@ export default function Tracker({ db, setDb, role }: { db: DB; setDb: React.Disp
   }
 
   const actsFor = (f: Finding): Acts => ({
-    edit: () => setPending({ kind: 'edit', id: f.id }),
-    submit: () => {
-      const ents = [statusEnt('Ajukan penutupan', f.status, 'Menunggu Validasi')]
-      commit({ ...f, status: 'Menunggu Validasi', validasi: 'Belum', validasiOleh: '', validasiTgl: '', persetujuan: 'Menunggu', persetujuanOleh: '', persetujuanTgl: '' }, ents)
-    },
     validate: (v, alasan) => {
       const ents: Ent[] = [{ aksi: 'Validasi ulang', kolom: 'Validasi Ulang', lama: f.validasi, baru: v, alasan }]
       const next: Finding = { ...f, validasi: v, validasiOleh: user.name, validasiTgl: todayStr() }

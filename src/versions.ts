@@ -11,9 +11,18 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
-    v: '1.4.1',
+    v: '1.5.0',
     date: '2026-10-29',
     deployed: true,
+    title: 'Detail temuan jadi modal',
+    prompt: 'Detail jadi modal; hapus riwayat, penomoran field, tombol Ubah dan Ajukan Penutupan',
+    tokens: 40000,
+    changes: ['Detail temuan tampil di modal seperti Tambah/Ubah', 'Riwayat, penomoran field, tombol Ubah dan Ajukan Penutupan dihapus dari detail'],
+  },
+  {
+    v: '1.4.1',
+    date: '2026-10-29',
+    deployed: false,
     title: 'Unit Finance digabung',
     prompt: 'Gabung jadi satu',
     tokens: 10000,

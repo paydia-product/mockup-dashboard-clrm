@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 1.5.0 | 2026-10-29 | ~40k |
 | 1.4.1 | 2026-10-29 | ~10k |
 | 1.4.0 | 2026-10-29 | ~80k |
 | 1.3.1 | 2026-10-29 | ~15k |
@@ -14,6 +15,16 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [1.5.0] - 2026-10-29
+
+Estimasi token: ~40k
+
+### Diubah
+- Detail temuan tampil di modal seperti Tambah dan Ubah.
+
+### Dihapus
+- Riwayat, penomoran field, tombol Ubah dan Ajukan Penutupan dari detail.
 
 ## [1.4.1] - 2026-10-29
 

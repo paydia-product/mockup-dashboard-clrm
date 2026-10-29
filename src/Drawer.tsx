@@ -1,11 +1,9 @@
 import { useState } from 'react'
-import { FileText, X } from 'lucide-react'
+import { FileText } from 'lucide-react'
 import { Audit, ChangeReq, FileMeta, Finding, Role, ROLE_USER, alertsFor, fmtDate, fmtSize, fmtTime } from './lib'
 import { AlertBadges, Badge, Modal, RiskBadge, StatusBadge } from './ui'
 
 export interface Acts {
-  edit: () => void
-  submit: () => void
   validate: (v: 'Valid' | 'Tidak Valid', alasan: string) => void
   approve: (v: 'Disetujui' | 'Ditolak', alasan: string) => void
   cancel: () => void
@@ -39,101 +37,65 @@ const Row = ({ l, children }: { l: string; children: React.ReactNode }) => (
 )
 
 export default function Drawer({ f, audit, req, role, acts, onClose }: { f: Finding; audit: Audit[]; req?: ChangeReq; role: Role; acts: Acts; onClose: () => void }) {
-  const [tab, setTab] = useState<'detail' | 'riwayat'>('detail')
   const [dlg, setDlg] = useState<'validasi' | 'setuju' | null>(null)
-  const me = ROLE_USER[role]
   const isCO = role === 'Compliance Officer'
   const isHead = role === 'Head CLRM'
-  const own = role === 'PIC' && f.pic === me.name
-  const live = f.status !== 'Dibatalkan' && f.status !== 'Selesai'
-  const hist = audit.filter((a) => a.fid === f.id).sort((a, b) => b.time.localeCompare(a.time))
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/30" onMouseDown={onClose}>
-      <div className="flex h-full w-full max-w-[760px] flex-col bg-white shadow-xl" onMouseDown={(e) => e.stopPropagation()}>
-        <div className="flex items-start justify-between border-b px-5 py-4">
-          <div>
-            <h2 className="text-base font-semibold text-slate-800">Temuan {f.no}</h2>
-            <div className="mt-1 flex flex-wrap items-center gap-2"><StatusBadge s={f.status} /><RiskBadge r={f.risiko} /><AlertBadges list={alertsFor(f, audit)} /></div>
-          </div>
-          <button onClick={onClose} aria-label="Tutup"><X size={18} /></button>
-        </div>
-        <div className="flex gap-1 border-b px-5">
-          {(['detail', 'riwayat'] as const).map((t) => (
-            <button key={t} onClick={() => setTab(t)} className={`border-b-2 px-3 py-2 text-sm font-medium ${tab === t ? 'border-brand text-brand' : 'border-transparent text-slate-500'}`}>{t === 'detail' ? 'Detail' : `Riwayat (${hist.length})`}</button>
-          ))}
-        </div>
-        <div className="flex-1 overflow-auto p-5">
-          {tab === 'detail' ? (
-            <div className="space-y-5">
-              {req && (
-                <div className="rounded border border-yellow-300 bg-yellow-50 p-3 text-xs">
-                  <div className="mb-1 font-semibold text-yellow-800">Perubahan menunggu persetujuan Head CLRM</div>
-                  <div className="mb-2 text-slate-600">Diajukan oleh {req.by}, {fmtTime(req.time)}{req.alasan ? `. Alasan: ${req.alasan}` : ''}</div>
-                  <ul className="space-y-1">{req.changes.map((c) => <li key={c.label}><b>{c.label}:</b> <span className="text-red-600 line-through">{c.lama || '-'}</span> {'->'} <span className="text-green-700">{c.baru || '-'}</span></li>)}</ul>
-                </div>
-              )}
-              <div className="grid grid-cols-2 gap-x-6 gap-y-3">
-                <Row l="1. Nomor Temuan">{f.no}</Row>
-                <Row l="2. Regulator">{f.regulator}</Row>
-                <Row l="3. Tanggal Temuan">{fmtDate(f.tglTemuan)}</Row>
-                <Row l="4. Area Temuan">{f.area}</Row>
-                <Row l="5. Penyebab Utama (Root Cause)">{f.rootCause} <Badge tone="gray">{f.rootType}</Badge></Row>
-                <Row l="6. PIC">{f.pic}</Row>
-                <Row l="7. Batas Waktu (Due Date)">{fmtDate(f.dueDate)}</Row>
-                <Row l="8. Status"><StatusBadge s={f.status} /></Row>
-                <Row l="12. Unit Kerja">{f.unit}</Row>
-                <Row l="13. Tingkat Risiko"><RiskBadge r={f.risiko} /></Row>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                {f.status === 'Selesai' && (
-                  <div className="rounded border border-slate-200 p-3">
-                    <div className="mb-2 text-xs font-semibold text-slate-500">10. VALIDASI ULANG</div>
-                    <Badge tone={f.validasi === 'Valid' ? 'green' : f.validasi === 'Tidak Valid' ? 'red' : 'gray'}>{f.validasi}</Badge>
-                    <div className="mt-2 text-xs text-slate-500">Nama Validator: {f.validasiOleh || '-'}</div>
-                  </div>
-                )}
-                <div className="rounded border border-slate-200 p-3">
-                  <div className="mb-2 text-xs font-semibold text-slate-500">11. PERSETUJUAN PENUTUPAN</div>
-                  <Badge tone={f.persetujuan === 'Disetujui' ? 'green' : f.persetujuan === 'Ditolak' ? 'red' : 'gray'}>{f.persetujuan}</Badge>
-                  <div className="mt-2 text-xs text-slate-500">Oleh: {f.persetujuanOleh || '-'}<br />Tanggal: {fmtDate(f.persetujuanTgl)}</div>
-                </div>
-              </div>
-              <div>
-                <div className="mb-2 text-xs font-semibold text-slate-500">14. RENCANA TINDAK LANJUT</div>
-                <div className="rounded border border-slate-200 p-2.5">
-                  <div className="whitespace-pre-wrap">{f.tindak || '-'}</div>
-                  <div className="mt-1 text-xs"><Dl m={f.tindakFile} empty="Belum ada file bukti" /></div>
-                </div>
-              </div>
-              <div>
-                <div className="mb-2 text-xs font-semibold text-slate-500">BUKTI SURAT REGULATOR</div>
-                <div className="rounded border border-slate-200 p-2.5 text-xs"><Dl m={f.suratFile} empty="Belum ada file" /></div>
-              </div>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 text-slate-500"><tr>{['Waktu', 'User', 'Aksi', 'Kolom', 'Nilai Lama', 'Nilai Baru', 'Alasan'].map((h) => <th key={h} className="px-2 py-2 font-medium">{h}</th>)}</tr></thead>
-                <tbody>{hist.map((a) => (
-                  <tr key={a.id} className="border-t align-top"><td className="whitespace-nowrap px-2 py-2">{fmtTime(a.time)}</td><td className="px-2">{a.user}</td><td className="px-2">{a.aksi}</td><td className="px-2">{a.kolom || '-'}</td><td className="px-2">{a.lama || '-'}</td><td className="px-2">{a.baru || '-'}</td><td className="px-2">{a.alasan || '-'}</td></tr>
-                ))}</tbody>
-              </table>
+    <>
+      <Modal wide title={`Detail Temuan ${f.no}`} onClose={onClose}>
+        <div className="space-y-5">
+          <div className="flex flex-wrap items-center gap-2"><StatusBadge s={f.status} /><RiskBadge r={f.risiko} /><AlertBadges list={alertsFor(f, audit)} /></div>
+          {req && (
+            <div className="rounded border border-yellow-300 bg-yellow-50 p-3 text-xs">
+              <div className="mb-1 font-semibold text-yellow-800">Perubahan menunggu persetujuan Head CLRM</div>
+              <div className="mb-2 text-slate-600">Diajukan oleh {req.by}, {fmtTime(req.time)}{req.alasan ? `. Alasan: ${req.alasan}` : ''}</div>
+              <ul className="space-y-1">{req.changes.map((c) => <li key={c.label}><b>{c.label}:</b> <span className="text-red-600 line-through">{c.lama || '-'}</span> {'->'} <span className="text-green-700">{c.baru || '-'}</span></li>)}</ul>
             </div>
           )}
+          <div className="grid grid-cols-2 gap-x-6 gap-y-3">
+            <Row l="Nomor Temuan">{f.no}</Row>
+            <Row l="Regulator">{f.regulator}</Row>
+            <Row l="Tanggal Temuan">{fmtDate(f.tglTemuan)}</Row>
+            <Row l="Area Temuan">{f.area}</Row>
+            <Row l="Penyebab Utama (Root Cause)">{f.rootCause} <Badge tone="gray">{f.rootType}</Badge></Row>
+            <Row l="PIC">{f.pic}</Row>
+            <Row l="Batas Waktu (Due Date)">{fmtDate(f.dueDate)}</Row>
+            <Row l="Status"><StatusBadge s={f.status} /></Row>
+            <Row l="Unit Kerja">{f.unit}</Row>
+            <Row l="Tingkat Risiko"><RiskBadge r={f.risiko} /></Row>
+            {f.status === 'Selesai' && <>
+              <Row l="Validasi Ulang"><Badge tone={f.validasi === 'Valid' ? 'green' : f.validasi === 'Tidak Valid' ? 'red' : 'gray'}>{f.validasi}</Badge></Row>
+              <Row l="Nama Validator">{f.validasiOleh || '-'}</Row>
+            </>}
+            <Row l="Persetujuan Penutupan">
+              <Badge tone={f.persetujuan === 'Disetujui' ? 'green' : f.persetujuan === 'Ditolak' ? 'red' : 'gray'}>{f.persetujuan}</Badge>
+              <div className="mt-1 text-xs text-slate-500">Oleh: {f.persetujuanOleh || '-'}, Tanggal: {fmtDate(f.persetujuanTgl)}</div>
+            </Row>
+          </div>
+          <div>
+            <div className="text-xs text-slate-400">Rencana Tindak Lanjut</div>
+            <div className="mt-0.5 rounded border border-slate-200 p-2.5">
+              <div className="whitespace-pre-wrap">{f.tindak || '-'}</div>
+              <div className="mt-1 text-xs"><Dl m={f.tindakFile} empty="Belum ada file bukti" /></div>
+            </div>
+          </div>
+          <div>
+            <div className="text-xs text-slate-400">Bukti Surat Regulator</div>
+            <div className="mt-0.5 rounded border border-slate-200 p-2.5 text-xs"><Dl m={f.suratFile} empty="Belum ada file" /></div>
+          </div>
         </div>
-        <div className="flex flex-wrap justify-end gap-2 border-t px-5 py-3">
+        <div className="mt-5 flex flex-wrap justify-end gap-2 border-t pt-3">
           {role === 'Viewer' && <span className="mr-auto self-center text-xs text-slate-400">Viewer: hanya dapat melihat.</span>}
-          {live && !req && (isCO || own) && <button className="btn" onClick={acts.edit}>Ubah</button>}
-          {(f.status === 'Open' || f.status === 'Proses') && (isCO || own) && <button className="btn btn-primary" onClick={acts.submit}>Ajukan Penutupan</button>}
           {f.status === 'Menunggu Validasi' && f.validasi === 'Belum' && isCO && <button className="btn btn-primary" onClick={() => setDlg('validasi')}>Isi Validasi Ulang</button>}
           {f.status === 'Menunggu Validasi' && f.validasi === 'Valid' && isHead && <button className="btn btn-primary" onClick={() => setDlg('setuju')}>Persetujuan Penutupan</button>}
           {req && isHead && <><button className="btn btn-primary" onClick={acts.reqApprove}>Setujui Perubahan</button><button className="btn btn-danger" onClick={acts.reqReject}>Tolak Perubahan</button></>}
           {isHead && f.status !== 'Dibatalkan' && <button className="btn btn-danger" onClick={acts.cancel}>Batalkan</button>}
           {isHead && f.status === 'Dibatalkan' && <button className="btn btn-primary" onClick={acts.restore}>Kembalikan</button>}
+          <button className="btn" onClick={onClose}>Tutup</button>
         </div>
-      </div>
+      </Modal>
       {dlg === 'validasi' && <Decision title="Validasi Ulang" opts={['Valid', 'Tidak Valid']} rejectOpt="Tidak Valid" onClose={() => setDlg(null)} onOk={(v, a) => { acts.validate(v as 'Valid' | 'Tidak Valid', a); setDlg(null) }} />}
       {dlg === 'setuju' && <Decision title="Persetujuan Penutupan" opts={['Disetujui', 'Ditolak']} rejectOpt="Ditolak" onClose={() => setDlg(null)} onOk={(v, a) => { acts.approve(v as 'Disetujui' | 'Ditolak', a); setDlg(null) }} />}
-    </div>
+    </>
   )
 }
