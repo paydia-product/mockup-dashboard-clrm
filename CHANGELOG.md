@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 2.2.2 | 2026-10-29 | ~30k |
 | 2.2.1 | 2026-10-29 | ~220k |
 | 2.2.0 | 2026-10-29 | ~950k |
 | 2.1.0 | 2026-10-29 | ~150k |
@@ -19,6 +20,13 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [2.2.2] - 2026-10-29
+
+Estimasi token: ~30k
+
+### Diperbaiki
+- Pratinjau import menampilkan tanggal sebagai YYYY-MM-DD, bukan teks tanggal mentah.
 
 ## [2.2.1] - 2026-10-29
 

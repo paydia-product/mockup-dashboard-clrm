@@ -93,7 +93,7 @@ export default function ImportExcel<T extends BaseRec>({ cfg, c, api, onDone, on
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-100"><tr><th className="px-2 py-1.5">#</th>{peek.map((f) => <th key={f.key} className="px-2 py-1.5">{f.label}</th>)}<th className="px-2 py-1.5">Validasi</th></tr></thead>
               <tbody>{parsed.map((p, i) => (
-                <tr key={i} className="border-t align-top"><td className="px-2 py-1.5">{i + 1}</td>{peek.map((f) => <td key={f.key} className="px-2 py-1.5">{String(p.raw[f.label] ?? '')}</td>)}
+                <tr key={i} className="border-t align-top"><td className="px-2 py-1.5">{i + 1}</td>{peek.map((f) => <td key={f.key} className="px-2 py-1.5">{p.raw[f.label] instanceof Date ? toDate(p.raw[f.label]) : String(p.raw[f.label] ?? '')}</td>)}
                   <td className={`px-2 py-1.5 ${p.errs.length ? 'text-red-600' : 'text-green-600'}`}>{p.errs.length ? p.errs.join('; ') : 'OK'}</td></tr>
               ))}</tbody>
             </table>
