@@ -11,9 +11,18 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
-    v: '1.1.0',
+    v: '1.1.1',
     date: '2026-10-29',
     deployed: true,
+    title: 'Menu Risk, Fraud, Legal kembali',
+    prompt: 'Kembalikan menu placeholder Risk, Fraud, Legal',
+    tokens: 40000,
+    changes: ['Menu placeholder Risk, Fraud, dan Legal dikembalikan ke sidebar'],
+  },
+  {
+    v: '1.1.0',
+    date: '2026-10-29',
+    deployed: false,
     title: 'Perbaikan temuan QA & pentest',
     prompt: 'Perbaikan temuan QA & pentest prod',
     tokens: 180000,
