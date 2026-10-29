@@ -150,7 +150,7 @@ const cfg: PageConfig<Aph> = {
     const months = [...new Set(rows.map((r) => monthKey(r.tglTerima)))].sort()
     const count = (g: (r: Aph) => string, names: string[]) => names.map((name) => ({ name, Jumlah: rows.filter((r) => g(r) === name).length }))
     const top = (g: (r: Aph) => string, n: number) => count(g, uniq(rows, g)).sort((a, b) => b.Jumlah - a.Jumlah).slice(0, n)
-    const events = act.filter((r) => bapDate(r) && bapDate(r) >= c.today && bapDate(r) <= addDays(c.today, 30)).map((r) => {
+    const events = act.filter((r) => bapDate(r) && bapDate(r) >= c.today && bapDate(r) < addDays(c.today, 30)).map((r) => {
       const d = diffDays(bapDate(r), c.today)
       return { date: bapDate(r), label: `BAP ${r.merchant}`, tone: (d <= 2 ? 'red' : d <= 7 ? 'yellow' : 'blue') as 'red' | 'yellow' | 'blue', id: r.id }
     })

@@ -3,7 +3,7 @@ import * as XLSX from 'xlsx'
 import { Download, Upload } from 'lucide-react'
 import { AREAS, Finding, REGULATORS, RISKS, ROOT_TYPES, UNITS } from './lib'
 import { downloadXlsx } from './kit/exportXlsx'
-import { toDate } from './kit/ImportExcel'
+import { realDate, toDate } from './kit/ImportExcel'
 import { validate } from './Form'
 import { Modal } from './ui'
 
@@ -30,15 +30,15 @@ export default function TrackerImport({ blank, onImport, onClose }: { blank: () 
       setMsg(rows.length ? '' : 'File kosong')
       setParsed(rows.map((raw) => {
         const rec = blank() as unknown as Record<string, unknown>
-        const errs: string[] = []
+        const errs: string[] = [], convBad: string[] = []
         COLS.forEach((c) => {
           const v = raw[c.l]
           if (v === undefined || String(v).trim() === '') return
-          if (c.date) { const d = toDate(v); if (/^\d{4}-\d{2}-\d{2}$/.test(d)) rec[c.k] = d; else errs.push(`${c.l}: format tanggal harus YYYY-MM-DD`) }
-          else if (c.opts) { const o = c.opts.find((x) => x.toLowerCase() === String(v).trim().toLowerCase()); if (o) rec[c.k] = o; else errs.push(`${c.l}: "${String(v)}" tidak ada dalam pilihan`) }
+          if (c.date) { const d = toDate(v); const iso = /^\d{4}-\d{2}-\d{2}$/.test(d); if (iso && realDate(d)) rec[c.k] = d; else { convBad.push(c.k); errs.push(iso ? `${c.l}: format tanggal tidak valid` : `${c.l}: format tanggal harus YYYY-MM-DD`) } }
+          else if (c.opts) { const o = c.opts.find((x) => x.toLowerCase() === String(v).trim().toLowerCase()); if (o) rec[c.k] = o; else convBad.push(c.k), errs.push(`${c.l}: "${String(v)}" tidak ada dalam pilihan`) }
           else rec[c.k] = String(v).trim()
         })
-        if (!errs.length) { const e = validate(rec as unknown as Finding); delete e.tindakFile; delete e.suratFile; errs.push(...(Object.values(e) as string[])) } // file diisi belakangan lewat Edit
+        { const e = validate(rec as unknown as Finding) as Record<string, string>; delete e.tindakFile; delete e.suratFile; convBad.forEach((k) => delete e[k]); errs.push(...Object.values(e)) } // file diisi belakangan lewat Edit
         return { raw, rec: rec as unknown as Finding, errs }
       }))
     } catch { setMsg('File tidak bisa dibaca. Pakai file .xlsx dari template.'); setParsed(null) }

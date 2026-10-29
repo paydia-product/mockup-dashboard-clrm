@@ -18,7 +18,7 @@ export function toDate(raw: unknown): string {
   return m ? `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` : s.slice(0, 10)
 }
 // Tanggal kalender nyata: bulan 1-12, hari 1..jumlah hari bulan itu (tahun kabisat dihitung)
-const realDate = (d: string) => { const [y, mo, dd] = d.split('-').map(Number); return mo >= 1 && mo <= 12 && dd >= 1 && dd <= new Date(y, mo, 0).getDate() }
+export const realDate = (d: string) => { const [y, mo, dd] = d.split('-').map(Number); return mo >= 1 && mo <= 12 && dd >= 1 && dd <= new Date(y, mo, 0).getDate() }
 // Teks angka ketat: "Rp 1.000.000", "1,000,000", "12,5" diterima; teks lain jadi NaN (bukan 0). Sel angka Excel dipakai apa adanya.
 function toNum(raw: unknown, s: string, percent: boolean): number {
   if (typeof raw === 'number') return raw

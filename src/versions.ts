@@ -11,9 +11,18 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
-    v: '2.2.0',
+    v: '2.2.1',
     date: '2026-10-29',
     deployed: true,
+    title: 'Import tracker validasi tanggal, rentang kalender BAP',
+    prompt: 'Lanjutan QA penuh',
+    tokens: 220000,
+    changes: ['Import tracker menolak tanggal yang tidak ada dan menampilkan semua error per baris', 'Rentang kalender BAP sama dengan judulnya (30 hari)'],
+  },
+  {
+    v: '2.2.0',
+    date: '2026-10-29',
+    deployed: false,
     title: 'Perbaikan hasil QA penuh di prod',
     prompt: 'Solve conflict kemudian QA penuh seluruhnya',
     tokens: 950000,

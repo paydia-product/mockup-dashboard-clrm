@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 2.2.1 | 2026-10-29 | ~220k |
 | 2.2.0 | 2026-10-29 | ~950k |
 | 2.1.0 | 2026-10-29 | ~150k |
 | 2.0.0 | 2026-10-29 | ~2,2 juta |
@@ -18,6 +19,14 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [2.2.1] - 2026-10-29
+
+Estimasi token: ~220k (cek ulang di prod dan perbaikan)
+
+### Diperbaiki
+- Import tracker menolak tanggal yang tidak ada dan menampilkan semua error dalam satu baris.
+- Rentang kalender BAP sama dengan judulnya (30 hari).
 
 ## [2.2.0] - 2026-10-29
 
