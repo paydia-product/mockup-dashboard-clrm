@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { FileText } from 'lucide-react'
-import { Audit, ChangeReq, FileMeta, Finding, Role, ROLE_USER, alertsFor, fmtDate, fmtSize, fmtTime } from './lib'
+import { Audit, ChangeReq, FileMeta, Finding, Role, ROLE_USER, alertsFor, fmtDate, lastDueReason, fmtSize, fmtTime } from './lib'
 import { AlertBadges, Badge, Modal, RiskBadge, StatusBadge } from './ui'
 
 export interface Acts {
@@ -37,24 +37,27 @@ export default function Drawer({ f, audit, req, role, acts, onClose }: { f: Find
   const [dlg, setDlg] = useState<'validasi' | null>(null)
   const isCO = role === 'Compliance Officer'
   const isHead = role === 'Head CLRM'
+  const alerts = alertsFor(f, audit)
+  const dueReason = lastDueReason(f.id, audit)
   return (
     <>
       <Modal wide title="Detail" onClose={onClose}>
         <div className="space-y-5">
-          <AlertBadges list={alertsFor(f, audit)} />
+          {alerts.length > 0 && <AlertBadges list={alerts} />}
           {req && (
             <div className="rounded border border-yellow-300 bg-yellow-50 p-3 text-xs text-yellow-800">
               Menunggu persetujuan Head CLRM (Penutupan Temuan). <a className="font-medium underline" href={`#/approval?id=t-${req.id}`}>Lihat di menu Approval</a>
             </div>
           )}
           <div className="grid grid-cols-2 gap-x-6 gap-y-3">
-            <Row l="Nomor Temuan">{f.no}</Row>
+            <Row l="Nomor">{f.no}</Row>
             <Row l="Regulator">{f.regulator}</Row>
             <Row l="Tanggal Temuan">{fmtDate(f.tglTemuan)}</Row>
             <Row l="Area Temuan">{f.area}</Row>
             <Row l="Penyebab Utama (Root Cause)">{f.rootCause} <Badge tone="gray">{f.rootType}</Badge></Row>
             <Row l="PIC">{f.pic}</Row>
             <Row l="Batas Waktu (Due Date)">{fmtDate(f.dueDate)}</Row>
+            <Row l="Alasan perubahan Batas Waktu">{dueReason?.alasan ?? '-'}</Row>
             <Row l="Status"><StatusBadge s={f.status} /></Row>
             <Row l="Unit Kerja">{f.unit}</Row>
             <Row l="Tingkat Risiko"><RiskBadge r={f.risiko} /></Row>

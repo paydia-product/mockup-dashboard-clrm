@@ -13,6 +13,7 @@ import type { BaseRec, PageConfig } from './types'
 
 type Modal_ = { k: 'detail' | 'edit' | 'cancel' | 'restore'; id: string } | { k: 'add' | 'sim' | 'import' } | { k: 'extra'; node: ReactNode } | null
 type Filt = Record<string, unknown>
+const SHOW_IMPORT = false // ponytail: disembunyikan atas permintaan user; set true untuk mengaktifkan
 const hasVal = (v: unknown) => (Array.isArray(v) ? !!(v[0] || v[1]) : !!v)
 
 export default function PageShell<T extends BaseRec>({ config: cfg }: { config: PageConfig<T> }) {
@@ -74,7 +75,7 @@ export default function PageShell<T extends BaseRec>({ config: cfg }: { config: 
               onDelete={(name) => setSaved((l) => l.filter((x) => x.name !== name))} />
             <div className="ml-auto flex flex-wrap gap-2">
               <button className="btn" onClick={() => setModal({ k: 'sim' })}><Bell size={14} />Simulasi notifikasi ({hits.length})</button>
-              {can(m, 'Import') && <button className="btn" onClick={() => setModal({ k: 'import' })}><Upload size={14} />Import Excel</button>}
+              {SHOW_IMPORT && can(m, 'Import') && <button className="btn" onClick={() => setModal({ k: 'import' })}><Upload size={14} />Import Excel</button>}
               {can(m, 'Export') && <button className="btn" onClick={() => { const n = exportRows(cfg, shown, c, c.today); log(cfg.title, 'Export', '', `${n} baris`) }}><Download size={14} />Export Excel</button>}
               {can(m, 'Tambah') && <button className="btn btn-primary" onClick={() => setModal({ k: 'add' })}><Plus size={14} />Tambah</button>}
             </div>

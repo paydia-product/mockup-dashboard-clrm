@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Audit, EMPTY_FILTER, Filter, Finding, REGULATORS, RISKS, STATUSES, fmtDate, lateDays } from './lib'
 import { RiskBadge, StatusBadge } from './ui'
@@ -50,18 +50,25 @@ export default function Dashboard({ findings, audit, filter, setFilter, onOpen }
     STATUSES.filter((s) => s !== 'Dibatalkan').forEach((s) => (row[s] = data.filter((f) => f.risiko === r && f.status === s).length))
     return row
   })
+  const [trendP, setTrendP] = useState('12')
+  const [trendFrom, setTrendFrom] = useState('')
+  const [trendTo, setTrendTo] = useState('')
   const trend = useMemo(() => {
+    const all = findings.filter((f) => f.status !== 'Dibatalkan') // independen dari filter halaman
     const m = new Map<string, { bulan: string; Masuk: number; Selesai: number }>()
     const row = (k: string) => { if (!m.has(k)) m.set(k, { bulan: k, Masuk: 0, Selesai: 0 }); return m.get(k)! }
-    data.forEach((f) => {
+    all.forEach((f) => {
       row(f.tglTemuan.slice(0, 7)).Masuk++
       if (f.status === 'Selesai') {
         const e = audit.filter((a) => a.fid === f.id && a.kolom === 'Status' && a.baru === 'Selesai').sort((a, b) => b.time.localeCompare(a.time))[0]
         row((e?.time ?? f.persetujuanTgl).slice(0, 7)).Selesai++
       }
     })
-    return [...m.values()].sort((a, b) => a.bulan.localeCompare(b.bulan))
-  }, [data, audit])
+    let rows = [...m.values()].sort((a, b) => a.bulan.localeCompare(b.bulan))
+    if (trendP === 'custom') rows = rows.filter((r) => (!trendFrom || r.bulan >= trendFrom.slice(0, 7)) && (!trendTo || r.bulan <= trendTo.slice(0, 7)))
+    else if (trendP !== 'all') { const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - (Number(trendP) - 1)); const min = d.toISOString().slice(0, 7); rows = rows.filter((r) => r.bulan >= min) }
+    return rows
+  }, [findings, audit, trendP, trendFrom, trendTo])
 
   const statusColor: Record<string, string> = { Open: '#3b82f6', Proses: '#f59e0b', 'Menunggu Validasi': '#8b5cf6', Selesai: '#10b981' }
   return (
@@ -129,15 +136,15 @@ export default function Dashboard({ findings, audit, filter, setFilter, onOpen }
           </ResponsiveContainer>
           <div className="max-h-[220px] overflow-auto lg:col-span-2">
             <table className="w-full text-left">
-              <thead className="sticky top-0 bg-slate-50 text-xs text-slate-500"><tr>{['Nomor', 'PIC', 'Batas Waktu', 'Terlambat', 'Kelompok', 'Status', 'Risiko'].map((h) => <th key={h} className="px-2 py-2 font-medium">{h}</th>)}</tr></thead>
+              <thead className="sticky top-0 bg-slate-50 text-xs text-slate-500"><tr>{['PIC', 'Batas Waktu', 'Terlambat', 'Kelompok', 'Status', 'Risiko'].map((h) => <th key={h} className="px-2 py-2 font-medium">{h}</th>)}</tr></thead>
               <tbody>
                 {overdue.map((f) => (
                   <tr key={f.id} onClick={() => onOpen(f.id)} className="cursor-pointer border-t hover:bg-red-50">
-                    <td className="px-2 py-1.5 font-medium">{f.no}</td><td className="px-2">{f.pic}</td><td className="px-2">{fmtDate(f.dueDate)}</td>
+                    <td className="px-2 py-1.5">{f.pic}</td><td className="px-2">{fmtDate(f.dueDate)}</td>
                     <td className="px-2 font-medium text-red-600">{lateDays(f)} hari</td><td className="px-2">{bucketOf(f)}</td><td className="px-2"><StatusBadge s={f.status} /></td><td className="px-2"><RiskBadge r={f.risiko} /></td>
                   </tr>
                 ))}
-                {!overdue.length && <tr><td colSpan={7} className="p-4 text-center text-slate-400">Tidak ada temuan lewat batas waktu</td></tr>}
+                {!overdue.length && <tr><td colSpan={6} className="p-4 text-center text-slate-400">Tidak ada temuan lewat batas waktu</td></tr>}
               </tbody>
             </table>
           </div>
@@ -145,6 +152,16 @@ export default function Dashboard({ findings, audit, filter, setFilter, onOpen }
       </Card>
 
       <Card title="Tren Penyelesaian (per bulan)">
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <select className="inp !w-auto" value={trendP} onChange={(e) => setTrendP(e.target.value)}>
+            <option value="all">Seluruh Waktu</option>{[3, 6, 9, 12].map((n) => <option key={n} value={n}>{n} bulan terakhir</option>)}<option value="custom">Custom</option>
+          </select>
+          {trendP === 'custom' && <>
+            <input type="date" className="inp !w-auto" value={trendFrom} onChange={(e) => setTrendFrom(e.target.value)} />
+            <span>sampai</span>
+            <input type="date" className="inp !w-auto" value={trendTo} onChange={(e) => setTrendTo(e.target.value)} />
+          </>}
+        </div>
         <ResponsiveContainer width="100%" height={260}>
           <LineChart data={trend}><CartesianGrid strokeDasharray="3 3" vertical={false} /><XAxis dataKey="bulan" fontSize={12} /><YAxis allowDecimals={false} fontSize={12} /><Tooltip /><Legend />
             <Line type="monotone" dataKey="Masuk" name="Temuan masuk" stroke="#1f2ab5" strokeWidth={2} /><Line type="monotone" dataKey="Selesai" name="Temuan selesai" stroke="#10b981" strokeWidth={2} />

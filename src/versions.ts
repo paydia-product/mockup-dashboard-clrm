@@ -11,9 +11,25 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
+    v: '2.4.0',
+    date: '2026-10-30',
+    deployed: true,
+    title: 'Dashboard dan tabel tracker, import disembunyikan',
+    prompt: 'Hapus kolom nomor di Lewat Batas Waktu, filter waktu sendiri di Tren, label Nomor, hapus "-" di detail, alasan perubahan due date terlihat, sembunyikan Import Excel',
+    tokens: 60000,
+    changes: [
+      'Tabel Temuan Lewat Batas Waktu tanpa kolom nomor',
+      'Tren Penyelesaian punya filter waktu sendiri: Seluruh Waktu, 3/6/9/12 bulan terakhir, custom',
+      'Label "Nomor Temuan" jadi "Nomor"',
+      'Detail: baris alert hanya tampil kalau ada alert',
+      'Alasan perubahan Batas Waktu terakhir tampil di Edit dan Detail; ubah Batas Waktu wajib alasan baru',
+      'Tombol Import Excel disembunyikan di semua halaman',
+    ],
+  },
+  {
     v: '2.3.0',
     date: '2026-10-29',
-    deployed: true,
+    deployed: false,
     title: 'Tanpa login kedua',
     prompt: 'Setelah login mockup, tidak perlu login lagi, langsung ke dashboard',
     tokens: 25000,

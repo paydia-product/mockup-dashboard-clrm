@@ -94,6 +94,10 @@ export function waitingSince(f: Finding, audit: Audit[]): string | null {
   const e = audit.filter((a) => a.fid === f.id && a.kolom === 'Status' && a.baru === 'Menunggu Validasi').sort((a, b) => b.time.localeCompare(a.time))[0]
   return e ? e.time.slice(0, 10) : null
 }
+export function lastDueReason(fid: string, audit: Audit[]): { alasan: string; tgl: string } | null {
+  const e = audit.filter((a) => a.fid === fid && a.kolom === 'Batas Waktu' && a.alasan.trim()).sort((a, b) => b.time.localeCompare(a.time))[0]
+  return e ? { alasan: e.alasan, tgl: e.time.slice(0, 10) } : null
+}
 export function alertsFor(f: Finding, audit: Audit[], today = todayStr()): AlertInfo[] {
   if (!isOpenish(f)) return []
   const out: AlertInfo[] = []

@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 2.4.0 | 2026-10-30 | ~60k |
 | 2.3.0 | 2026-10-29 | ~25k |
 | 2.2.2 | 2026-10-29 | ~30k |
 | 2.2.1 | 2026-10-29 | ~220k |
@@ -21,6 +22,18 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [2.4.0] - 2026-10-30
+
+Estimasi token: ~60k
+
+### Diubah
+- Dashboard tracker: tabel Temuan Lewat Batas Waktu tanpa kolom nomor.
+- Tren Penyelesaian punya filter waktu sendiri (Seluruh Waktu, 3, 6, 9, 12 bulan terakhir, custom), lepas dari filter atas.
+- Label "Nomor Temuan" menjadi "Nomor".
+- Detail: baris alert hanya tampil kalau temuan punya alert.
+- Alasan perubahan Batas Waktu terakhir tampil di modal Edit dan Detail. Ubah Batas Waktu wajib diberi alasan baru.
+- Tombol Import Excel disembunyikan di semua halaman. Kodenya tetap ada (`SHOW_IMPORT`).
 
 ## [2.3.0] - 2026-10-29
 

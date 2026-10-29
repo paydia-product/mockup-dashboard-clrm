@@ -22,9 +22,9 @@ export function validate(f: Finding, alasan = '', needAlasan = false): Errs {
 
 const Sum = ({ l, children }: { l: string; children: React.ReactNode }) => <div><div className="text-xs text-slate-400">{l}</div><div className="text-slate-800">{children}</div></div>
 
-export default function Form({ init, mode, onSave, onClose }: { init: Finding; mode: 'add' | 'edit'; onSave: (f: Finding, alasan: string) => void; onClose: () => void }) {
+export default function Form({ init, mode, prevReason = null, onSave, onClose }: { init: Finding; mode: 'add' | 'edit'; prevReason?: { alasan: string; tgl: string } | null; onSave: (f: Finding, alasan: string) => void; onClose: () => void }) {
   const [f, setF] = useState<Finding>(init)
-  const [alasan, setAlasan] = useState('')
+  const [alasan, setAlasan] = useState(prevReason?.alasan ?? '')
   const [errs, setErrs] = useState<Errs>({})
   const edit = mode === 'edit'
   const dueChanged = edit && f.dueDate !== init.dueDate
@@ -47,8 +47,9 @@ export default function Form({ init, mode, onSave, onClose }: { init: Finding; m
   )
   const submit = () => {
     const e = validate(f, alasan, dueChanged)
+    if (dueChanged && !e.alasan && prevReason && alasan.trim() === prevReason.alasan.trim()) e.alasan = 'Isi alasan baru untuk perubahan Batas Waktu'
     setErrs(e)
-    if (!Object.keys(e).length) onSave(f, alasan.trim())
+    if (!Object.keys(e).length) onSave(f, dueChanged ? alasan.trim() : '')
   }
   const files = (
     <>
@@ -96,9 +97,10 @@ export default function Form({ init, mode, onSave, onClose }: { init: Finding; m
             </div>
           )}
           <div className="mt-3">
-            <label className="lbl">Alasan{dueChanged ? ' *' : ''}</label>
+            <label className="lbl">Alasan perubahan Batas Waktu{dueChanged ? ' *' : ''}</label>
             <textarea className="inp" rows={2} value={alasan} onChange={(e) => setAlasan(e.target.value)} />
             {errs.alasan && <p className="err">{errs.alasan}</p>}
+            {prevReason && <p className="mt-1 text-xs text-slate-400">Alasan terakhir: {fmtDate(prevReason.tgl)}</p>}
             {dueChanged && <p className="mt-1 text-xs text-slate-400">Batas waktu dari {fmtDate(init.dueDate)} menjadi {fmtDate(f.dueDate)}</p>}
           </div>
           {files}

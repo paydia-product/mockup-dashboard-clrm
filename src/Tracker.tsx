@@ -3,7 +3,7 @@ import * as XLSX from 'xlsx'
 import { Bell, ChevronDown, ChevronUp, Download, Eye, History, Pencil, Plus, RotateCcw, Save, Search, SlidersHorizontal, Trash2, Upload, XCircle } from 'lucide-react'
 import {
   Audit, DB, EMPTY_FILTER, Filter, Finding, REGULATORS, AlertInfo, RISKS, ROLE_USER, Role, STATUSES, UNITS, alertsFor, applyFilter,
-  addDays, diffDays, fmtDate, fmtTime, isPendingReq, nowStr, todayStr,
+  addDays, diffDays, fmtDate, fmtTime, isPendingReq, lastDueReason, nowStr, todayStr,
 } from './lib'
 import { getStore, setStore, useApp } from './kit/store'
 import type { Action } from './kit/types'
@@ -14,8 +14,9 @@ import TrackerImport from './TrackerImport'
 import { Modal, ReasonModal, RiskBadge, StatusBadge } from './ui'
 
 type SortKey = 'no' | 'regulator' | 'tglTemuan' | 'area' | 'pic' | 'dueDate' | 'status' | 'risiko'
+const SHOW_IMPORT = false // ponytail: disembunyikan atas permintaan user; set true untuk mengaktifkan
 const COLS: { k: SortKey; l: string }[] = [
-  { k: 'no', l: 'Nomor Temuan' }, { k: 'regulator', l: 'Regulator' }, { k: 'tglTemuan', l: 'Tanggal Temuan' }, { k: 'area', l: 'Area Temuan' },
+  { k: 'no', l: 'Nomor' }, { k: 'regulator', l: 'Regulator' }, { k: 'tglTemuan', l: 'Tanggal Temuan' }, { k: 'area', l: 'Area Temuan' },
   { k: 'pic', l: 'PIC' }, { k: 'dueDate', l: 'Batas Waktu' }, { k: 'status', l: 'Status' }, { k: 'risiko', l: 'Tingkat Risiko' },
 ]
 type Pending = { kind: 'add' } | { kind: 'edit'; id: string } | { kind: 'reason'; title: string; danger?: boolean; run: (r: string) => void } | { kind: 'sim' } | { kind: 'import' } | null
@@ -128,7 +129,7 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
 
   const doExport = () => {
     const data = rows.map((f) => ({
-      'Nomor Temuan': f.no, Regulator: f.regulator, 'Tanggal Temuan': f.tglTemuan, 'Area Temuan': f.area, 'Penyebab Utama (Root Cause)': `${f.rootCause} (${f.rootType})`,
+      Nomor: f.no, Regulator: f.regulator, 'Tanggal Temuan': f.tglTemuan, 'Area Temuan': f.area, 'Penyebab Utama (Root Cause)': `${f.rootCause} (${f.rootType})`,
       PIC: f.pic, 'Batas Waktu': f.dueDate, Status: f.status,
       'Validasi Ulang': f.validasi === 'Belum' ? 'Belum' : `${f.validasi} - ${f.validasiOleh} - ${f.validasiTgl}`,
       'Persetujuan Penutupan': f.persetujuanOleh ? `${f.persetujuan} - ${f.persetujuanOleh} - ${f.persetujuanTgl}` : f.persetujuan,
@@ -230,7 +231,7 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
             </div>
             <div className="ml-auto flex flex-wrap gap-2">
               <button className="btn" onClick={() => setPending({ kind: 'sim' })}><Bell size={14} />Simulasi notifikasi ({sim.length})</button>
-              {can('Tambah') && <button className="btn" onClick={() => setPending({ kind: 'import' })}><Upload size={14} />Import Excel</button>}
+              {SHOW_IMPORT && can('Tambah') && <button className="btn" onClick={() => setPending({ kind: 'import' })}><Upload size={14} />Import Excel</button>}
               {can('Export') && <button className="btn" onClick={doExport}><Download size={14} />Export Excel</button>}
               {can('Tambah') && <button className="btn btn-primary" onClick={() => setPending({ kind: 'add' })}><Plus size={14} />Tambah</button>}
             </div>
@@ -293,7 +294,7 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
 
       {open && <Drawer f={open} audit={db.audit} req={db.requests.find((r) => r.fid === open.id && isPendingReq(r))} role={role} acts={actsFor(open)} onClose={() => setOpenId(null)} />}
       {pending?.kind === 'add' && <Form mode="add" init={blank()} onSave={(f) => saveForm(f, 'add')} onClose={() => setPending(null)} />}
-      {editing && <Form mode="edit" init={editing} onSave={(f, al) => saveForm(f, 'edit', al)} onClose={() => setPending(null)} />}
+      {editing && <Form mode="edit" init={editing} prevReason={lastDueReason(editing.id, db.audit)} onSave={(f, al) => saveForm(f, 'edit', al)} onClose={() => setPending(null)} />}
       {pending?.kind === 'import' && <TrackerImport blank={blank} onImport={importRows} onClose={() => setPending(null)} />}
       {pending?.kind === 'reason' && <ReasonModal title={pending.title} danger={pending.danger} onClose={() => setPending(null)} onConfirm={pending.run} />}
       {pending?.kind === 'sim' && (
