@@ -6,7 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
-| 2.0.0 | 2026-10-29 | ~3,5 juta |
+| 2.0.0 | 2026-10-29 | ~2,2 juta |
 | 1.5.0 | 2026-10-29 | ~40k |
 | 1.4.1 | 2026-10-29 | ~10k |
 | 1.4.0 | 2026-10-29 | ~80k |
@@ -19,7 +19,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 ## [2.0.0] - 2026-10-29
 
-Estimasi token: ~3,5 juta (rencana, fondasi, 9 halaman paralel, audit, perbaikan)
+Estimasi token: ~2,2 juta (rencana, fondasi, 9 halaman paralel, audit, perbaikan)
 
 ### Ditambah
 - Page kit bersama di `src/kit` sebagai dasar semua halaman.

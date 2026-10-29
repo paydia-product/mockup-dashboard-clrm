@@ -16,7 +16,7 @@ export const versions: Version[] = [
     deployed: true,
     title: 'Seluruh halaman CR + fitur pendukung',
     prompt: 'Judul detail jadi Detail; kerjakan seluruh halaman lain sesuai rencana kerja baru dan lama, dasar dari tracker, core feature sesuai CR',
-    tokens: 3500000,
+    tokens: 2200000,
     changes: [
       'Judul detail tracker jadi "Detail", tanpa badge status dan risiko',
       'Page kit bersama (src/kit): tab, tabel, filter popover, detail, form, simulasi email, export dan import Excel',
