@@ -1,0 +1,6 @@
+html,body{height:100%;margin:0;background:#f5f6fa}
+body{display:flex;align-items:center;justify-content:center}
+#p{width:280px;padding:12px 14px;font-size:16px;border:1px solid #cbd0e0;border-radius:6px;outline:none;background:#fff}
+#p:focus{border-color:#1f2ab5;box-shadow:0 0 0 3px rgba(31,42,181,.15)}
+#p.err{border-color:#dc2626;animation:s .35s}
+@keyframes s{25%{transform:translateX(-6px)}50%{transform:translateX(6px)}75%{transform:translateX(-4px)}}
