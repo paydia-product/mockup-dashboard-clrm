@@ -3,7 +3,7 @@ import * as XLSX from 'xlsx'
 import { Download, Upload } from 'lucide-react'
 import { Modal } from '../ui'
 import { downloadXlsx } from './exportXlsx'
-import { fieldsFor, validateRecord } from './FormModal'
+import { fieldsFor, numericOpts, validateRecord } from './FormModal'
 import type { BaseRec, Ctx, Field, ModuleApi, PageConfig } from './types'
 
 type R = Record<string, any> // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -17,13 +17,25 @@ function toDate(raw: unknown): string {
   const m = s.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})/)
   return m ? `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` : s.slice(0, 10)
 }
+// Teks angka ketat: "Rp 1.000.000", "1,000,000", "12,5" diterima; teks lain jadi NaN (bukan 0). Sel angka Excel dipakai apa adanya.
+function toNum(raw: unknown, s: string, percent: boolean): number {
+  if (typeof raw === 'number') return raw
+  let t = s.replace(/^Rp\.?/i, '').replace(/\s/g, '')
+  if (!/^-?[\d.,]+$/.test(t) || !/\d/.test(t)) return NaN
+  const d = t.lastIndexOf('.'), k = t.lastIndexOf(',')
+  if (d >= 0 && k >= 0) t = d > k ? t.replace(/,/g, '') : t.replace(/\./g, '').replace(',', '.')
+  else if (!percent && /^-?\d{1,3}(\.\d{3})+$/.test(t)) t = t.replace(/\./g, '')
+  else if (!percent && /^-?\d{1,3}(,\d{3})+$/.test(t)) t = t.replace(/,/g, '')
+  else t = t.replace(',', '.')
+  return Number(t)
+}
 function conv(f: Field<any>, raw: unknown, c: Ctx): { v: unknown; err?: string } { // eslint-disable-line @typescript-eslint/no-explicit-any
   const s = raw instanceof Date ? '1' : String(raw ?? '').trim()
   if (!s) return { v: f.type === 'multiselect' ? [] : '' }
-  if (['number', 'money', 'percent'].includes(f.type)) { const n = Number(s.replace(/[^\d.,-]/g, '').replace(',', '.')); return isNaN(n) ? { v: '', err: `${f.label}: bukan angka` } : { v: n } }
+  if (['number', 'money', 'percent'].includes(f.type)) { const n = raw instanceof Date ? NaN : toNum(raw, s, f.type === 'percent'); return isNaN(n) ? { v: '', err: `${f.label}: bukan angka` } : { v: n } }
   if (f.type === 'date') { const d = toDate(raw); return /^\d{4}-\d{2}-\d{2}$/.test(d) ? { v: d } : { v: '', err: `${f.label}: format tanggal harus YYYY-MM-DD` } }
   if (f.type === 'datetime') { const d = raw instanceof Date ? new Date(raw.getTime() + 43200000).toISOString().slice(0, 10) + 'T00:00' : s.replace(' ', 'T').slice(0, 16); return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(d) ? { v: d } : { v: '', err: `${f.label}: format harus YYYY-MM-DD HH:mm` } }
-  if (f.type === 'select' || f.type === 'yesno') { const o = optsOf(f, c).find((x) => x.toLowerCase() === s.toLowerCase()); return o ? { v: o } : { v: '', err: `${f.label}: "${s}" tidak ada dalam pilihan` } }
+  if (f.type === 'select' || f.type === 'yesno') { const o = optsOf(f, c).find((x) => x.toLowerCase() === s.toLowerCase()); return o ? { v: numericOpts(optsOf(f, c)) ? Number(o) : o } : { v: '', err: `${f.label}: "${s}" tidak ada dalam pilihan` } }
   if (f.type === 'multiselect') {
     const parts = s.split(/[;,]/).map((x) => x.trim()).filter(Boolean), o = optsOf(f, c)
     const bad = parts.filter((p) => !o.some((x) => x.toLowerCase() === p.toLowerCase()))

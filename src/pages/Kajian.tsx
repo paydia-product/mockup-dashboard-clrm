@@ -6,6 +6,7 @@ import { BarCard, DonutCard, MiniTable, StatCards, Card } from '../kit/charts'
 import { todayStr, workDaysBetween } from '../kit/dates'
 import { StatusPill } from '../kit/fmt'
 import { Modal } from '../ui'
+import { sameName } from '../kit/perms'
 import type { AlertDef, BaseRec, Column, Ctx, Field, FilterDef, ModuleApi, PageConfig } from '../kit/types'
 
 interface Kajian extends BaseRec {
@@ -32,11 +33,11 @@ const fields: Field<Kajian>[] = [
   { key: 'tglMasuk', label: 'Tanggal Masuk', type: 'date', required: true },
   { key: 'sla', label: 'SLA (hari kalender)', type: 'number', required: true, reasonOnChange: true, help: 'Mengubah SLA (batas waktu) wajib disertai alasan.' },
   { key: 'batas', label: 'Tanggal Batas', type: 'date', auto: (r) => batas(r) },
-  { key: 'status', label: 'Status', type: 'select', options: STATUS, required: true, help: 'Status Selesai diisi lewat aksi baris "Selesai".' },
+  { key: 'status', label: 'Status', type: 'select', options: STATUS.filter((s) => s !== 'Selesai'), required: true, help: 'Status Selesai diisi lewat aksi baris "Selesai".' },
   { key: 'pic', label: 'PIC', type: 'text', required: true },
   { key: 'tglSelesai', label: 'Tanggal Selesai', type: 'date', inForm: 'none' },
   { key: 'hasil', label: 'Hasil / Opini Risk Management', type: 'select', options: HASIL, inForm: 'none' },
-  { key: 'klasifikasi', label: 'Klasifikasi Regulasi', type: 'select', options: KLAS, required: true },
+  { key: 'klasifikasi', label: 'Klasifikasi Regulasi', type: 'select', options: KLAS },
   { key: 'namaMitra', label: 'Nama Mitra', type: 'text', required: isV, showIf: isV },
   { key: 'konteks', label: 'Konteks Kerja Sama', type: 'textarea', wide: true, showIf: isV },
   { key: 'statusMitra', label: 'Status Mitra', type: 'select', options: ['Eksisting', 'Rencana'], required: isV, showIf: isV },
@@ -172,7 +173,7 @@ const cfg: PageConfig<Kajian> = {
   blank: () => ({ jenis: '', judul: '', dept: '', tglMasuk: '', sla: '', status: 'Baru', pic: '', tglSelesai: '', hasil: '', klasifikasi: '', namaMitra: '', konteks: '', statusMitra: '', adaPks: '', tglPks: '', aksesSistem: '', aksesData: '', aksesKeuangan: '', pantau: '', tglDD: '' }),
   search: (r) => `${r.no} ${r.judul} ${r.namaMitra}`, searchPlaceholder: 'Cari nomor, judul, nama mitra',
   alerts, cancelStatus: 'Dibatalkan',
-  canEditRow: (r) => r.status !== 'Selesai' && r.status !== 'Batal',
+  canEditRow: (r, c) => r.status !== 'Selesai' && r.status !== 'Batal' && (c.role !== 'PIC' || sameName(r.pic, c.user.name)),
   validate: (r, mode) => {
     const e: Record<string, string> = {}
     if (r.sla !== '' && Number(r.sla) < 1) e.sla = 'SLA minimal 1 hari'

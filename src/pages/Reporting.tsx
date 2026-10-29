@@ -29,24 +29,26 @@ const fmtLocal = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad
 const agoLocal = (minutes: number) => fmtLocal(new Date(Date.now() - minutes * 60000))
 const dur = (ms: number) => { const m = Math.round(Math.abs(ms) / 60000); return m >= 120 ? `${Math.floor(m / 60)} jam` : `${m} menit` }
 
+// Spec: PIC dan CO hanya mengubah status, tanggal submit, bukti, dan alasan terlambat; Super Admin semua kolom.
+const full = (c: Ctx) => c.role === 'Super Admin'
 const fields: Field<Laporan>[] = [
-  { key: 'nama', label: 'Nama Laporan', type: 'text', required: true, help: 'Teks bebas. Contoh: Pelaporan Dana Floating, Laporan RBSP, SiPesat, LTKM, LTKT, Laporan Insiden Siber.' },
-  { key: 'regulator', label: 'Regulator', type: 'select', options: REG, required: true },
-  { key: 'jenis', label: 'Jenis Periode', type: 'select', options: JENIS, required: true },
-  { key: 'siber', label: 'Laporan Insiden Siber?', type: 'yesno', showIf: (r) => r.jenis === 'Insidental', help: 'Jam berjalan insiden siber dihitung dari waktu kejadian.' },
-  { key: 'waktuKejadian', label: 'Waktu Kejadian', type: 'datetime', required: (r) => r.jenis === 'Insidental', showIf: (r) => r.jenis === 'Insidental' },
-  { key: 'waktuNotif', label: 'Waktu Notifikasi Awal', type: 'datetime', showIf: isSiber, help: 'Paling lambat 1 jam sejak kejadian.' },
-  { key: 'periode', label: 'Periode yang Dilaporkan', type: 'text', required: true, help: 'Diisi manual, mis. "Oktober 2026" atau "Q3 2026".' },
-  { key: 'batas', label: 'Batas Waktu (Due Date)', type: 'datetime', required: true, help: 'Untuk laporan insidental diisi manual (paling lambat 3 hari kalender untuk insiden siber).' },
+  { key: 'nama', label: 'Nama Laporan', type: 'text', required: true, help: 'Teks bebas. Contoh: Pelaporan Dana Floating, Laporan RBSP, SiPesat, LTKM, LTKT, Laporan Insiden Siber.', editableBy: full },
+  { key: 'regulator', label: 'Regulator', type: 'select', options: REG, required: true, editableBy: full },
+  { key: 'jenis', label: 'Jenis Periode', type: 'select', options: JENIS, required: true, editableBy: full },
+  { key: 'siber', label: 'Laporan Insiden Siber?', type: 'yesno', showIf: (r) => r.jenis === 'Insidental', help: 'Jam berjalan insiden siber dihitung dari waktu kejadian.', editableBy: full },
+  { key: 'waktuKejadian', label: 'Waktu Kejadian', type: 'datetime', required: (r) => r.jenis === 'Insidental', showIf: (r) => r.jenis === 'Insidental', editableBy: full },
+  { key: 'waktuNotif', label: 'Waktu Notifikasi Awal', type: 'datetime', showIf: isSiber, help: 'Paling lambat 1 jam sejak kejadian.', editableBy: full },
+  { key: 'periode', label: 'Periode yang Dilaporkan', type: 'text', required: true, help: 'Diisi manual, mis. "Oktober 2026" atau "Q3 2026".', editableBy: full },
+  { key: 'batas', label: 'Batas Waktu (Due Date)', type: 'datetime', required: true, help: 'Untuk laporan insidental diisi manual (paling lambat 3 hari kalender untuk insiden siber).', editableBy: full },
   { key: 'tglSubmit', label: 'Tanggal Submit', type: 'datetime', required: (r) => SENT(r) },
   { key: 'status', label: 'Status', type: 'select', options: STATUS, required: true, help: 'Terlambat terisi otomatis bila batas waktu terlewat dan belum Terkirim.' },
   { key: 'tepat', label: 'Tepat Waktu?', type: 'text', auto: (r) => tepat(r) },
-  { key: 'picPenyusun', label: 'PIC Penyusun', type: 'text', required: true },
-  { key: 'picReviewer', label: 'PIC Reviewer', type: 'text', required: true },
+  { key: 'picPenyusun', label: 'PIC Penyusun', type: 'text', required: true, editableBy: full },
+  { key: 'picReviewer', label: 'PIC Reviewer', type: 'text', required: true, editableBy: full },
   { key: 'bukti', label: 'Bukti Submit (file)', type: 'file', help: 'Wajib file atau Nomor Tanda Terima bila status Terkirim.' },
   { key: 'noTerima', label: 'Nomor Tanda Terima', type: 'text' },
-  { key: 'dasar', label: 'Dasar Ketentuan', type: 'text' },
-  { key: 'alasan', label: 'Alasan Terlambat', type: 'textarea', wide: true, required: (r) => r.status === 'Terlambat' || lateBy(r) > 0 },
+  { key: 'dasar', label: 'Dasar Ketentuan', type: 'text', editableBy: full },
+  { key: 'alasan', label: 'Alasan Terlambat', type: 'textarea', wide: true, required: (r, c) => r.status === 'Terlambat' || lateBy(r) > 0 || (!SENT(r) && !!r.batas && dOf(r.batas) < c.today) },
 ]
 const columns: Column<Laporan>[] = [
   { label: 'No', get: (r) => r.no },

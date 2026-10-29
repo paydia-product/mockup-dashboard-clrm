@@ -66,7 +66,8 @@ export interface Finding {
 export interface Audit { id: string; fid: string; time: string; user: string; aksi: string; kolom: string; lama: string; baru: string; alasan: string }
 export interface Filter { q: string; from: string; to: string; status: string; pic: string; unit: string; regulator: string; risiko: string }
 export const EMPTY_FILTER: Filter = { q: '', from: '', to: '', status: '', pic: '', unit: '', regulator: '', risiko: '' }
-export interface ChangeReq { id: string; fid: string; by: string; time: string; alasan: string; changes: { key: keyof Finding; label: string; lama: string; baru: string; value: unknown }[] }
+export interface ChangeReq { id: string; no?: number; status?: 'Menunggu' | 'Disetujui' | 'Ditolak'; decidedBy?: string; decidedAt?: string; catatan?: string; fid: string; by: string; time: string; alasan: string; changes: { key: keyof Finding; label: string; lama: string; baru: string; value: unknown }[] }
+export const isPendingReq = (r: ChangeReq) => (r.status ?? 'Menunggu') === 'Menunggu' // data lama tanpa status = Menunggu
 export interface DB { requests: ChangeReq[]; findings: Finding[]; audit: Audit[]; saved: { name: string; filter: Filter }[] }
 
 // ---- Tanggal ----
@@ -226,14 +227,16 @@ export function useRole() {
 }
 
 // ---- Request perubahan tracker: dipakai Tracker (Drawer) dan menu Approval ----
-// Setuju: terapkan changes ke temuan + audit 'Setujui perubahan'. Tolak: buang request + audit 'Tolak perubahan' (note = alasan).
+// Setuju: terapkan changes ke temuan + audit 'Setujui perubahan'. Tolak: audit 'Tolak perubahan' (note = alasan).
+// Request tidak dihapus: ditandai Disetujui/Ditolak supaya tetap tampil di menu Approval.
 export function applyTrackerRequest(db: DB, reqId: string, userName: string, approve: boolean, note = ''): DB {
   const r = db.requests.find((x) => x.id === reqId)
-  if (!r) return db
+  if (!r || !isPendingReq(r)) return db
   const f = db.findings.find((x) => x.id === r.fid)
-  const requests = db.requests.filter((x) => x.fid !== r.fid)
+  const ok = approve && !!f
+  const requests = db.requests.map((x) => (x.id === reqId ? { ...x, status: ok ? ('Disetujui' as const) : ('Ditolak' as const), decidedBy: userName, decidedAt: nowStr(), catatan: note } : x))
   const mk = (aksi: string, alasan: string): Audit[] => r.changes.map((c, i) => ({ id: `${r.fid}-${Date.now()}-${i}`, fid: r.fid, time: nowStr(), user: userName, aksi, kolom: c.label, lama: c.lama, baru: c.baru, alasan }))
-  if (!approve || !f) return { ...db, requests, audit: [...db.audit, ...mk('Tolak perubahan', note)] }
+  if (!ok || !f) return { ...db, requests, audit: [...db.audit, ...mk('Tolak perubahan', note)] }
   const next = { ...f } as Record<string, unknown>
   r.changes.forEach((c) => { next[c.key] = c.value })
   if (next.status === 'Selesai' && f.status !== 'Selesai') { next.validasiTgl = todayStr(); next.persetujuan = 'Disetujui'; next.persetujuanOleh = userName; next.persetujuanTgl = todayStr() }

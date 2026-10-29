@@ -97,11 +97,11 @@ export function useModule<T extends BaseRec>(cfg: PageConfig<T>): ModuleApi<T> {
   const cur = (id: string) => ((getStore().modules[cfg.module] ?? []) as T[]).find((x) => x.id === id)
   const put = (s: Store, id: string, patch: R): Store => ({ ...s, modules: { ...s.modules, [cfg.module]: ((s.modules[cfg.module] ?? []) as T[]).map((x) => (x.id === id ? { ...x, ...patch } : x)) } })
   const changedKeys = (old: R, next: R) => cfg.fields.filter((f) => !f.auto && f.key !== 'no' && !same(old[f.key], next[f.key])).map((f) => f.key)
-  const mkReq = (s: Store, old: T, jenis: string, approver: Role, keys: string[], next: R, alasan: string, rejectPatch?: R): [Store, ApprovalReq] => {
+  const mkReq = (s: Store, old: T, jenis: string, approver: Role, keys: string[], next: R, alasan: string, rejectPatch?: R, extra?: R): [Store, ApprovalReq] => {
     const no = (s.seq.approval ?? 0) + 1
     const req: ApprovalReq = {
       id: `ap${uid()}`, no, module: cfg.module, jenis, recordId: old.id, recordNo: old.no, by: u.name, byRole: u.role, time: nowStr(), alasan, approver,
-      changes: keys.map((k) => ({ key: k, label: label(k), lama: show(k, (old as R)[k]), baru: show(k, next[k]), value: next[k] })), rejectPatch, status: 'Menunggu',
+      changes: keys.map((k) => ({ key: k, label: label(k), lama: show(k, (old as R)[k]), baru: show(k, next[k]), value: next[k] })), rejectPatch, extra: extra && Object.keys(extra).length ? extra : undefined, status: 'Menunggu',
     }
     return [{ ...s, seq: { ...s.seq, approval: no }, approvals: [req, ...s.approvals] }, req]
   }
@@ -109,6 +109,7 @@ export function useModule<T extends BaseRec>(cfg: PageConfig<T>): ModuleApi<T> {
 
   return {
     rows,
+    stored: (id) => cur(id),
     add: (r, silent) => insert<T>(cfg.module, cfg.title, r, u, cfg.beforeSave ? (n) => cfg.beforeSave!(null, n, ctx) : undefined, silent),
     update(id, patch, alasan = '') {
       const old = cur(id)
@@ -120,12 +121,16 @@ export function useModule<T extends BaseRec>(cfg: PageConfig<T>): ModuleApi<T> {
       const rule: ApprovalRule<T> | undefined = cfg.approvals?.find((a) => a.needs(old, next, ctx))
       const askKeys = rule ? diff.filter((k) => !rule.keys || rule.keys.includes(k)) : []
       const direct = diff.filter((k) => !askKeys.includes(k))
+      const asking = !!rule && askKeys.length > 0
+      // kolom turunan beforeSave yang bukan field form (mis. levelAt): ikut tersimpan langsung, atau ikut request bila perubahan menunggu approval
+      const extra: R = Object.fromEntries(Object.keys(next).filter((k) => !cfg.fields.some((f) => f.key === k) && !same((old as R)[k], (next as R)[k])).map((k) => [k, (next as R)[k]]))
       const row: R = Object.fromEntries(direct.map((k) => [k, (next as R)[k]]))
+      if (!asking) Object.assign(row, extra)
       if (rule && askKeys.length) Object.assign(row, rule.pendingPatch?.(old))
       setStore((s) => {
         let n = put(s, id, row)
         const logs = direct.map((k) => mkLog(u, cfg.title, 'Ubah', old.no, `${label(k)}: ${show(k, (old as R)[k]) || '-'} -> ${show(k, (next as R)[k]) || '-'}${alasan ? `. Alasan: ${alasan}` : ''}`))
-        if (rule && askKeys.length) { const [s2, req] = mkReq(n, old, rule.jenis, rule.approver, askKeys, next as R, alasan, rule.rejectPatch?.(old) as R | undefined); n = s2; logs.push(reqLog(req, alasan)) }
+        if (rule && askKeys.length) { const [s2, req] = mkReq(n, old, rule.jenis, rule.approver, askKeys, next as R, alasan, rule.rejectPatch?.(old) as R | undefined, extra); n = s2; logs.push(reqLog(req, alasan)) }
         return withLogs(n, ...logs)
       })
     },
@@ -135,11 +140,11 @@ export function useModule<T extends BaseRec>(cfg: PageConfig<T>): ModuleApi<T> {
       const status = cfg.cancelStatus ?? 'Dibatalkan'
       setStore((s) => withLogs(put(s, id, { status, cancelled: { prev: old.status, reason, by: u.name, at: nowStr() } }), mkLog(u, cfg.title, 'Cancel', old.no, `${old.status} -> ${status}. Alasan: ${reason}`)))
     },
-    restore(id) {
+    restore(id, reason = '') {
       const old = cur(id)
       if (!old?.cancelled) return
       const prev = old.cancelled.prev
-      setStore((s) => withLogs(put(s, id, { status: prev, cancelled: undefined }), mkLog(u, cfg.title, 'Kembalikan', old.no, `${old.status} -> ${prev}`)))
+      setStore((s) => withLogs(put(s, id, { status: prev, cancelled: undefined }), mkLog(u, cfg.title, 'Kembalikan', old.no, `${old.status} -> ${prev}${reason ? `. Alasan: ${reason}` : ''}`)))
     },
     requestApproval(id, jenis, approver, changes, alasan, rejectPatch) {
       const old = cur(id)
@@ -155,7 +160,7 @@ export function decideApproval(reqId: string, approve: boolean, catatan: string,
   setStore((s) => {
     const req = s.approvals.find((a) => a.id === reqId)
     if (!req || req.status !== 'Menunggu') return s
-    const patch = approve ? Object.fromEntries(req.changes.map((c) => [c.key, c.value])) : req.rejectPatch
+    const patch = approve ? { ...Object.fromEntries(req.changes.map((c) => [c.key, c.value])), ...req.extra } : req.rejectPatch
     const list = s.modules[req.module]
     const modules = patch && list ? { ...s.modules, [req.module]: list.map((r) => (r.id === req.recordId ? { ...r, ...patch } : r)) } : s.modules
     const approvals = s.approvals.map((a) => (a.id === reqId ? { ...a, status: approve ? ('Disetujui' as const) : ('Ditolak' as const), decidedBy: by.name, decidedAt: nowStr(), catatan } : a))

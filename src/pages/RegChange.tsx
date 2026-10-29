@@ -128,11 +128,11 @@ const alerts: AlertDef<Reg>[] = [
     sample: (c) => mk(c, { tglBerlaku: addDays(c.today, 28), pemenuhan: 50, tindak: [{ uraian: 'Penyesuaian sistem', pic: 'Bima Pratama', batas: addDays(c.today, 20), status: 'Proses' }] }),
   },
   {
-    key: 'reply', label: 'Imbauan harus dijawab', rule: 'Batas jawaban imbauan kurang dari 7 hari (H-7, H-3, H-1). Merah bila H-1 atau terlewat.',
+    key: 'reply', label: 'Imbauan harus dijawab', rule: 'Batas jawaban imbauan kurang dari 7 hari (H-7, H-3, H-1), kuning. Merah hanya bila batas terlewat.',
     check: (r, c) => {
       if (!needReply(r)) return null
       const d = diffDays(r.jawabBatas, c.today)
-      return d <= 7 ? { color: d <= 1 ? 'red' : 'yellow', detail: d < 0 ? `Lewat ${-d} hari dari batas jawaban` : `${d} hari lagi sampai batas jawaban`, to: ['Compliance Officer', 'Head CLRM'] } : null
+      return d <= 7 ? { color: d < 0 ? 'red' : 'yellow', detail: d < 0 ? `Lewat ${-d} hari dari batas jawaban` : `${d} hari lagi sampai batas jawaban`, to: ['Compliance Officer', 'Head CLRM'] } : null
     },
     sample: (c) => mk(c, { jenis: 'Surat Imbauan', jp: 'Imbauan', tglBerlaku: '', perluJawab: 'Ya', jawabBatas: addDays(c.today, 3) }),
   },
@@ -145,8 +145,8 @@ const alerts: AlertDef<Reg>[] = [
     sample: (c) => mk(c, { jp: 'Pencabutan', status: 'Dicabut', tglBerlaku: addDays(c.today, -15), sopList: [{ sop: 'SOP-073-PAY - Manajemen Akses Sistem - IT', done: 'Tidak' }] }),
   },
   {
-    key: 'high', label: 'Peraturan baru berdampak Tinggi', rule: 'Peraturan baru dengan tingkat dampak Tinggi (dicatat dalam 30 hari terakhir).',
-    check: (r, c) => (r.jp === 'Baru' && r.dampak === 'Tinggi' && diffDays(c.today, r.tglDicatat) <= 30 ? { color: 'yellow', detail: `Dampak Tinggi, dicatat ${fmtDate(r.tglDicatat)}`, to: ['Head CLRM', 'Direktur terkait'] } : null),
+    key: 'high', label: 'Peraturan baru berdampak Tinggi', rule: 'Peraturan atau surat (jenis apa pun) dengan tingkat dampak Tinggi yang baru dicatat dalam 7 hari terakhir.',
+    check: (r, c) => (r.dampak === 'Tinggi' && diffDays(c.today, r.tglDicatat) <= 7 ? { color: 'yellow', detail: `Dampak Tinggi, dicatat ${fmtDate(r.tglDicatat)}`, to: ['Head CLRM', 'Direktur terkait'] } : null),
     sample: (c) => mk(c, { dampak: 'Tinggi', dampakUraian: 'Perubahan proses utama', tglDicatat: addDays(c.today, -5) }),
   },
 ]

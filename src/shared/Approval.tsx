@@ -10,14 +10,14 @@ import { usePaged } from './Pager'
 // Adapter: request perubahan tracker tampil sebagai ApprovalReq
 const adapt = (r: ChangeReq, db: DB, store: Store): ApprovalReq => {
   const f = db.findings.find((x) => x.id === r.fid)
-  return { id: `t-${r.id}`, no: 0, module: 'tracker', jenis: 'Perubahan Temuan', recordId: r.fid, recordNo: f?.no ?? 0, by: r.by, byRole: store.accounts.find((a) => a.name === r.by)?.role ?? 'PIC', time: r.time, alasan: r.alasan, approver: 'Head CLRM', changes: r.changes.map((c) => ({ key: c.key, label: c.label, lama: c.lama, baru: c.baru, value: c.value })), status: 'Menunggu' }
+  return { id: `t-${r.id}`, no: r.no ?? 0, module: 'tracker', jenis: 'Perubahan Temuan', recordId: r.fid, recordNo: f?.no ?? 0, by: r.by, byRole: store.accounts.find((a) => a.name === r.by)?.role ?? 'PIC', time: r.time, alasan: r.alasan, approver: 'Head CLRM', changes: r.changes.map((c) => ({ key: c.key, label: c.label, lama: c.lama, baru: c.baru, value: c.value })), status: r.status ?? 'Menunggu', decidedBy: r.decidedBy, decidedAt: r.decidedAt, catatan: r.catatan }
 }
 export const allApprovals = (store: Store, db: DB): ApprovalReq[] => [...db.requests.map((r) => adapt(r, db, store)), ...store.approvals]
 export const canDecide = (a: ApprovalReq, role: Role, can: (m: PermKey, x: Action) => boolean) => a.status === 'Menunggu' && (a.approver === role || role === 'Super Admin') && can(a.module as ModuleId, 'Approve')
 export const pendingCount = (store: Store, db: DB, role: Role, can: (m: PermKey, x: Action) => boolean) => allApprovals(store, db).filter((a) => canDecide(a, role, can)).length
 
 export default function Approval({ tdb, setTdb }: { tdb: DB; setTdb: React.Dispatch<React.SetStateAction<DB>> }) {
-  const { store, ctx, can, log } = useApp()
+  const { store, ctx, can } = useApp()
   const all = useMemo(() => allApprovals(store, tdb), [store, tdb])
   const [f, setF] = useState({ q: '', status: '', module: '' })
   const [openId, setOpenId] = useState<string | null>(() => new URLSearchParams(location.hash.split('?')[1] ?? '').get('id'))
@@ -36,7 +36,6 @@ export default function Approval({ tdb, setTdb }: { tdb: DB; setTdb: React.Dispa
     const { req, approve } = decide
     if (req.module === 'tracker') {
       setTdb((d) => applyTrackerRequest(d, req.id.slice(2), ctx.user.name, approve, note.trim()))
-      log(MODULE_LABEL.tracker, approve ? 'Approve' : 'Reject', req.recordNo, `${req.jenis}${note.trim() ? `. Catatan: ${note.trim()}` : ''}`)
     } else decideApproval(req.id, approve, note.trim(), ctx.user)
     setDecide(null); setNote(''); setErr(''); setOpenId(null)
   }

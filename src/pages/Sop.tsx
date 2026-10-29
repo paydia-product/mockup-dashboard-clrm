@@ -1,7 +1,8 @@
-import { addDays, diffDays, fmtDate } from '../lib'
+import { addDays, diffDays, fmtDate, todayStr } from '../lib'
 import PageShell from '../kit/PageShell'
 import { BarCard, DonutCard, MiniTable, StatCards } from '../kit/charts'
 import { StatusPill } from '../kit/fmt'
+import { sameName } from '../kit/perms'
 import type { AlertDef, Column, Ctx, Field, FilterDef, PageConfig } from '../kit/types'
 import { SopRec, seedSop } from './sop.shared'
 
@@ -62,7 +63,7 @@ const filters: FilterDef<SopRec>[] = [
   { key: 'pemilik', label: 'Pemilik Dokumen', type: 'select', options: (_, c) => c.master.departemen, match: (r, v) => r.pemilik === v },
   { key: 'status', label: 'Status', type: 'select', options: [...STATUS], match: (r, v) => r.status === v },
   { key: 'tahun', label: 'Tahun Berlaku', type: 'select', options: (rows) => years(rows), match: (r, v) => r.tglBerlaku.slice(0, 4) === v },
-  { key: 'umur', label: 'Umur Dokumen', type: 'select', options: UMUR, match: (r, v) => umurBucket(r, new Date().toISOString().slice(0, 10)) === v },
+  { key: 'umur', label: 'Umur Dokumen', type: 'select', options: UMUR, match: (r, v) => umurBucket(r, todayStr()) === v },
 ]
 
 const mk = (c: Ctx, o: Partial<SopRec>): SopRec => ({
@@ -97,7 +98,8 @@ const cfg: PageConfig<SopRec> = {
   seed: seedSop, fields, columns, filters, alerts, cancelStatus: 'Dicabut',
   blank: () => ({ noDok: '', judul: '', ringkasan: '', pemilik: '', tglBerlaku: '', tglUbah: '', noRevisi: '', retensi: '', klasifikasi: '', file: null, tglReview: '', pic: '', revisi: [], status: 'Aktif' }),
   search: (r) => `${r.noDok} ${r.judul} ${r.ringkasan}`, searchPlaceholder: 'Cari no dokumen, judul, ringkasan',
-  canEditRow: (r) => live(r),
+  // Dicabut lewat Cancel diblokir shell (r.cancelled); Dicabut manual tetap bisa diedit/dipulihkan. PIC hanya PIC Dokumen miliknya.
+  canEditRow: (r, c) => c.role !== 'PIC' || sameName(r.pic, c.user.name),
   validate: (r, mode, c) => {
     const e: Record<string, string> = {}
     const dup = (c.all('sop') as SopRec[]).find((x) => x.id !== r.id && x.noDok.trim().toLowerCase() === r.noDok.trim().toLowerCase())

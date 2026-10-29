@@ -41,3 +41,4 @@ function build(): PermMatrix {
 }
 export const DEFAULT_PERMS: PermMatrix = build()
 export const can = (perms: PermMatrix, role: Role, m: PermKey, a: Action) => !!perms[role]?.[m]?.includes(a)
+export const sameName = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase()

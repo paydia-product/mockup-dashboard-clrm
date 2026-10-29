@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 import { FileField, Modal } from '../ui'
+import { maskStr } from './fmt'
 import type { BaseRec, Ctx, Field, PageConfig } from './types'
 
 type R = Record<string, any> // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -8,15 +9,18 @@ type Mode = 'add' | 'edit'
 export const isEmpty = (v: unknown) => v === undefined || v === null || v === '' || (Array.isArray(v) && !v.length)
 const isReq = (f: Field<any>, r: R, c: Ctx) => (typeof f.required === 'function' ? f.required(r, c) : !!f.required) // eslint-disable-line @typescript-eslint/no-explicit-any
 const opts = (f: Field<any>, c: Ctx) => (typeof f.options === 'function' ? f.options(c) : f.options ?? []) // eslint-disable-line @typescript-eslint/no-explicit-any
+// select dengan semua opsi angka (mis. skor 1-3) disimpan sebagai number
+export const numericOpts = (o: string[]) => o.length > 0 && o.every((x) => x.trim() !== '' && !isNaN(Number(x)))
 const WIDE = ['textarea', 'list', 'checklist', 'multiselect', 'file']
 export const fieldsFor = <T extends BaseRec>(cfg: PageConfig<T>, mode: Mode) =>
   cfg.fields.filter((f) => f.key !== 'no' && !f.auto && (f.inForm ?? 'both') !== 'none' && ((f.inForm ?? 'both') === 'both' || f.inForm === mode))
 
 // Validasi bersama form dan import. skipFile: import tidak membawa file.
-export function validateRecord<T extends BaseRec>(cfg: PageConfig<T>, r: R, mode: Mode, c: Ctx, skipFile = false): Record<string, string> {
+export function validateRecord<T extends BaseRec>(cfg: PageConfig<T>, r: R, mode: Mode, c: Ctx, skipFile = false, skipKeys: string[] = []): Record<string, string> {
   const e: Record<string, string> = {}
   for (const f of fieldsFor(cfg, mode)) {
     if (f.showIf && !f.showIf(r as T)) continue
+    if (skipKeys.includes(f.key)) continue
     const v = r[f.key]
     if (skipFile && f.type === 'file') continue
     if (isReq(f, r, c) && isEmpty(v)) e[f.key] = `${f.label} wajib diisi`
@@ -24,7 +28,7 @@ export function validateRecord<T extends BaseRec>(cfg: PageConfig<T>, r: R, mode
     else if (f.type === 'percent' && !isEmpty(v) && (v < 0 || v > 100)) e[f.key] = `${f.label} harus 0 sampai 100`
     if (f.type === 'list') (v ?? []).forEach((it: R, i: number) => f.sub?.forEach((s) => { if (isReq(s, it, c) && isEmpty(it[s.key])) e[`${f.key}.${i}.${s.key}`] = `${s.label} wajib diisi` }))
   }
-  for (const [k, m] of Object.entries(cfg.validate?.(r as T, mode, c) ?? {})) if (!e[k]) e[k] = m
+  for (const [k, m] of Object.entries(cfg.validate?.(r as T, mode, c) ?? {})) if (!e[k] && !skipKeys.includes(k.split('.')[0])) e[k] = m
   return e
 }
 
@@ -43,7 +47,7 @@ function Input({ f, v, set, c, err, off }: { f: Field<any>; v: any; set: (v: unk
     case 'date': return <input type="date" className="inp" value={v ?? ''} disabled={off} onChange={(e) => set(e.target.value)} />
     case 'datetime': return <input type="datetime-local" className="inp" value={(v ?? '').slice(0, 16)} disabled={off} onChange={(e) => set(e.target.value)} />
     case 'select': case 'yesno':
-      return <select className="inp" value={v ?? ''} disabled={off} onChange={(e) => set(e.target.value)}><option value="">Pilih...</option>{(f.type === 'yesno' ? ['Ya', 'Tidak'] : o).map((x) => <option key={x}>{x}</option>)}</select>
+      return <select className="inp" value={v ?? ''} disabled={off} onChange={(e) => set(numericOpts(o) && e.target.value !== '' ? Number(e.target.value) : e.target.value)}><option value="">Pilih...</option>{(f.type === 'yesno' ? ['Ya', 'Tidak'] : o).map((x) => <option key={x}>{x}</option>)}</select>
     case 'multiselect':
       return (
         <div className="flex flex-wrap gap-x-4 gap-y-1">
@@ -66,13 +70,16 @@ export default function FormModal<T extends BaseRec>({ cfg, mode, init, c, onSav
   const fields = fieldsFor(cfg, mode)
   const need = edit ? fields.filter((f) => f.reasonOnChange && !isEmpty(init[f.key]) && JSON.stringify(init[f.key]) !== JSON.stringify(r[f.key])) : []
   const set = (k: string, v: unknown) => setR((p) => ({ ...p, [k]: v }))
+  const editable = (f: Field<any>) => !edit || !f.editableBy || f.editableBy(c, init as T) // eslint-disable-line @typescript-eslint/no-explicit-any
+  const masked = (f: Field<any>) => edit && !!f.mask?.(c) // eslint-disable-line @typescript-eslint/no-explicit-any
+  const locked = (f: Field<any>) => masked(f) || !editable(f) // eslint-disable-line @typescript-eslint/no-explicit-any
+  const lockedKeys = fields.filter(locked).map((f) => f.key)
   const submit = () => {
-    const e = validateRecord(cfg, r, mode, c)
+    const e = validateRecord(cfg, r, mode, c, false, lockedKeys)
     if (need.length && !alasan.trim()) e.alasan = `Alasan wajib diisi jika ${need.map((f) => f.label).join(', ')} diubah`
     setErrs(e)
-    if (!Object.keys(e).length) onSave(r, alasan.trim())
+    if (!Object.keys(e).length) onSave({ ...r, ...Object.fromEntries(lockedKeys.map((k) => [k, init[k]])) }, alasan.trim()) // field terkunci/disamarkan tidak pernah ditulis ulang
   }
-  const editable = (f: Field<any>) => !edit || !f.editableBy || f.editableBy(c, init as T) // eslint-disable-line @typescript-eslint/no-explicit-any
   return (
     <Modal wide title={edit ? `Ubah ${cfg.noun} ${init.no}` : `Tambah ${cfg.noun}`} onClose={onClose}>
       <div className="grid gap-3 sm:grid-cols-2">
@@ -82,7 +89,12 @@ export default function FormModal<T extends BaseRec>({ cfg, mode, init, c, onSav
           const list = r[f.key] as R[] | undefined
           return (
             <div key={f.key} className={wide ? 'sm:col-span-2' : ''}>
-              {f.type === 'file' ? <FileField label={f.label + (req ? ' *' : '')} value={r[f.key] ?? null} onChange={(m) => set(f.key, m)} error={errs[f.key]} /> : (
+              {locked(f) && (f.type === 'file' || f.type === 'list') ? (
+                <>
+                  <label className="lbl">{f.label}</label>
+                  <div className="text-sm text-slate-600">{f.type === 'file' ? (r[f.key]?.name ?? '-') : `${list?.length ?? 0} item`} <span className="text-xs text-slate-400">(tidak dapat diubah)</span></div>
+                </>
+              ) : f.type === 'file' ? <FileField label={f.label + (req ? ' *' : '')} value={r[f.key] ?? null} onChange={(m) => set(f.key, m)} error={errs[f.key]} /> : (
                 <>
                   <label className="lbl">{f.label}{req ? ' *' : ''}</label>
                   {f.type === 'list' ? (
@@ -103,7 +115,7 @@ export default function FormModal<T extends BaseRec>({ cfg, mode, init, c, onSav
                       ))}
                       <button type="button" className="btn !py-1" onClick={() => set(f.key, [...(list ?? []), Object.fromEntries((f.sub ?? []).map((s) => [s.key, s.type === 'multiselect' ? [] : s.type === 'checklist' ? {} : s.type === 'file' ? null : '']))])}><Plus size={13} />Tambah item</button>
                     </div>
-                  ) : <Input f={f} v={r[f.key]} c={c} set={(v) => set(f.key, v)} off={!editable(f)} />}
+                  ) : <Input f={f} v={masked(f) ? maskStr(String(r[f.key] ?? '')) : r[f.key]} c={c} set={(v) => set(f.key, v)} off={locked(f)} />}
                   {f.help && <p className="mt-0.5 text-xs text-slate-400">{f.help}</p>}
                   {errs[f.key] && <p className="err">{errs[f.key]}</p>}
                 </>

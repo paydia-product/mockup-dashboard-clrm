@@ -1,4 +1,4 @@
-import { addDays, diffDays, fmtDate } from '../lib'
+import { addDays, diffDays, fmtDate, todayStr } from '../lib'
 import PageShell from '../kit/PageShell'
 import { BarCard, LineCard, MiniTable, StatCards } from '../kit/charts'
 import { StatusPill } from '../kit/fmt'
@@ -75,7 +75,7 @@ const filters: FilterDef<Kontrak>[] = [
   { key: 'status', label: 'Status', type: 'select', options: [...STATUS, 'Dibatalkan'], match: (r, v) => r.status === v },
   { key: 'pic', label: 'PIC / Unit', type: 'select', options: (rows) => uniq(rows, picOf), match: (r, v) => picOf(r) === v },
   { key: 'bidang', label: 'Bidang Usaha', type: 'select', options: BIDANG, match: (r, v) => r.bidang === v },
-  { key: 'kelompok', label: 'Kelompok masa berlaku', type: 'select', options: GROUPS, match: (r, v) => grup(r, new Date().toISOString().slice(0, 10)) === v },
+  { key: 'kelompok', label: 'Kelompok masa berlaku', type: 'select', options: GROUPS, match: (r, v) => grup(r, todayStr()) === v },
 ]
 
 const toPic = (r: Kontrak) => (r.pic ? `PIC (${r.pic})` : 'PIC')

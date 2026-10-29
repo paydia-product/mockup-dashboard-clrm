@@ -155,6 +155,7 @@ const cfg: PageConfig<Risk> = {
   seed, fields, columns, filters, alerts, cancelStatus: 'Dibatalkan',
   blank: () => ({ konteks: '', event: '', domain: '', dampak: '', kemungkinan: '', respon: '', kontrol: '', dept: '', tglRegister: '', produk: '', vendor: '', levelAt: '', status: 'Aktif' }),
   search: (r) => `${r.no} ${r.event} ${r.kontrol}`, searchPlaceholder: 'Cari nomor, risk event, kontrol',
+  canEditRow: (r, c) => c.role !== 'PIC' || r.dept === c.user.departemen, // PIC hanya risiko departemennya
   normalize: (r) => ({ ...r, dampak: r.dampak === '' ? '' : Number(r.dampak), kemungkinan: r.kemungkinan === '' ? '' : Number(r.kemungkinan) }),
   beforeSave: (old, next, c) => (!old || RANK[level(next)] > (RANK[level(old)] ?? 0) ? { ...next, levelAt: c.today } : next),
   approvals: [{

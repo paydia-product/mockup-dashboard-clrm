@@ -57,7 +57,7 @@ export interface PageConfig<T extends BaseRec> {
   seed: (today: string) => T[]
   blank: () => NewRec<T>
   fields: Field<T>[]; columns: Column<T>[]; filters: FilterDef<T>[]
-  search: (r: T) => string; searchPlaceholder: string
+  search: (r: T, c: Ctx) => string; searchPlaceholder: string
   alerts: AlertDef<T>[]
   cancelStatus?: string
   normalize?: (r: T, c: Ctx) => T
@@ -73,6 +73,7 @@ export interface ApprovalReq {
   by: string; byRole: Role; time: string; alasan: string; approver: Role
   changes: { key: string; label: string; lama: string; baru: string; value: unknown }[]
   rejectPatch?: Record<string, unknown>
+  extra?: Record<string, unknown> // kolom turunan beforeSave (mis. levelAt) yang ikut diterapkan saat disetujui
   status: 'Menunggu' | 'Disetujui' | 'Ditolak'; decidedBy?: string; decidedAt?: string; catatan?: string
 }
 export interface LogEntry { id: string; time: string; user: string; role: Role; module: string; aksi: string; nomor: string; keterangan: string }
@@ -88,7 +89,8 @@ export interface ModuleApi<T> {
   add(r: NewRec<T>, silent?: boolean): T
   update(id: string, patch: Partial<T>, alasan?: string): void
   cancel(id: string, reason: string): void
-  restore(id: string): void
+  restore(id: string, reason?: string): void
+  stored(id: string): T | undefined // record tersimpan (tanpa normalize), awal form Edit
   requestApproval(id: string, jenis: string, approver: Role, changes: Partial<T>, alasan: string, rejectPatch?: Partial<T>): void
   pendingFor(id: string): ApprovalReq | undefined
 }

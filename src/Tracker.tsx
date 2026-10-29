@@ -3,8 +3,9 @@ import * as XLSX from 'xlsx'
 import { Bell, ChevronDown, ChevronUp, Download, Eye, History, Pencil, Plus, RotateCcw, Save, Search, SlidersHorizontal, Trash2, XCircle } from 'lucide-react'
 import {
   Audit, DB, EMPTY_FILTER, Filter, Finding, REGULATORS, AlertInfo, RISKS, ROLE_USER, Role, STATUSES, UNITS, alertsFor, applyFilter,
-  addDays, applyTrackerRequest, diffDays, fmtDate, fmtTime, nowStr, todayStr,
+  addDays, applyTrackerRequest, diffDays, fmtDate, fmtTime, isPendingReq, nowStr, todayStr,
 } from './lib'
+import { getStore, setStore } from './kit/store'
 import type { Action } from './kit/types'
 import Dashboard from './Dashboard'
 import Drawer, { Acts } from './Drawer'
@@ -61,7 +62,7 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
         ...d,
         findings: exists ? d.findings.map((x) => (x.id === next.id ? next : x)) : [next, ...d.findings],
         audit: [...d.audit, ...mkAudit(next.id, ents)],
-        requests: dropReq ? d.requests.filter((r) => r.fid !== next.id) : d.requests,
+        requests: dropReq ? d.requests.filter((r) => r.fid !== next.id || !isPendingReq(r)) : d.requests,
       }
     })
   const statusEnt = (aksi: string, from: string, to: string, alasan = ''): Ent => ({ aksi, kolom: 'Status', lama: from, baru: to, alasan })
@@ -85,9 +86,11 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
     const changed = diffs.filter(([, , g]) => g(old) !== g(f))
     if (changed.length) {
       const cs = changed.map(([k, l, g]) => ({ key: k, label: l, lama: g(old), baru: g(f), value: f[k] as unknown }))
+      const no = (getStore().seq.approval ?? 0) + 1 // nomor request satu urutan dengan approval modul lain
+      setStore((s) => ({ ...s, seq: { ...s.seq, approval: no } }))
       setDb((d) => ({
         ...d,
-        requests: [...d.requests.filter((r) => r.fid !== f.id), { id: `r${Date.now()}`, fid: f.id, by: user.name, time: nowStr(), alasan, changes: cs }],
+        requests: [...d.requests.filter((r) => !(r.fid === f.id && isPendingReq(r))), { id: `r${Date.now()}`, no, status: 'Menunggu' as const, fid: f.id, by: user.name, time: nowStr(), alasan, changes: cs }],
         audit: [...d.audit, ...mkAudit(f.id, changed.map(([, l, g]): Ent => ({ aksi: 'Ajukan perubahan (menunggu Head CLRM)', kolom: l, lama: g(old), baru: g(f), alasan })))],
       }))
     }
@@ -109,11 +112,11 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
     },
     cancel: () => setPending({ kind: 'reason', title: `Batalkan temuan ${f.no}`, danger: true, run: (r) => { commit({ ...f, status: 'Dibatalkan' }, [statusEnt('Batalkan temuan', f.status, 'Dibatalkan', r)]); setPending(null) } }),
     reqApprove: () => {
-      const r = db.requests.find((x) => x.fid === f.id)
+      const r = db.requests.find((x) => x.fid === f.id && isPendingReq(x))
       if (r) setDb((d) => applyTrackerRequest(d, r.id, user.name, true))
     },
     reqReject: () => setPending({ kind: 'reason', title: `Tolak perubahan temuan ${f.no}`, danger: true, run: (alasan) => {
-      const r = db.requests.find((x) => x.fid === f.id)
+      const r = db.requests.find((x) => x.fid === f.id && isPendingReq(x))
       if (r) setDb((d) => applyTrackerRequest(d, r.id, user.name, false, alasan))
       setPending(null)
     } }),
@@ -124,7 +127,7 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
     },
   })
 
-  const canEdit = (f: Finding) => !db.requests.some((r) => r.fid === f.id) && f.status !== 'Dibatalkan' && f.status !== 'Selesai' && can('Ubah') && (role !== 'PIC' || f.pic === user.name)
+  const canEdit = (f: Finding) => !db.requests.some((r) => r.fid === f.id && isPendingReq(r)) && f.status !== 'Dibatalkan' && f.status !== 'Selesai' && can('Ubah') && (role !== 'PIC' || f.pic === user.name)
 
   const doExport = () => {
     const data = rows.map((f) => ({
@@ -287,7 +290,7 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
         </div>
       )}
 
-      {open && <Drawer f={open} audit={db.audit} req={db.requests.find((r) => r.fid === open.id)} role={role} acts={actsFor(open)} onClose={() => setOpenId(null)} />}
+      {open && <Drawer f={open} audit={db.audit} req={db.requests.find((r) => r.fid === open.id && isPendingReq(r))} role={role} acts={actsFor(open)} onClose={() => setOpenId(null)} />}
       {pending?.kind === 'add' && <Form mode="add" init={blank()} onSave={(f) => saveForm(f, 'add')} onClose={() => setPending(null)} />}
       {editing && <Form mode="edit" init={editing} onSave={(f, al) => saveForm(f, 'edit', al)} onClose={() => setPending(null)} />}
       {pending?.kind === 'reason' && <ReasonModal title={pending.title} danger={pending.danger} onClose={() => setPending(null)} onConfirm={pending.run} />}

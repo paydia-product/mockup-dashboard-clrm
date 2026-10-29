@@ -15,6 +15,7 @@ interface Izin extends BaseRec {
 }
 const KAT = ['Akta + SK', 'Izin', 'Legalitas Lainnya']
 const STATUS = ['Aktif', 'Dalam Perpanjangan', 'Kedaluwarsa']
+const SOON180 = '180 hari atau kurang'
 const GRUP = ['Kedaluwarsa', '90 hari atau kurang', '91 sampai 180 hari', 'Lebih dari 180 hari', 'Tanpa tanggal kedaluwarsa']
 const LIVE = (r: Izin) => r.status !== 'Tidak Berlaku' && !r.cancelled
 const sisa = (r: Izin, today: string) => (r.tglKedaluwarsa ? diffDays(r.tglKedaluwarsa, today) : null)
@@ -70,7 +71,7 @@ const filters: FilterDef<Izin>[] = [
   { key: 'kategori', label: 'Kategori', type: 'select', options: KAT, match: (r, v) => r.kategori === v },
   { key: 'status', label: 'Status', type: 'select', options: [...STATUS, 'Tidak Berlaku'], match: (r, v) => r.status === v },
   { key: 'pic', label: 'PIC', type: 'select', options: (rows) => uniq(rows, (r) => r.pic), match: (r, v) => r.pic === v },
-  { key: 'masa', label: 'Kelompok Masa Berlaku', type: 'select', options: GRUP, match: (r, v) => grup(r, todayStr()) === v },
+  { key: 'masa', label: 'Kelompok Masa Berlaku', type: 'select', options: [SOON180, ...GRUP], match: (r, v) => (v === SOON180 ? [GRUP[1], GRUP[2]].includes(grup(r, todayStr())) : grup(r, todayStr()) === v) },
 ]
 
 const mk = (c: Ctx, o: Partial<Izin>): Izin => ({
@@ -156,10 +157,15 @@ const cfg: PageConfig<Izin> = {
     const lama: VersiLama = { versi: Number(old.versi), tglBerlaku: old.tglBerlaku, tglKedaluwarsa: old.tglKedaluwarsa, file: old.file?.name ?? '' }
     return { ...next, perpanjang: '', status: 'Aktif', versiLama: [...(old.versiLama ?? []), lama] }
   },
-  validate: (r, mode) => {
+  validate: (r, mode, c) => {
     const e: Record<string, string> = {}
     if (r.tglBerlaku && r.tglKedaluwarsa && r.tglKedaluwarsa < r.tglBerlaku) e.tglKedaluwarsa = 'Tanggal Kedaluwarsa tidak boleh sebelum Tanggal Berlaku'
-    if (mode === 'edit' && r.perpanjang === 'Ya' && !r.tglBerlaku) e.tglBerlaku = 'Isi tanggal berlaku baru untuk perpanjangan'
+    if (mode === 'edit' && r.perpanjang === 'Ya') {
+      if (!r.tglBerlaku) e.tglBerlaku = 'Isi tanggal berlaku baru untuk perpanjangan'
+      const old = (c.all('perizinan') as Izin[]).find((x) => x.id === r.id)
+      if (old && r.tglKedaluwarsa === old.tglKedaluwarsa) e.tglKedaluwarsa = 'Perpanjangan: Tanggal Kedaluwarsa harus berbeda dari yang lama'
+      if (old && Number(r.versi) === Number(old.versi)) e.versi = 'Perpanjangan: Nomor Versi harus versi baru'
+    }
     return e
   },
   Dashboard: ({ rows, c, open, drill }) => {
@@ -170,7 +176,7 @@ const cfg: PageConfig<Izin> = {
     const list = [...withExp].sort((a, b) => a.tglKedaluwarsa.localeCompare(b.tglKedaluwarsa))
     return (
       <div className="space-y-3">
-        <StatCards items={[{ label: 'Izin kedaluwarsa dalam 180 hari', value: soon.length, tone: red ? 'red' : soon.length ? 'yellow' : 'gray', onClick: () => drill({ masa: GRUP[1] }) }]} />
+        <StatCards items={[{ label: 'Izin kedaluwarsa dalam 180 hari', value: soon.length, tone: red ? 'red' : soon.length ? 'yellow' : 'gray', onClick: () => drill({ masa: SOON180 }) }]} />
         <div className="grid gap-3 lg:grid-cols-2">
           <DonutCard title="Dokumen per kategori" data={KAT.map((k) => ({ name: k, value: live.filter((r) => r.kategori === k).length }))} onClick={(name) => drill({ kategori: name })} />
           <MiniTable<Izin> title="Daftar izin dan tanggal kedaluwarsa" rows={list} onRow={(r) => open(r.id)} cols={[

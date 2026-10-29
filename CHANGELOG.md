@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 2.0.0 | 2026-10-29 | ~3,5 juta |
 | 1.5.0 | 2026-10-29 | ~40k |
 | 1.4.1 | 2026-10-29 | ~10k |
 | 1.4.0 | 2026-10-29 | ~80k |
@@ -15,6 +16,21 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [2.0.0] - 2026-10-29
+
+Estimasi token: ~3,5 juta (rencana, fondasi, 9 halaman paralel, audit, perbaikan)
+
+### Ditambah
+- Page kit bersama di `src/kit` sebagai dasar semua halaman.
+- 10 halaman CR: Regulatory Reporting, Regulatory Change, SOP & Dokumen Kontrol, Risk Register, Kajian Risiko, Fraud Case Monitoring, Kontrak, Permintaan APH, Perizinan & Dokumen Legalitas, Permintaan Layanan Hukum.
+- Menu Approval, Master Data (Departemen, Produk, Pihak Pelapor), Admin (Akun, Permission), Log aktivitas.
+- Login mock email, password, dan 2FA. Reset password, ganti password, ganti PIN, logout.
+- `docs/plan-halaman.md` dan `docs/keputusan-desain.md`.
+
+### Diubah
+- Judul detail tracker menjadi "Detail", tanpa badge status dan tingkat risiko.
+- Tombol tracker mengikuti matriks permission. Request tracker tampil dan bisa diputus di menu Approval.
 
 ## [1.5.0] - 2026-10-29
 

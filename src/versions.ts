@@ -11,9 +11,25 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
-    v: '1.5.0',
+    v: '2.0.0',
     date: '2026-10-29',
     deployed: true,
+    title: 'Seluruh halaman CR + fitur pendukung',
+    prompt: 'Judul detail jadi Detail; kerjakan seluruh halaman lain sesuai rencana kerja baru dan lama, dasar dari tracker, core feature sesuai CR',
+    tokens: 3500000,
+    changes: [
+      'Judul detail tracker jadi "Detail", tanpa badge status dan risiko',
+      'Page kit bersama (src/kit): tab, tabel, filter popover, detail, form, simulasi email, export dan import Excel',
+      '10 halaman CR: Regulatory Reporting, Regulatory Change, SOP & Dokumen Kontrol, Risk Register, Kajian Risiko, Fraud Case Monitoring, Kontrak, Permintaan APH, Perizinan & Dokumen Legalitas, Permintaan Layanan Hukum',
+      'Menu Approval berfungsi, Master Data, Admin (akun dan permission), Log aktivitas',
+      'Login mock email + password + 2FA, reset password, ganti password dan PIN, logout',
+      'Perbaikan hasil audit: approval Fraud, masking terlapor, status otomatis tidak tersimpan, batas edit per peran dan per baris',
+    ],
+  },
+  {
+    v: '1.5.0',
+    date: '2026-10-29',
+    deployed: false,
     title: 'Detail temuan jadi modal',
     prompt: 'Detail jadi modal; hapus riwayat, penomoran field, tombol Ubah dan Ajukan Penutupan',
     tokens: 40000,

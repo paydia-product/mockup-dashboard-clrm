@@ -3,6 +3,7 @@ import PageShell from '../kit/PageShell'
 import { BarCard, ComboCard, DonutCard, LineCard, StatCards } from '../kit/charts'
 import { addWorkDays, ageBucket, ageBuckets, monthKey, workDaysBetween } from '../kit/dates'
 import { StatusPill, fmtMoney, maskStr } from '../kit/fmt'
+import { sameName } from '../kit/perms'
 import type { AlertDef, BaseRec, Column, Ctx, Field, FileMeta, FilterDef, PageConfig } from '../kit/types'
 
 // Fraud Case Monitoring (C6). Asumsi: kolom "K" (kondisional) diwajibkan saat status Closed saja,
@@ -46,7 +47,7 @@ const needEdd = (r: Fraud) => r.asesmen === 'Dilanjutkan'
 const blokirClosed = (r: Fraud) => r.tindakan === 'Blokir' && isClosed(r)
 
 const fields: Field<Fraud>[] = [
-  { key: 'tglTerima', label: 'Tanggal Terima Tugas', type: 'date', required: true },
+  { key: 'tglTerima', label: 'Tanggal Terima Tugas', type: 'date', required: true, reasonOnChange: true },
   { key: 'pelapor', label: 'Pihak Pelapor', type: 'select', options: (c) => c.master.pihakPelapor, required: true },
   { key: 'kategori', label: 'Kategori Pelapor', type: 'select', options: KATEGORI, required: true },
   { key: 'media', label: 'Media', type: 'select', options: MEDIA, required: true },
@@ -80,7 +81,7 @@ const fields: Field<Fraud>[] = [
   { key: 'lapBi', label: 'Tanggal Lapor BI', type: 'date', required: blokirClosed, reasonOnChange: true },
   { key: 'lapPpatk', label: 'Tanggal Lapor PPATK', type: 'date', required: blokirClosed, reasonOnChange: true },
   { key: 'tglResolved', label: 'Tanggal Email Resolved', type: 'date', required: isClosed, reasonOnChange: true },
-  { key: 'status', label: 'Status', type: 'select', options: ['Open', 'Closed'], required: true, help: 'Menutup kasus (Closed) menunggu persetujuan Head CLRM; selama menunggu status tetap Open.' },
+  { key: 'status', label: 'Status', type: 'select', options: ['Open', 'Closed'], required: true, inForm: 'edit', help: 'Menutup kasus (Closed) menunggu persetujuan Head CLRM; selama menunggu status tetap Open.' },
   { key: 'pic', label: 'PIC Investigator', type: 'text', required: true },
   { key: 'group', label: 'Group Merchant', type: 'text' },
   { key: 'produk', label: 'Produk', type: 'text' },
@@ -201,7 +202,7 @@ function seed(today: string): Fraud[] {
       id: `fraud-${i + 1}`, no: i + 1, status: 'Open', createdAt: tglTerima, createdBy: 'Rizky Maulana', tglTerima,
       pelapor: PIHAK[i % 7], kategori: KATEGORI[(i * 3) % 7], media: MEDIA[(i * 2) % 5],
       terlapor: NAMA[i % 8], jenisPengguna: PENGGUNA[i % 2], jenis: JENIS[i % 3], rincian: ['Phishing', 'Akun palsu', 'Pemain judi', 'Pola transaksi tidak wajar'][i % 4],
-      uraian: `Laporan dugaan ${JENIS[i % 3].toLowerCase()} oleh ${NAMA[i % 8]} melalui ${GROUPS[i % 12]}.`, bukti: FILE, korban: (1 + (i % 9)) * 5_000_000,
+      uraian: `Laporan dugaan ${JENIS[i % 3].toLowerCase()} melalui ${GROUPS[i % 12]}.`, bukti: FILE, korban: (1 + (i % 9)) * 5_000_000,
       rrn: `4021${String(100000 + i * 7919).slice(0, 6)}`, tglTrx: addDays(tglTerima, -2), noRek: `120${String(1000000 + i * 104729).slice(0, 7)}`,
       asesmen: 'Dilanjutkan', alasanAsesmen: 'Indikasi kuat', holdTgl: '', holdNom: '', tglPpatk: '',
       edd1: '', edd2: '', hasilEdd: '', tindakan: '', tglBlokir: '', relTgl: '', relNom: '', saldo: '', tglQris: '', tglTutup: '',
@@ -251,13 +252,16 @@ const cfg: PageConfig<Fraud> = {
     asesmen: '', alasanAsesmen: '', holdTgl: '', holdNom: '', tglPpatk: '', edd1: '', edd2: '', hasilEdd: '', tindakan: '', tglBlokir: '', relTgl: '', relNom: '', saldo: '',
     tglQris: '', tglTutup: '', lapKomdigi: '', lapBi: '', lapPpatk: '', tglResolved: '', status: 'Open', pic: '', group: '', produk: '', channel: '', kerugian: '',
   }),
-  // Catatan: pencarian memakai nama terlapor asli; hasil pencarian bisa mengungkap nama bagi peran yang disamarkan (usulan: search menerima Ctx).
-  search: (r) => `${r.no} ${r.terlapor} ${r.group} ${r.pelapor}`, searchPlaceholder: 'Cari nomor, terlapor/merchant, pihak pelapor',
+  // terlapor dicari lewat nilai yang sudah disamarkan
+  search: (r, c) => `${r.no} ${mask(r.terlapor, c)} ${r.group} ${r.pelapor}`, searchPlaceholder: 'Cari nomor, terlapor/merchant, pihak pelapor',
   alerts, cancelStatus: 'Dibatalkan',
-  canEditRow: (r) => r.status !== 'Closed',
-  approvals: [{ jenis: 'Penutupan Kasus', approver: 'Head CLRM', keys: ['status'], needs: (old, next) => old.status !== 'Closed' && next.status === 'Closed' }],
-  validate: (r) => {
+  // PIC/Fraud Investigator hanya boleh mengubah kasus yang PIC Investigator-nya dirinya; Head CLRM, CO, Super Admin bebas
+  canEditRow: (r, c) => r.status !== 'Closed' && (!['PIC', 'Fraud Investigator'].includes(c.role) || sameName(r.pic, c.user.name)),
+  // tanpa keys: seluruh perubahan ikut request saat penutupan, record tetap Open sampai disetujui
+  approvals: [{ jenis: 'Penutupan Kasus', approver: 'Head CLRM', needs: (old, next) => old.status !== 'Closed' && next.status === 'Closed' }],
+  validate: (r, mode) => {
     const e: Record<string, string> = {}
+    if (mode === 'add' && r.status !== 'Open') e.status = 'Kasus baru harus berstatus Open; penutupan lewat Edit dengan persetujuan Head CLRM'
     if (r.edd1 && r.edd2 && r.edd2 < r.edd1) e.edd2 = 'EDD 2 tidak boleh sebelum EDD 1'
     if (r.tglResolved && r.tglTerima && r.tglResolved < r.tglTerima) e.tglResolved = 'Tanggal Resolved tidak boleh sebelum Tanggal Terima'
     if (r.tglBlokir && r.tglTerima && r.tglBlokir < r.tglTerima) e.tglBlokir = 'Tanggal Blokir tidak boleh sebelum Tanggal Terima'
@@ -303,7 +307,7 @@ const cfg: PageConfig<Fraud> = {
           <BarCard title="Top 10 merchant / group" horizontal data={top} keys={['Kasus']} onClick={(row) => drill({ group: row.name })} />
           <ComboCard title="Nilai uang per bulan (juta Rp)" bars={['Korban', 'Hold', 'Released']} lines={['Saldo Tertahan']} data={months.map((m) => { const x = inM(m.key); return { name: m.name, Korban: juta(sum(x, (r) => r.korban)), Hold: juta(sum(x, (r) => r.holdNom)), Released: juta(sum(x, (r) => r.relNom)), 'Saldo Tertahan': juta(sum(x, (r) => r.saldo)) } })} />
           <BarCard title="Lama proses (hari): rata-rata dan terlama" data={spans.map(([name, v]) => ({ name, 'Rata-rata': avg(v), Terlama: v.length ? Math.max(...v) : 0 }))} keys={['Rata-rata', 'Terlama']} />
-          <BarCard title="Umur kasus Open (hari)" data={ageBuckets(edges).map((name) => ({ name, Jumlah: open.filter((r) => ageBucket(age(r, c.today), edges) === name).length }))} keys={['Jumlah']} cellColors={['#ef4444', '#ef4444', '#ef4444', '#b91c1c']} />
+          <BarCard title="Umur kasus Open (hari)" data={ageBuckets(edges).map((name) => ({ name, Jumlah: open.filter((r) => ageBucket(age(r, c.today), edges) === name).length }))} keys={['Jumlah']} cellColors={['#22c55e', '#f59e0b', '#f59e0b', '#ef4444']} />
           <BarCard title="Lapor regulator setelah blokir" stacked data={lapor} keys={['Sudah Lapor', 'Belum Lapor', 'Terlambat']} colors={{ 'Sudah Lapor': '#10b981', 'Belum Lapor': '#f59e0b', Terlambat: '#ef4444' }} />
         </div>
       </div>
