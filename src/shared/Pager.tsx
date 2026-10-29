@@ -10,8 +10,8 @@ export function usePaged<T>(list: T[], initSize = 10, sizes = [10, 25, 50]) {
 function Pager({ total, cur, pages, size, setPage, setSize, sizes }: { sizes: number[]; total: number; cur: number; pages: number; size: number; setPage: (n: number) => void; setSize: (n: number) => void }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-2 border-t p-3 text-xs">
-      <label className="flex items-center gap-2">Baris per halaman
-        <select className="inp !w-auto" value={size} onChange={(e) => setSize(Number(e.target.value))}>{sizes.map((n) => <option key={n}>{n}</option>)}</select></label>
+      {sizes.length > 1 ? <label className="flex items-center gap-2">Baris per halaman
+        <select className="inp !w-auto" value={size} onChange={(e) => setSize(Number(e.target.value))}>{sizes.map((n) => <option key={n}>{n}</option>)}</select></label> : <span />}
       <div className="flex items-center gap-3">
         <span>{total ? (cur - 1) * size + 1 : 0} sampai {Math.min(cur * size, total)} dari {total} data</span>
         <div className="flex gap-1">
@@ -25,3 +25,6 @@ function Pager({ total, cur, pages, size, setPage, setSize, sizes }: { sizes: nu
     </div>
   )
 }
+
+// Tabel di dashboard: tetap 5 baris per halaman, tanpa pilihan jumlah baris
+export const useDashPaged = <T,>(list: T[]) => usePaged(list, 5, [5])

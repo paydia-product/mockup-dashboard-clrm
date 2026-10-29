@@ -2,6 +2,7 @@ import { ReactNode, useState } from 'react'
 import { Bar, BarChart, CartesianGrid, Cell, ComposedChart, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { addDays, fmtDate, todayStr } from '../lib'
+import { useDashPaged } from '../shared/Pager'
 import type { Tone } from '../ui'
 
 export const PALETTE = ['#1f2ab5', '#3b82f6', '#06b6d4', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#64748b']
@@ -112,15 +113,19 @@ export function ComboCard({ title, data, bars, lines, colors, xKey = 'name', hei
 }
 
 export function MiniTable<T>({ title, cols, rows, onRow, empty = 'Tidak ada data', className }: { title?: string; cols: { label: string; get: (r: T) => ReactNode }[]; rows: T[]; onRow?: (r: T) => void; empty?: string; className?: string }) {
+  const { slice, pager } = useDashPaged(rows)
   const body = (
-    <div className="max-h-72 overflow-auto">
+    <div>
+    <div className="overflow-auto">
       <table className="w-full text-left text-xs">
         <thead className="bg-slate-100 text-slate-600"><tr>{cols.map((c) => <th key={c.label} className="px-2.5 py-2 font-semibold">{c.label}</th>)}</tr></thead>
         <tbody>
-          {rows.map((r, i) => <tr key={i} onClick={onRow ? () => onRow(r) : undefined} className={`border-t ${onRow ? 'cursor-pointer hover:bg-slate-50' : ''}`}>{cols.map((c) => <td key={c.label} className="px-2.5 py-2">{c.get(r)}</td>)}</tr>)}
+          {slice.map((r, i) => <tr key={i} onClick={onRow ? () => onRow(r) : undefined} className={`border-t ${onRow ? 'cursor-pointer hover:bg-slate-50' : ''}`}>{cols.map((c) => <td key={c.label} className="px-2.5 py-2">{c.get(r)}</td>)}</tr>)}
           {!rows.length && <tr><td colSpan={cols.length} className="p-6 text-center text-slate-400">{empty}</td></tr>}
         </tbody>
       </table>
+    </div>
+    {rows.length > 0 && pager}
     </div>
   )
   return title ? <Card title={title} className={className}>{body}</Card> : body
@@ -142,7 +147,7 @@ export function CalendarCard({ title, events, views = ['bulan'], onEvent, classN
   const n = rangeDays ?? (view === 'bulan' ? 42 : view === 'minggu' ? 7 : 1)
   const days = Array.from({ length: n }, (_, i) => addDays(first, i))
   const pad = rangeDays ? dayOf(first) : 0
-  const today = todayStr()
+  const today = view === 'hari' && !rangeDays ? '' : todayStr() // tampilan Hari tidak diberi warna hari ini
   const ev = (d: string) => events.filter((e) => e.date.slice(0, 10) === d)
   const head = rangeDays ? `${fmtDate(days[0])} - ${fmtDate(days[n - 1])}` : view === 'bulan' ? new Date(anchor + 'T00:00:00').toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }) : view === 'minggu' ? `${fmtDate(days[0])} - ${fmtDate(days[6])}` : fmtDate(anchor)
   return (

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Audit, EMPTY_FILTER, Filter, Finding, REGULATORS, RISKS, STATUSES, fmtDate, lateDays } from './lib'
 import { RiskBadge, StatusBadge } from './ui'
+import { useDashPaged } from './shared/Pager'
 
 const COLORS = ['#1f2ab5', '#3b82f6', '#06b6d4', '#10b981', '#f59e0b', '#8b5cf6']
 const BUCKETS = [
@@ -37,6 +38,7 @@ export default function Dashboard({ findings, audit, filter, setFilter, onOpen }
   const open = data.filter((f) => f.status !== 'Selesai')
   const done = data.filter((f) => f.status === 'Selesai')
   const overdue = data.filter((f) => lateDays(f) > 0).sort((a, b) => lateDays(b) - lateDays(a))
+  const overduePage = useDashPaged(overdue)
   const pct = data.length ? Math.round((done.length / data.length) * 100) : 0
 
   const byReg = REGULATORS.map((r) => ({ name: r, Open: open.filter((f) => f.regulator === r).length, Selesai: done.filter((f) => f.regulator === r).length }))
@@ -134,11 +136,11 @@ export default function Dashboard({ findings, audit, filter, setFilter, onOpen }
               <Bar dataKey="v" name="Temuan" fill="#dc2626" />
             </BarChart>
           </ResponsiveContainer>
-          <div className="max-h-[220px] overflow-auto lg:col-span-2">
+          <div className="lg:col-span-2">
             <table className="w-full text-left">
               <thead className="sticky top-0 bg-slate-50 text-xs text-slate-500"><tr>{['PIC', 'Batas Waktu', 'Terlambat', 'Kelompok', 'Status', 'Risiko'].map((h) => <th key={h} className="px-2 py-2 font-medium">{h}</th>)}</tr></thead>
               <tbody>
-                {overdue.map((f) => (
+                {overduePage.slice.map((f) => (
                   <tr key={f.id} onClick={() => onOpen(f.id)} className="cursor-pointer border-t hover:bg-red-50">
                     <td className="px-2 py-1.5">{f.pic}</td><td className="px-2">{fmtDate(f.dueDate)}</td>
                     <td className="px-2 font-medium text-red-600">{lateDays(f)} hari</td><td className="px-2">{bucketOf(f)}</td><td className="px-2"><StatusBadge s={f.status} /></td><td className="px-2"><RiskBadge r={f.risiko} /></td>
@@ -147,6 +149,7 @@ export default function Dashboard({ findings, audit, filter, setFilter, onOpen }
                 {!overdue.length && <tr><td colSpan={6} className="p-4 text-center text-slate-400">Tidak ada temuan lewat batas waktu</td></tr>}
               </tbody>
             </table>
+            {overduePage.pager}
           </div>
         </div>
       </Card>

@@ -11,9 +11,21 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
-    v: '2.5.0',
+    v: '2.5.1',
     date: '2026-10-30',
     deployed: true,
+    title: 'Aturan kalender dan tabel dashboard diseragamkan',
+    prompt: 'Kalender mode hari tanpa warna biru; tabel jatuh tempo fixed 5 data tanpa Baris per halaman; samakan di halaman lain',
+    tokens: 25000,
+    changes: [
+      'Kalender tampilan Hari tidak lagi menandai hari ini (Minggu dan Bulan tetap biru)',
+      'Semua tabel di dashboard memakai pagination tetap 5 data per halaman tanpa pilihan Baris per halaman',
+    ],
+  },
+  {
+    v: '2.5.0',
+    date: '2026-10-30',
+    deployed: false,
     title: 'Dashboard Regulatory Reporting',
     prompt: 'Tanda hari ini di kalender, rincian angka ketepatan waktu, filter bulan tren terlambat, pagination jatuh tempo 7 hari',
     tokens: 40000,

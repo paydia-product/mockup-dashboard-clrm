@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { usePaged } from '../shared/Pager'
+import { useDashPaged } from '../shared/Pager'
 import { addDays, diffDays, fmtDate, fmtTime } from '../lib'
 import PageShell from '../kit/PageShell'
 import { BarCard, CalendarCard, LineCard, MiniTable } from '../kit/charts'
@@ -188,7 +188,7 @@ function TrenTerlambat({ rows, today }: { rows: Laporan[]; today: string }) {
   return <LineCard title="Tren laporan terlambat per bulan" data={tren} keys={['Terlambat']} colors={{ Terlambat: '#ef4444' }} toolbar={toolbar} />
 }
 function SoonTable({ rows, open }: { rows: Laporan[]; open: (id: string) => void }) {
-  const { slice, pager } = usePaged(rows, 5, [5])
+  const { slice, pager } = useDashPaged(rows)
   return (
     <div className="rounded-lg border border-amber-300 bg-amber-50">
       <MiniTable title="Jatuh tempo 7 hari ke depan" className="border-0 bg-transparent" rows={slice} onRow={(r) => open(r.id)}

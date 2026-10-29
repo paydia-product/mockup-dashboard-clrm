@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 2.5.1 | 2026-10-30 | ~25k |
 | 2.5.0 | 2026-10-30 | ~40k |
 | 2.4.1 | 2026-10-30 | ~10k |
 | 2.4.0 | 2026-10-30 | ~60k |
@@ -24,6 +25,14 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [2.5.1] - 2026-10-30
+
+Estimasi token: ~25k
+
+### Diubah
+- Kalender tampilan Hari tidak lagi menandai hari ini. Tampilan Minggu dan Bulan tetap biru.
+- Semua tabel di dashboard (semua halaman) memakai pagination tetap 5 data per halaman, tanpa pilihan Baris per halaman.
 
 ## [2.5.0] - 2026-10-30
 
