@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 2.5.0 | 2026-10-30 | ~40k |
 | 2.4.1 | 2026-10-30 | ~10k |
 | 2.4.0 | 2026-10-30 | ~60k |
 | 2.3.0 | 2026-10-29 | ~25k |
@@ -23,6 +24,16 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [2.5.0] - 2026-10-30
+
+Estimasi token: ~40k
+
+### Diubah
+- Kalender (semua halaman yang memakainya) menandai hari ini dengan sel biru.
+- Regulatory Reporting: tooltip Ketepatan waktu menampilkan persentase dan rincian jumlah (tepat waktu / total).
+- Regulatory Reporting: Tren laporan terlambat punya filter sendiri (Seluruh Waktu, 3, 6, 9, 12 bulan terakhir, custom pilih bulan).
+- Regulatory Reporting: tabel Jatuh tempo 7 hari ke depan memakai pagination 5 data per halaman.
 
 ## [2.4.1] - 2026-10-30
 

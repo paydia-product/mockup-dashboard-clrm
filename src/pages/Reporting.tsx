@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import { usePaged } from '../shared/Pager'
 import { addDays, diffDays, fmtDate, fmtTime } from '../lib'
 import PageShell from '../kit/PageShell'
 import { BarCard, CalendarCard, LineCard, MiniTable } from '../kit/charts'
@@ -160,6 +162,44 @@ function seed(today: string): Laporan[] {
   return out
 }
 
+const ym = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}`
+function TrenTerlambat({ rows, today }: { rows: Laporan[]; today: string }) {
+  const [p, setP] = useState('12')
+  const [from, setFrom] = useState('')
+  const [to, setTo] = useState('')
+  const cur = today.slice(0, 7)
+  const late = rows.filter((r) => wasLate(r) && r.batas)
+  let start: string, end = cur
+  if (p === 'all') start = late.map((r) => monthKey(r.batas)).sort()[0] ?? cur
+  else if (p === 'custom') { start = from || late.map((r) => monthKey(r.batas)).sort()[0] || cur; end = to || cur }
+  else { const d = new Date(today + 'T00:00:00'); d.setDate(1); d.setMonth(d.getMonth() - (Number(p) - 1)); start = ym(d) }
+  const months: string[] = []
+  for (const d = new Date(start + '-01T00:00:00'); ym(d) <= end && months.length < 600; d.setMonth(d.getMonth() + 1)) months.push(ym(d))
+  const tren = months.map((m) => ({ name: m, Terlambat: late.filter((r) => monthKey(r.batas) === m).length }))
+  return (
+    <div>
+      <div className="mb-1 flex flex-wrap items-center gap-2 text-xs">
+        <span className="font-medium text-slate-500">Periode</span>
+        <select className="inp !w-auto" value={p} onChange={(e) => setP(e.target.value)}>
+          <option value="all">Seluruh Waktu</option>{[3, 6, 9, 12].map((n) => <option key={n} value={n}>{n} bulan terakhir</option>)}<option value="custom">Custom</option>
+        </select>
+        {p === 'custom' && <><input type="month" className="inp !w-auto" value={from} onChange={(e) => setFrom(e.target.value)} /><span>sampai</span><input type="month" className="inp !w-auto" value={to} onChange={(e) => setTo(e.target.value)} /></>}
+      </div>
+      <LineCard title="Tren laporan terlambat per bulan" data={tren} keys={['Terlambat']} colors={{ Terlambat: '#ef4444' }} />
+    </div>
+  )
+}
+function SoonTable({ rows, open }: { rows: Laporan[]; open: (id: string) => void }) {
+  const { slice, pager } = usePaged(rows, 5, [5])
+  return (
+    <div className="rounded-lg border border-amber-300 bg-amber-50">
+      <MiniTable title="Jatuh tempo 7 hari ke depan" className="border-0 bg-transparent" rows={slice} onRow={(r) => open(r.id)}
+        cols={[{ label: 'Nama Laporan', get: (r) => r.nama }, { label: 'Batas', get: (r) => fmtDate(dOf(r.batas)) }, { label: 'PIC', get: (r) => r.picPenyusun }, { label: 'Status', get: (r) => <StatusPill s={r.status} /> }]} />
+      {pager}
+    </div>
+  )
+}
+
 const cfg: PageConfig<Laporan> = {
   module: 'reporting', title: 'Regulatory Reporting', noun: 'Laporan', exportPrefix: 'Pelaporan_Regulator',
   seed, fields, columns, filters,
@@ -183,18 +223,16 @@ const cfg: PageConfig<Laporan> = {
     return e
   },
   Dashboard: ({ rows, c, open, drill }) => {
-    const pct = (xs: Laporan[]) => { const s = xs.filter((r) => SENT(r) && r.tglSubmit); return s.length ? Math.round((s.filter((r) => !lateBy(r)).length / s.length) * 100) : 0 }
+    const pct = (xs: Laporan[]) => { const s = xs.filter((r) => SENT(r) && r.tglSubmit); const ok = s.filter((r) => !lateBy(r)).length; return { 'Tepat Waktu (%)': s.length ? Math.round((ok / s.length) * 100) : 0, ok, total: s.length } }
     const tepatData = [
-      ...JENIS.map((j) => ({ name: `Jenis: ${j}`, 'Tepat Waktu (%)': pct(rows.filter((r) => r.jenis === j)) })),
-      ...REG.map((g) => ({ name: `Regulator: ${g}`, 'Tepat Waktu (%)': pct(rows.filter((r) => r.regulator === g)) })),
+      ...JENIS.map((j) => ({ name: `Jenis: ${j}`, ...pct(rows.filter((r) => r.jenis === j)) })),
+      ...REG.map((g) => ({ name: `Regulator: ${g}`, ...pct(rows.filter((r) => r.regulator === g)) })),
     ]
     const tepatColors = tepatData.map((d) => (d.name.startsWith('Jenis') ? '#3b82f6' : '#10b981'))
     const beban = JENIS.map((j) => {
       const x = rows.filter((r) => r.jenis === j)
       return { name: j, Terkirim: x.filter(SENT).length, 'Dalam proses': x.filter((r) => !SENT(r) && r.status !== 'Terlambat').length, Terlambat: x.filter((r) => r.status === 'Terlambat').length }
     })
-    const months = Array.from({ length: 12 }, (_, i) => { const d = new Date(c.today + 'T00:00:00'); d.setDate(1); d.setMonth(d.getMonth() - (11 - i)); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}` })
-    const tren = months.map((m) => ({ name: m, Terlambat: rows.filter((r) => wasLate(r) && monthKey(r.batas) === m).length }))
     const soon = rows.filter((r) => !SENT(r) && r.status !== 'Terlambat' && r.batas && dOf(r.batas) >= c.today && dOf(r.batas) <= addDays(c.today, 7)).sort((a, b) => a.batas.localeCompare(b.batas))
     return (
       <div className="space-y-3">
@@ -202,12 +240,12 @@ const cfg: PageConfig<Laporan> = {
           events={rows.map((r) => ({ date: dOf(r.batas), label: r.nama, tone: statusTone(r.status), id: r.id }))} />
         <div className="grid gap-3 lg:grid-cols-2">
           <BarCard title="Ketepatan waktu: jenis periode dan regulator (% tepat waktu)" horizontal data={tepatData} keys={['Tepat Waktu (%)']} cellColors={tepatColors}
+            tip={(d) => <><div className="mb-1 font-semibold text-slate-800">{String(d.name)}</div><div>Tepat waktu %: {d['Tepat Waktu (%)']}</div><div>Rincian: {d.ok}/{d.total}</div></>}
             onClick={(row) => { const n = String(row.name); if (n.startsWith('Jenis: ')) drill({ jenis: n.slice(7) }); else drill({ regulator: n.slice(11) }) }} />
           <BarCard title="Beban laporan per jenis periode" stacked data={beban} keys={['Terkirim', 'Dalam proses', 'Terlambat']} colors={{ Terkirim: '#10b981', 'Dalam proses': '#f59e0b', Terlambat: '#ef4444' }}
             onClick={(row) => drill({ jenis: String(row.name) })} />
-          <LineCard title="Tren laporan terlambat per bulan" data={tren} keys={['Terlambat']} colors={{ Terlambat: '#ef4444' }} />
-          <MiniTable title="Jatuh tempo 7 hari ke depan" className="border-amber-300 bg-amber-50" rows={soon} onRow={(r) => open(r.id)}
-            cols={[{ label: 'Nama Laporan', get: (r) => r.nama }, { label: 'Batas', get: (r) => fmtDate(dOf(r.batas)) }, { label: 'PIC', get: (r) => r.picPenyusun }, { label: 'Status', get: (r) => <StatusPill s={r.status} /> }]} />
+          <TrenTerlambat rows={rows} today={c.today} />
+          <SoonTable rows={soon} open={open} />
         </div>
       </div>
     )

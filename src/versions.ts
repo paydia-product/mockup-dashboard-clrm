@@ -11,9 +11,23 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
-    v: '2.4.1',
+    v: '2.5.0',
     date: '2026-10-30',
     deployed: true,
+    title: 'Dashboard Regulatory Reporting',
+    prompt: 'Tanda hari ini di kalender, rincian angka ketepatan waktu, filter bulan tren terlambat, pagination jatuh tempo 7 hari',
+    tokens: 40000,
+    changes: [
+      'Kalender menandai hari ini dengan sel biru',
+      'Tooltip Ketepatan waktu menampilkan persentase dan rincian jumlah (tepat/total)',
+      'Tren laporan terlambat punya filter sendiri: Seluruh Waktu, 3/6/9/12 bulan, custom bulan',
+      'Tabel Jatuh tempo 7 hari ke depan memakai pagination 5 data per halaman',
+    ],
+  },
+  {
+    v: '2.4.1',
+    date: '2026-10-30',
+    deployed: false,
     title: 'Filter Tren tepat N bulan',
     prompt: 'Tepat 3 bulan',
     tokens: 10000,

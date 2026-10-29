@@ -34,8 +34,8 @@ export function StatCards({ items }: { items: { label: string; value: string | n
 }
 
 // data: [{ name, <key1>, <key2> ... }]; cellColors mewarnai tiap batang (hanya untuk satu seri)
-export function BarCard({ title, data, keys, stacked, horizontal, colors, cellColors, xKey = 'name', onClick, height = 240, className }: {
-  title: string; data: Row[]; keys: string[]; stacked?: boolean; horizontal?: boolean; colors?: Colors; cellColors?: string[]; xKey?: string
+export function BarCard({ title, data, keys, stacked, horizontal, colors, cellColors, xKey = 'name', onClick, height = 240, className, tip }: {
+  title: string; data: Row[]; keys: string[]; stacked?: boolean; horizontal?: boolean; colors?: Colors; cellColors?: string[]; xKey?: string; tip?: (row: Row) => ReactNode
   onClick?: (row: Row, key: string) => void; height?: number; className?: string
 }) {
   return (
@@ -45,7 +45,7 @@ export function BarCard({ title, data, keys, stacked, horizontal, colors, cellCo
           <BarChart data={data} layout={horizontal ? 'vertical' : 'horizontal'} margin={{ left: horizontal ? 20 : 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#eef0f4" />
             {horizontal ? <><XAxis type="number" allowDecimals={false} fontSize={11} /><YAxis type="category" dataKey={xKey} width={110} fontSize={11} /></> : <><XAxis dataKey={xKey} fontSize={11} /><YAxis allowDecimals={false} fontSize={11} /></>}
-            <Tooltip />
+            {tip ? <Tooltip content={({ active, payload }) => (active && payload?.length ? <div className="rounded border border-slate-200 bg-white p-2 text-xs shadow">{tip(payload[0].payload as Row)}</div> : null)} /> : <Tooltip />}
             {keys.length > 1 && <Legend wrapperStyle={{ fontSize: 11 }} />}
             {keys.map((k, i) => (
               <Bar key={k} dataKey={k} stackId={stacked ? 's' : undefined} fill={colorOf(colors, k, i)} cursor={onClick ? 'pointer' : undefined} onClick={onClick ? (d) => onClick(d.payload as Row, k) : undefined}>
@@ -141,6 +141,7 @@ export function CalendarCard({ title, events, views = ['bulan'], onEvent, classN
   const n = rangeDays ?? (view === 'bulan' ? 42 : view === 'minggu' ? 7 : 1)
   const days = Array.from({ length: n }, (_, i) => addDays(first, i))
   const pad = rangeDays ? dayOf(first) : 0
+  const today = todayStr()
   const ev = (d: string) => events.filter((e) => e.date.slice(0, 10) === d)
   const head = rangeDays ? `${fmtDate(days[0])} - ${fmtDate(days[n - 1])}` : view === 'bulan' ? new Date(anchor + 'T00:00:00').toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }) : view === 'minggu' ? `${fmtDate(days[0])} - ${fmtDate(days[6])}` : fmtDate(anchor)
   return (
@@ -155,8 +156,8 @@ export function CalendarCard({ title, events, views = ['bulan'], onEvent, classN
         {(view === 'bulan' || !!rangeDays) && ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'].map((d) => <div key={d} className="bg-slate-100 p-1 text-center font-semibold text-slate-500">{d}</div>)}
         {Array.from({ length: pad }, (_, i) => <div key={`p${i}`} className="bg-slate-50" />)}
         {days.map((d) => (
-          <div key={d} className={`bg-white p-1 ${view === 'bulan' || rangeDays ? 'min-h-[64px]' : 'min-h-[90px]'} ${view === 'bulan' && !rangeDays && d.slice(5, 7) !== anchor.slice(5, 7) ? 'opacity-40' : ''}`}>
-            <div className="text-slate-400">{view === 'bulan' || rangeDays ? `${Number(d.slice(8))}${rangeDays && (d === first || d.slice(8) === '01') ? ' ' + new Date(d + 'T00:00:00').toLocaleDateString('id-ID', { month: 'short' }) : ''}` : fmtDate(d)}</div>
+          <div key={d} className={`p-1 ${d === today ? 'bg-blue-100 ring-1 ring-inset ring-blue-500' : 'bg-white'} ${view === 'bulan' || rangeDays ? 'min-h-[64px]' : 'min-h-[90px]'} ${view === 'bulan' && !rangeDays && d.slice(5, 7) !== anchor.slice(5, 7) ? 'opacity-40' : ''}`}>
+            <div className={d === today ? 'font-bold text-blue-600' : 'text-slate-400'}>{view === 'bulan' || rangeDays ? `${Number(d.slice(8))}${rangeDays && (d === first || d.slice(8) === '01') ? ' ' + new Date(d + 'T00:00:00').toLocaleDateString('id-ID', { month: 'short' }) : ''}` : fmtDate(d)}</div>
             {ev(d).slice(0, view === 'bulan' || rangeDays ? 3 : 20).map((e, i) => (
               <div key={i} title={e.label} onClick={e.id && onEvent ? () => onEvent(e.id!) : undefined} className={`mt-0.5 flex items-center gap-1 truncate ${e.id && onEvent ? 'cursor-pointer' : ''}`}>
                 <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: TONE_HEX[e.tone] }} /><span className="truncate">{e.label}</span>
