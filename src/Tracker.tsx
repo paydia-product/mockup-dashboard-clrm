@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import * as XLSX from 'xlsx'
 import { Bell, ChevronDown, ChevronUp, Download, Eye, History, Pencil, Plus, RotateCcw, Save, Search, SlidersHorizontal, Trash2, XCircle } from 'lucide-react'
 import {
-  DB, EMPTY_FILTER, Filter, Finding, PIC_USERS, REGULATORS, RISKS, ROLE_USER, Role, STATUSES, UNITS, alertsFor, applyFilter,
+  Audit, DB, EMPTY_FILTER, Filter, Finding, PIC_USERS, REGULATORS, RISKS, ROLE_USER, Role, STATUSES, UNITS, alertsFor, applyFilter,
   describeFilter, fmtDate, fmtTime, nowStr, todayStr, todoText, userName,
 } from './lib'
 import Dashboard from './Dashboard'
@@ -47,14 +47,16 @@ export default function Tracker({ db, setDb, role }: { db: DB; setDb: React.Disp
 
   // ---- mutasi + audit ----
   type Ent = { aksi: string; kolom?: string; lama?: string; baru?: string; alasan?: string }
-  const commit = (next: Finding, ents: Ent[]) =>
+  const mkAudit = (fid: string, ents: Ent[]): Audit[] =>
+    ents.map((e, i) => ({ id: `${fid}-${Date.now()}-${i}`, fid, time: nowStr(), user: user.name, aksi: e.aksi, kolom: e.kolom ?? '', lama: e.lama ?? '', baru: e.baru ?? '', alasan: e.alasan ?? '' }))
+  const commit = (next: Finding, ents: Ent[], dropReq = false) =>
     setDb((d) => {
-      const t = nowStr()
       const exists = d.findings.some((x) => x.id === next.id)
       return {
         ...d,
         findings: exists ? d.findings.map((x) => (x.id === next.id ? next : x)) : [next, ...d.findings],
-        audit: [...d.audit, ...ents.map((e, i) => ({ id: `${next.id}-${Date.now()}-${i}`, fid: next.id, time: t, user: user.name, aksi: e.aksi, kolom: e.kolom ?? '', lama: e.lama ?? '', baru: e.baru ?? '', alasan: e.alasan ?? '' }))],
+        audit: [...d.audit, ...mkAudit(next.id, ents)],
+        requests: dropReq ? d.requests.filter((r) => r.fid !== next.id) : d.requests,
       }
     })
   const statusEnt = (aksi: string, from: string, to: string, alasan = ''): Ent => ({ aksi, kolom: 'Status', lama: from, baru: to, alasan })
@@ -78,8 +80,14 @@ export default function Tracker({ db, setDb, role }: { db: DB; setDb: React.Disp
     const make = (alasan: string) =>
       diffs.filter(([, , g]) => g(old) !== g(f)).map(([k, l, g]): Ent => ({ aksi: 'Ubah temuan', kolom: l, lama: g(old), baru: g(f), alasan: k === 'dueDate' ? alasan : '' }))
     const doIt = (alasan: string) => {
-      const ents = make(alasan)
-      if (ents.length) commit(f, ents)
+      const cs = diffs.filter(([, , g]) => g(old) !== g(f)).map(([k, l, g]) => ({ key: k, label: l, lama: g(old), baru: g(f), value: f[k] as unknown }))
+      if (cs.length) {
+        setDb((d) => ({
+          ...d,
+          requests: [...d.requests.filter((r) => r.fid !== f.id), { id: `r${Date.now()}`, fid: f.id, by: user.name, time: nowStr(), alasan, changes: cs }],
+          audit: [...d.audit, ...mkAudit(f.id, make(alasan).map((e) => ({ ...e, aksi: 'Ajukan perubahan (menunggu Head CLRM)' })))],
+        }))
+      }
       setPending(null)
     }
     if (old.dueDate !== f.dueDate) setPending({ kind: 'reason', title: 'Alasan perubahan Batas Waktu', run: doIt })
@@ -106,6 +114,18 @@ export default function Tracker({ db, setDb, role }: { db: DB; setDb: React.Disp
       commit({ ...f, persetujuan: v, persetujuanOleh: user.name, persetujuanTgl: todayStr(), status: to }, ents)
     },
     cancel: () => setPending({ kind: 'reason', title: `Batalkan ${f.no}`, danger: true, run: (r) => { commit({ ...f, status: 'Dibatalkan' }, [statusEnt('Batalkan temuan', f.status, 'Dibatalkan', r)]); setPending(null) } }),
+    reqApprove: () => {
+      const r = db.requests.find((x) => x.fid === f.id)
+      if (!r) return
+      const next = { ...f } as Record<string, unknown>
+      r.changes.forEach((c) => { next[c.key] = c.value })
+      commit(next as unknown as Finding, r.changes.map((c): Ent => ({ aksi: 'Setujui perubahan', kolom: c.label, lama: c.lama, baru: c.baru, alasan: c.key === 'dueDate' ? r.alasan : '' })), true)
+    },
+    reqReject: () => setPending({ kind: 'reason', title: `Tolak perubahan ${f.no}`, danger: true, run: (alasan) => {
+      const r = db.requests.find((x) => x.fid === f.id)
+      if (r) setDb((d) => ({ ...d, requests: d.requests.filter((x) => x.fid !== f.id), audit: [...d.audit, ...mkAudit(f.id, r.changes.map((c): Ent => ({ aksi: 'Tolak perubahan', kolom: c.label, lama: c.lama, baru: c.baru, alasan })))] }))
+      setPending(null)
+    } }),
     restore: () => {
       const last = db.audit.filter((a) => a.fid === f.id && a.kolom === 'Status' && a.baru === 'Dibatalkan').sort((a, b) => b.time.localeCompare(a.time))[0]
       const to = (last?.lama as Finding['status']) || 'Open'
@@ -113,7 +133,7 @@ export default function Tracker({ db, setDb, role }: { db: DB; setDb: React.Disp
     },
   })
 
-  const canEdit = (f: Finding) => f.status !== 'Dibatalkan' && f.status !== 'Selesai' && (role === 'Compliance Officer' || (role === 'PIC' && f.pic === user.id))
+  const canEdit = (f: Finding) => !db.requests.some((r) => r.fid === f.id) && f.status !== 'Dibatalkan' && f.status !== 'Selesai' && (role === 'Compliance Officer' || (role === 'PIC' && f.pic === user.id))
 
   const doExport = () => {
     const data = rows.map((f) => ({
@@ -235,7 +255,7 @@ export default function Tracker({ db, setDb, role }: { db: DB; setDb: React.Disp
             <label className="flex items-center gap-2">Baris per halaman
               <select className="inp !w-auto" value={size} onChange={(e) => { setSize(Number(e.target.value)); setPage(1) }}>{[10, 25, 50].map((n) => <option key={n}>{n}</option>)}</select></label>
             <div className="flex items-center gap-3">
-              <span>{rows.length ? (cur - 1) * size + 1 : 0} - {Math.min(cur * size, rows.length)} of {rows.length}</span>
+              <span>{rows.length ? (cur - 1) * size + 1 : 0} sampai {Math.min(cur * size, rows.length)} dari {rows.length} data</span>
               <div className="flex gap-1">
                 <button className="btn !px-2 !py-1" disabled={cur === 1} onClick={() => setPage(cur - 1)}>&lt;</button>
                 {Array.from({ length: pages }, (_, i) => i + 1).map((n) => (
@@ -248,7 +268,7 @@ export default function Tracker({ db, setDb, role }: { db: DB; setDb: React.Disp
         </div>
       )}
 
-      {open && <Drawer f={open} audit={db.audit} role={role} acts={actsFor(open)} onClose={() => setOpenId(null)} />}
+      {open && <Drawer f={open} audit={db.audit} req={db.requests.find((r) => r.fid === open.id)} role={role} acts={actsFor(open)} onClose={() => setOpenId(null)} />}
       {pending?.kind === 'add' && <Form mode="add" role={role} init={blank()} onSave={(f) => saveForm(f, 'add')} onClose={() => setPending(null)} />}
       {editing && <Form mode="edit" role={role} init={editing} onSave={(f) => saveForm(f, 'edit')} onClose={() => setPending(null)} />}
       {pending?.kind === 'reason' && <ReasonModal title={pending.title} danger={pending.danger} onClose={() => setPending(null)} onConfirm={pending.run} />}

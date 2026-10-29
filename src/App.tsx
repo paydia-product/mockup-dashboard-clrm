@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import {
-  Bell, ChevronDown, ChevronRight, ClipboardCheck, FileSignature, FileText, Gavel, GitBranch, History, LayoutDashboard, ListChecks, LogOut, Menu, RotateCcw,
-  Scale, ScrollText, ShieldAlert, ShieldCheck, Siren, Tag, UserCog,
+  Bell, ChevronDown, ChevronRight, ClipboardCheck, FileText, GitBranch, History, ListChecks, LogOut, Menu, RotateCcw,
+  ShieldCheck, Tag, UserCog,
 } from 'lucide-react'
 import { ROLES, Role, ROLE_USER, useDB, useRole } from './lib'
 import Tracker from './Tracker'
@@ -16,17 +16,6 @@ const GROUPS: Group[] = [
     { id: 'compliance/regulatory-reporting', label: 'Regulatory Reporting', icon: FileText },
     { id: 'compliance/regulatory-change', label: 'Regulatory Change', icon: GitBranch },
     { id: 'compliance/sop-dokumen-kontrol', label: 'SOP & Dokumen Kontrol', icon: ClipboardCheck },
-  ] },
-  { id: 'risk', label: 'Risk', icon: ShieldAlert, items: [
-    { id: 'risk/risk-register', label: 'Risk Register', icon: ScrollText },
-    { id: 'risk/kajian-risiko', label: 'Kajian Risiko', icon: LayoutDashboard },
-  ] },
-  { id: 'fraud', label: 'Fraud', icon: Siren, items: [{ id: 'fraud/fraud-case-monitoring', label: 'Fraud Case Monitoring', icon: Siren }] },
-  { id: 'legal', label: 'Legal', icon: Scale, items: [
-    { id: 'legal/kontrak', label: 'Kontrak', icon: FileSignature },
-    { id: 'legal/permintaan-aph', label: 'Permintaan APH', icon: Gavel },
-    { id: 'legal/perizinan', label: 'Perizinan & Dokumen Legalitas', icon: FileText },
-    { id: 'legal/layanan-hukum', label: 'Permintaan Layanan Hukum', icon: Scale },
   ] },
 ]
 const SINGLES: Item[] = [

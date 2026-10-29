@@ -11,9 +11,25 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
-    v: '1.0.0',
+    v: '1.1.0',
     date: '2026-10-29',
     deployed: true,
+    title: 'Perbaikan temuan QA & pentest',
+    prompt: 'Perbaikan temuan QA & pentest prod',
+    tokens: 180000,
+    changes: [
+      'Sidebar hanya Compliance, Approval, Admin, Log',
+      'Edit temuan butuh persetujuan Head CLRM (permintaan perubahan + diff)',
+      'Info pagination "x sampai y dari z data"',
+      'Login: input nonaktif saat proses, tanpa sisa error',
+      'Rate limit /api/login: 5 gagal per IP per 15 menit',
+      'xlsx pindah ke tarball resmi SheetJS 0.20.3, @vercel/functions dihapus; npm audit 0 high',
+    ],
+  },
+  {
+    v: '1.0.0',
+    date: '2026-10-29',
+    deployed: false,
     title: 'Rilis awal: shell dashboard + Regulatory Findings Tracker',
     prompt: 'Bangun mockup klik Dashboard Monitoring CLRM: shell bergaya admin Paydia, halaman Regulatory Findings Tracker lengkap, login gate Vercel.',
     tokens: 450000,

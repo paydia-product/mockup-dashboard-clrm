@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { FileText, X } from 'lucide-react'
-import { Audit, Finding, Role, ROLE_USER, alertsFor, fmtDate, fmtTime, userName } from './lib'
+import { Audit, ChangeReq, Finding, Role, ROLE_USER, alertsFor, fmtDate, fmtTime, userName } from './lib'
 import { AlertBadges, Badge, Modal, RiskBadge, StatusBadge } from './ui'
 
 export interface Acts {
@@ -10,6 +10,8 @@ export interface Acts {
   approve: (v: 'Disetujui' | 'Ditolak', alasan: string) => void
   cancel: () => void
   restore: () => void
+  reqApprove: () => void
+  reqReject: () => void
 }
 
 function Decision({ title, opts, rejectOpt, onOk, onClose }: { title: string; opts: string[]; rejectOpt: string; onOk: (v: string, a: string) => void; onClose: () => void }) {
@@ -33,7 +35,7 @@ const Row = ({ l, children }: { l: string; children: React.ReactNode }) => (
   <div><div className="text-xs text-slate-400">{l}</div><div className="mt-0.5 text-slate-800">{children}</div></div>
 )
 
-export default function Drawer({ f, audit, role, acts, onClose }: { f: Finding; audit: Audit[]; role: Role; acts: Acts; onClose: () => void }) {
+export default function Drawer({ f, audit, req, role, acts, onClose }: { f: Finding; audit: Audit[]; req?: ChangeReq; role: Role; acts: Acts; onClose: () => void }) {
   const [tab, setTab] = useState<'detail' | 'riwayat'>('detail')
   const [dlg, setDlg] = useState<'validasi' | 'setuju' | null>(null)
   const [msg, setMsg] = useState('')
@@ -62,6 +64,13 @@ export default function Drawer({ f, audit, role, acts, onClose }: { f: Finding; 
           {msg && <p className="mb-3 rounded bg-slate-100 p-2 text-xs">{msg}</p>}
           {tab === 'detail' ? (
             <div className="space-y-5">
+              {req && (
+                <div className="rounded border border-yellow-300 bg-yellow-50 p-3 text-xs">
+                  <div className="mb-1 font-semibold text-yellow-800">Perubahan menunggu persetujuan Head CLRM</div>
+                  <div className="mb-2 text-slate-600">Diajukan oleh {req.by}, {fmtTime(req.time)}{req.alasan ? `. Alasan Batas Waktu: ${req.alasan}` : ''}</div>
+                  <ul className="space-y-1">{req.changes.map((c) => <li key={c.label}><b>{c.label}:</b> <span className="text-red-600 line-through">{c.lama || '-'}</span> {'->'} <span className="text-green-700">{c.baru || '-'}</span></li>)}</ul>
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-x-6 gap-y-3">
                 <Row l="1. Nomor Temuan">{f.no}</Row>
                 <Row l="2. Regulator">{f.regulator}</Row>
@@ -118,10 +127,11 @@ export default function Drawer({ f, audit, role, acts, onClose }: { f: Finding; 
         </div>
         <div className="flex flex-wrap justify-end gap-2 border-t px-5 py-3">
           {role === 'Viewer' && <span className="mr-auto self-center text-xs text-slate-400">Viewer: hanya dapat melihat.</span>}
-          {live && (isCO || own) && <button className="btn" onClick={acts.edit}>Ubah</button>}
+          {live && !req && (isCO || own) && <button className="btn" onClick={acts.edit}>Ubah</button>}
           {(f.status === 'Open' || f.status === 'Proses') && (isCO || own) && <button className="btn btn-primary" onClick={acts.submit}>Ajukan Penutupan</button>}
           {f.status === 'Menunggu Validasi' && f.validasi === 'Belum' && isCO && <button className="btn btn-primary" onClick={() => setDlg('validasi')}>Isi Validasi Ulang</button>}
           {f.status === 'Menunggu Validasi' && f.validasi === 'Valid' && isHead && <button className="btn btn-primary" onClick={() => setDlg('setuju')}>Persetujuan Penutupan</button>}
+          {req && isHead && <><button className="btn btn-primary" onClick={acts.reqApprove}>Setujui Perubahan</button><button className="btn btn-danger" onClick={acts.reqReject}>Tolak Perubahan</button></>}
           {isHead && f.status !== 'Dibatalkan' && <button className="btn btn-danger" onClick={acts.cancel}>Batalkan</button>}
           {isHead && f.status === 'Dibatalkan' && <button className="btn btn-primary" onClick={acts.restore}>Kembalikan</button>}
         </div>

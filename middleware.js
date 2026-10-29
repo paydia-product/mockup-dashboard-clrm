@@ -1,4 +1,4 @@
-import { next } from '@vercel/functions'
+const next = () => new Response(null, { headers: { 'x-middleware-next': '1' } })
 
 const PUBLIC = new Set(['/login.html', '/login.js', '/login.css', '/api/login', '/api/logout', '/favicon.svg'])
 

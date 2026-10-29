@@ -6,7 +6,22 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [1.1.0] - 2026-10-29
+
+Estimasi token: ~180k
+
+### Diubah
+- Sidebar hanya Compliance (4 sub menu), Approval, Admin, Log; grup Risk, Fraud, Legal dihapus.
+- Edit temuan kini membuat permintaan perubahan yang menunggu persetujuan Head CLRM (Setujui/Tolak), tercatat di Riwayat.
+- Info pagination menjadi "x sampai y dari z data".
+- Halaman login: input nonaktif saat request, error merah dibersihkan, spinner CSS.
+
+### Keamanan
+- Rate limit `/api/login`: 5 percobaan gagal per IP per 15 menit (429 + Retry-After).
+- `xlsx` memakai tarball resmi SheetJS 0.20.3; `@vercel/functions` dihapus dari middleware. `npm audit --omit=dev`: 0 kerentanan.
 
 ## [1.0.0] - 2026-10-29
 

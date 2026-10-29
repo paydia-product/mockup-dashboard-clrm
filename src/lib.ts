@@ -65,7 +65,8 @@ export interface Audit { id: string; fid: string; time: string; user: string; ak
 export interface Filter { q: string; from: string; to: string; status: string; pic: string; unit: string; regulator: string; risiko: string }
 export const EMPTY_FILTER: Filter = { q: '', from: '', to: '', status: '', pic: '', unit: '', regulator: '', risiko: '' }
 export interface ExportLog { id: string; time: string; user: string; filter: string; rows: number; file: string }
-export interface DB { findings: Finding[]; audit: Audit[]; saved: { name: string; filter: Filter; showCancelled: boolean }[]; exports: ExportLog[] }
+export interface ChangeReq { id: string; fid: string; by: string; time: string; alasan: string; changes: { key: keyof Finding; label: string; lama: string; baru: string; value: unknown }[] }
+export interface DB { requests: ChangeReq[]; findings: Finding[]; audit: Audit[]; saved: { name: string; filter: Filter; showCancelled: boolean }[]; exports: ExportLog[] }
 
 // ---- Tanggal ----
 const pad = (n: number) => String(n).padStart(2, '0')
@@ -199,7 +200,7 @@ export function makeSeed(): DB {
     if (s.status === 'Dibatalkan') log(f, addDays(t, -3), 'Dewi Anggraini', 'Batalkan temuan', 'Status', 'Proses', 'Dibatalkan', 'Temuan duplikat dengan laporan regulator sebelumnya')
     findings.push(f)
   })
-  return { findings, audit, saved: [], exports: [] }
+  return { requests: [], findings, audit, saved: [], exports: [] }
 }
 
 // ---- Penyimpanan ----
@@ -208,7 +209,7 @@ const ROLE_KEY = 'clrm.role'
 function load(): DB {
   try {
     const s = localStorage.getItem(KEY)
-    if (s) return JSON.parse(s) as DB
+    if (s) return { requests: [], ...JSON.parse(s) } as DB
   } catch { /* abaikan */ }
   return makeSeed()
 }
