@@ -4,7 +4,7 @@ Sumber: CR 6 Okt 2026 (acuan kolom/visual/alert/aturan), rencana kerja tambahan 
 
 ## Aturan dasar semua halaman (dari keputusan user di tracker)
 1. Tab **Dashboard** pertama (default), lalu **Table**.
-2. Filter = popover di tombol "Filter": field filter CR, simpan filter bernama, tombol **Clear All** / **Apply Filters**; kotak cari terpisah di kiri.
+2. Filter = popover di tombol "Filter": field filter CR, tombol **Clear All** / **Apply Filters**; kotak cari terpisah di kiri. Tidak ada simpan filter (dihapus v2.9.0).
 3. Kolom **Aksi**: Lihat Detail (semua) + Edit (sesuai permission & aturan baris) + Batalkan / Kembalikan (Head CLRM, alasan wajib, tanpa approval, bisa dikembalikan ke status sebelum batal).
 4. Detail = Modal read-only berjudul "Detail" tanpa nomor urut kolom, tanpa Riwayat, tanpa tombol Ubah/Ajukan.
 5. "Simulasi notifikasi (n)" = modal email (From noreply-clrm@paydia.co.id, To, Subject `[CLRM] <alert>: <noun> <no>`, isi, alasan notifikasi, badge Kuning/Merah). Maksimal 3 email contoh per jenis alert CR: pakai data yang cocok hari ini, lalu contoh statis berlabel "Contoh statis" kalau datanya kurang.
@@ -23,7 +23,7 @@ Prinsip: hanya mengabstraksi yang dipakai ≥2 halaman. Visual dashboard tetap k
 ### Penyimpanan
 - Tracker tetap di `clrm.db.v4` (tidak dimigrasi).
 - Key baru `clrm.app.v1`:
-  `{ modules: Partial<Record<ModuleId, BaseRec[]>>, saved: Partial<Record<ModuleId, SavedFilter[]>>, approvals: ApprovalReq[], log: LogEntry[], master: { departemen: string[]; produk: string[]; pihakPelapor: string[] }, accounts: Account[], perms: PermMatrix, seq: Record<string, number> }`
+  `{ modules: Partial<Record<ModuleId, BaseRec[]>>, approvals: ApprovalReq[], log: LogEntry[], master: { departemen: string[]; produk: string[]; pihakPelapor: string[] }, accounts: Account[], perms: PermMatrix, seq: Record<string, number> }`
 - Tiap slice modul di-seed saat pertama dibaca (`cfg.seed()`), jadi foundation tidak perlu tahu seed per halaman. Tombol Reset menghapus dua key lalu reload.
 - Sesi mock login di `clrm.session` (`{ accountId, verified2fa }`).
 
@@ -144,12 +144,12 @@ addWorkDays(d, n), workDaysBetween(a, b), ageBucket(days, edges: number[]): stri
 Sumber kebenaran: `src/kit/types.ts`. Perbedaan dari draf di atas:
 - `Field.key: string` (bukan `keyof T`), supaya kolom otomatis tidak perlu properti di T. Key `'no'` diabaikan (kit selalu menampilkan No di tabel/detail/export, jangan buat kolom form untuk no).
 - `NewRec<T> = Omit<T, 'id'|'no'|'createdAt'|'createdBy'|'cancelled'>` (status ikut). `cfg.blank(): NewRec<T>` dan `api.add(r, silent?)` memakai tipe ini. `add` mengembalikan T dan mencatat Log "Tambah" (kecuali `silent`).
-- Nilai per FieldType: text/textarea/select/date/datetime/yesno = string (yesno `'Ya'|'Tidak'|''`; datetime `YYYY-MM-DDTHH:mm`); number/money/percent = `number | ''`; multiselect = `string[]`; checklist = `Record<subKey, boolean>` (sub: item bercentang, hanya `key`/`label` dipakai); file = `FileMeta | null`; list = array objek (kolom dari `sub`). Field `list` dengan `inForm: 'none'` hanya tampil di Detail/Export (mis. revisi SOP).
+- Nilai per FieldType: text/textarea/select/date/datetime/yesno = string (yesno `'Ya'|'Tidak'|''`; datetime `YYYY-MM-DDTHH:mm`); number/money/percent = `number | ''`; multiselect = `string[]`; multidrop = `string[]` (dropdown pilih banyak, pilihan tampil sebagai chip dengan tombol hapus; Detail menampilkan daftar); checklist = `Record<subKey, boolean>` (sub: item bercentang, hanya `key`/`label` dipakai); file = `FileMeta | null`; list = array objek (kolom dari `sub`). Field `list` dengan `inForm: 'none'` hanya tampil di Detail/Export.
 - `Field.mask(c)` mengembalikan true bila nilai HARUS disamarkan untuk pengguna ini. Kit menerapkannya di Detail dan Export; di kolom tabel Anda sendiri yang memanggil `maskStr` dari `kit/fmt` (mis. `get: (r, c) => c.role === ... ? r.x : maskStr(r.x)`).
 - `FilterDef.match` untuk `daterange` menerima `[from, to]`, salah satu boleh `''`. Nilai filter di `drill()` memakai `key` filter yang sama (select = string, daterange = `[from, to]`).
 - `RowAction.run(r, api, close)`: argumen ketiga menutup modal yang Anda kembalikan. Kembalikan ReactNode (pakai `Modal` dari `src/ui`) untuk dirender shell.
 - `ApprovalRule.keys?: string[]`: hanya kolom ini yang masuk request, kolom lain yang berubah langsung diterapkan. Tanpa `keys`, seluruh diff masuk request.
-- `PageConfig.beforeSave?(old|null, next, c) => T`: hook saat tambah/ubah (mis. memindahkan revisi lama ke `revisi[]`). `cfg.title` harus sama dengan label menu (dipakai Log).
+- `PageConfig.beforeSave?(old|null, next, c) => T`: hook saat tambah/ubah (mis. mengisi kolom turunan). `cfg.title` harus sama dengan label menu (dipakai Log).
 - `can(m, a)` menerima `PermKey` (ModuleId + 'approval'|'master'|'admin'|'log'). Signature di `kit/perms.ts`: `can(perms, role, m, a)`; komponen memakai `useApp().can(m, a)`.
 - `Dashboard` menerima `rows` tanpa baris dibatalkan. `drill(filter)` pindah ke tab Table dengan filter terpasang. `open(id)` membuka Detail.
 - Chart (`kit/charts.tsx`): `BarCard({title, data:[{name, ...keys}], keys, stacked?, horizontal?, colors?, cellColors?, onClick?(row,key)})`, `DonutCard({title, data, onClick?(name)})`, `LineCard({title, data, keys, colors?})`, `ComboCard({title, data, bars, lines, colors?})`, `StatCards({items:[{label,value,tone?,onClick?}]})`, `CalendarCard({title, events:[{date,label,tone,id?}], views?, onEvent?(id)})`, `MiniTable({title?, cols:[{label,get(r)=>ReactNode}], rows, onRow?})`, `Card({title?, children})`. Semua mendukung `className`. Warna: `TONE_HEX`, `PALETTE`.
@@ -180,13 +180,13 @@ Sumber kebenaran: `src/kit/types.ts`. Perbedaan dari draf di atas:
 
 **Approval**: list + pagination + filter status (Menunggu/Disetujui/Ditolak) + filter modul + cari; kolom Nomor request, Modul, Jenis request, Nomor data, Pengaju, Tanggal ajuan, Status. Detail: ringkasan data, tabel kolom/nilai lama/nilai baru, alasan, keputusan. Approve/Reject hanya untuk `approver === role` (atau Super Admin) yang punya `can(module,'Approve')`; Reject wajib catatan. Tracker tampil lewat adapter.
 
-**Master Data**: delapan list (cari, Tambah/Edit lewat modal "Tambah/Edit <Nama Master>" dengan field Nama, Hapus dengan konfirmasi). Urutan menu: Laporan, Regulator, Kategori Regulasi, Unit Kerja, Produk, Mitra, Kategori Pelapor, Media Pelapor. Validasi Nama: wajib, 2 sampai 255 karakter, hanya huruf/angka/spasi, unik tanpa beda huruf besar. Seed:
-- Unit Kerja: IT, Operation, Business, Support (HRD & GA), Compliance, Legal & Risk Management, Finance, Accounting, Tax & Treasury.
+**Master Data**: delapan list (cari, Tambah/Edit lewat modal "Tambah/Edit <Nama Master>" dengan field Nama, Hapus dengan konfirmasi). Urutan menu: Laporan, Regulator, Kategori Regulasi, Unit Kerja, Produk, Mitra, Kategori Pelapor, Media Pelapor. Validasi Nama: wajib, 2 sampai 255 karakter, hanya huruf/angka/spasi dan karakter `' - & / , . ( ), unik tanpa beda huruf besar. Seed:
+- Unit Kerja (sheet "4. Daftar Departemen Paydia"): Internal Audit, Business, Operation, Information Technology, Compliance Legal & Risk Management, Support, Finance, Accounting, Tax & Treasury.
 - Produk: UE, QRIS, Biller.
 - (Master Regulator dihapus v2.8.0; daftar regulator tetap per halaman.) PIC: Regie, Fakhri, Osama.
 - Kategori Regulasi: APU PPT, QRIS, SNAP, Pelindungan Konsumen, Ketahanan Siber, Lainnya.
-- Kategori Pelapor: Departemen Internal, Konsumen, Switching, Kepolisian, PJP-Bank, Bank Indonesia, Lainnya. Media Pelapor: Email, IASC, GO AML, WhatsApp, Lainnya.
-- Laporan dan Mitra: dari nama di seed Reporting, Kontrak, dan Kajian. Dropdown Nama Laporan dan Nama Mitra menambah "Lainnya".
+- Kategori Pelapor (sheet "2. Daftar Pihak Pelapor EDD"): Departemen Internal, Konsumen, Switching, PJP/Bank, Institusi Berwenang Lainnya, Kepolisian, Bank Indonesia, Asosiasi. Media Pelapor: Email, IASC, GO AML, WhatsApp, Lainnya.
+- Laporan: nama dari sheet "1. Daftar Pelaporan Paydia" (tanpa sufiks batas waktu; jenis periode Harian/Mingguan/Bulanan/Triwulanan/Tahunan/3 Tahun Sekali), disimpan di `src/pages/laporan.shared.ts`. Mitra: dari nama di seed Kontrak dan Kajian. Dropdown Nama Mitra menambah "Lainnya"; Nama Laporan di Reporting tetap input teks. Dropdown Unit Kerja di SOP (Pemilik), Risk Register, dan Produk di Risk Register tanpa "Lainnya".
 
 Pihak Pelapor diganti Kategori Pelapor dan Media Pelapor (field Pihak Pelapor di Fraud dihapus). Rename dan hapus tidak mengubah data lama. Semua perubahan dicatat di Log.
 
@@ -200,7 +200,7 @@ Notasi: W = wajib, K = wajib kondisional, D = disarankan (opsional), A = otomati
 ### C1. Regulatory Reporting — Compliance — `Reporting.tsx` — export `Pelaporan_Regulator`
 Kolom:
 1. Nama Laporan: teks W (C: bukan dropdown; seed memakai nama dari daftar tim: Pelaporan Dana Floating, Laporan RBSP, SiPesat, LTKM, LTKT, Laporan Insiden Siber, dll).
-2. Regulator: select BI/PPATK/Komdigi/BSSN, W.
+2. Regulator: select BI/PPATK/Komdigi/BSSN/Pemerintah-DPR, W.
 3. Jenis Periode: select Harian/Mingguan/Bulanan/Triwulanan/Tahunan/3 Tahun Sekali/Insidental, W.
 4. Periode yang Dilaporkan: teks W (diisi manual; jadwal otomatis tidak dibuat, lihat C).
 5. Batas Waktu: datetime W. Kalau Insidental: field tambahan "Waktu kejadian" lalu batas waktu diisi manual.
@@ -244,15 +244,15 @@ Kolom:
 12. Departemen Terdampak: multiselect master, W.
 13. Pemenuhan %: percent, manual, boleh kosong = belum dinilai.
 14. Status Kepatuhan: A (100 Comply, 70–99 Partial, <70 Gap, kosong Belum Dinilai; warna hijau/kuning/merah).
-15. Tindak Lanjut: list {uraian, PIC teks, batas waktu, status Open/Proses/Selesai}, K bila Partial/Gap.
+15. Tindak Lanjut: textarea (satu teks), K bila Partial/Gap.
 16. Perlu Dijawab ke Regulator?: Ya/Tidak + batas waktu + tanggal dijawab, K untuk Imbauan.
 17. Tanggal Sosialisasi Internal: date (W menurut CR, praktisnya boleh diisi belakangan, asumsi E).
-18. SOP yang Harus Diperbarui: multiselect dari SOP berformat "No Dokumen - Judul - Departemen", tiap item punya centang "sudah diperbarui". K bila Perubahan/Pencabutan, tetapi kosong tidak memblokir simpan (C menang). Ada tombol "+ SOP cepat" (modal: No Dokumen, Judul, Departemen; sisanya default, status Dalam Review) yang menulis ke modul sop lewat `addRecord`.
+18. SOP yang Harus Diperbarui: dropdown pilih banyak dari daftar SOP berformat "No Dokumen - Judul - Unit Kerja"; pilihan tampil sebagai chip dengan tombol hapus; opsional (kosong tidak memblokir simpan). Detail menampilkan daftar SOP. Tidak ada centang "sudah diperbarui" dan tidak ada "+ SOP cepat"; SOP yang sudah diperbarui dihapus dari daftar.
 19. Lampiran/Bukti: file W.
 
 - Kolom tabel: No, Peraturan (Jenis Nomor/Tahun), Regulator, Tentang, Jenis Perubahan, Status Peraturan, Dampak, Pemenuhan, Status Kepatuhan.
-- Cari: nama/nomor peraturan, tentang, kategori. Filter: periode (tgl dicatat), regulator, jenis perubahan, status kepatuhan, departemen terdampak, PIC (PIC tindak lanjut).
-- Tambah: CO. Ubah: CO (penilaian 11, 13, 16–18 dan identitas), PIC (hanya item tindak lanjut yang PIC-nya dia).
+- Cari: nama/nomor peraturan, tentang, kategori. Filter: periode (tgl dicatat), regulator, jenis perubahan, status kepatuhan, unit kerja terdampak, status peraturan.
+- Tambah: CO. Ubah: CO dan Super Admin (semua kolom). PIC tidak dapat mengubah Regulatory Change (tidak ada PIC per item lagi). Tanggal Sosialisasi Internal, Tingkat Dampak, dan Uraian Dampak wajib.
 - Approval: perubahan identitas peraturan (kolom 2–8, 10) pada record yang sudah ada → request "Perubahan Daftar Peraturan" ke Ketua SMKI (asumsi E).
 - Cancel: Head CLRM.
 - Dashboard (7):
@@ -261,13 +261,13 @@ Kolom:
   3. Donut status kepatuhan (hijau/kuning/merah/abu).
   4. Bar rata-rata pemenuhan per kategori.
   5. Bar + tabel belum dinilai menurut umur sejak dicatat (0–10, 11–20, >20 hari), kuning.
-  6. Bar mendatar tindak lanjut lewat batas per departemen, merah.
+  6. Bar mendatar bertumpuk peraturan Partial dan Gap per unit kerja terdampak (kuning/merah).
   7. Tabel/timeline: berlaku dalam 90 hari + imbauan perlu dijawab (kuning/merah).
 - Alert (5):
   1. Belum dinilai >10 hari kerja sejak dicatat, kuning → CO; Head CLRM.
-  2. Akan berlaku dan tindak lanjut belum selesai: H-90/60/30/7, kuning, merah saat ≤7 → PIC tindak lanjut; Head CLRM.
+  2. Akan berlaku dan Status Kepatuhan bukan Comply: H-90/60/30/7, kuning, merah saat ≤7 → PIC unit terdampak; Head CLRM.
   3. Imbauan harus dijawab: H-7/3/1 kuning, lewat merah → CO; Head CLRM.
-  4. Dicabut dan SOP terkait belum dicentang setelah tanggal berlaku/pencabutan, kuning → PIC unit; CO.
+  4. Status Dicabut, Tanggal Berlaku (pencabutan) lewat, dan daftar SOP yang harus diperbarui masih berisi, kuning → PIC unit; CO.
   5. Dampak Tinggi baru dicatat (≤7 hari sejak dicatat), kuning → Head CLRM; Direktur terkait.
 - Seed: ~30, merujuk SOP dari `sop.shared.ts`.
 
@@ -277,7 +277,7 @@ Kolom:
   1. No Dokumen: teks W, unik (validate), mis. SOP-077-PAY. Kolom `no` urut tetap ada.
   2. Judul: W.
   3. Ringkasan: textarea W.
-  4. Pemilik Dokumen: Departemen W.
+  4. Pemilik Dokumen: Unit Kerja dari Master Data (tanpa Lainnya), W.
   5. Tanggal Berlaku: W.
   6. Tanggal Perubahan Terakhir: W.
   7. No Revisi: teks W.
@@ -285,10 +285,10 @@ Kolom:
   9. File PDF: file W (G8).
   10. Tanggal Review Berikutnya: W.
   11. Status: Aktif/Dalam Review/Dicabut, W.
-  12. PIC Dokumen: teks W.
+  12. PIC Dokumen: dropdown Master PIC, W (wajib).
 - Kolom tabel: No Dokumen, Judul, Pemilik, Revisi, Tgl Perubahan, Review Berikutnya, Status.
 - Cari: no dokumen, judul, ringkasan. Filter: pemilik, status, tahun berlaku, umur dokumen (<1 th, 1–2 th, >2 th).
-- Tambah dan Ubah: PIC Dokumen + CO. Saat edit ada tombol/toggle "Revisi dokumen" yang mewajibkan No Revisi dan Tanggal Perubahan baru; revisi lama tersimpan sebagai `revisi: {no, tgl, file}[]` dan tampil sebagai daftar revisi di Detail (bukan Riwayat).
+- Tambah dan Ubah: PIC Dokumen + CO. Tidak ada lagi toggle "Revisi dokumen" maupun daftar revisi di Detail (v2.9.0); No Revisi dan Tanggal Perubahan diedit sebagai kolom biasa. Hover grafik Umur dokumen dan SOP per status menampilkan rincian per Unit Kerja.
 - Cancel: Head CLRM → status "Dicabut" (`cancelStatus: 'Dicabut'`) dengan alasan, bisa dikembalikan.
 - Dashboard (5):
   1. StatCards: total, aktif, harus direview (kuning/merah).
@@ -319,7 +319,7 @@ Kolom:
   13. Tanggal Register: W.
   14. Produk: Master Produk, D.
   15. Vendor/Mitra: teks D.
-  16. Posisi RAS-RT: A dengan label "logika sementara" (skor 9 atau High di domain Kepatuhan/Hukum/Siber → Melewati Batas; skor 6 → Perlu Perhatian; lainnya Dalam Batas). Fungsi `rasrt()` diisolasi di file supaya mudah diganti.
+  16. Posisi RAS-RT otomatis dari Level Inherent (sheet "3. RAS-RT Sederhana"): Low → Dalam Appetite, Medium → Dalam Toleransi, High → Breach (wajib eskalasi). Detail menampilkan kriteria Risk Appetite/Tolerance/Breach domain terpilih (baca-saja, konstanta `RAS_RT` di `risk.ras.ts`). Domain = 10 domain sheet.
   17. Skor Lengkap?: dihapus (C).
 - Kolom tabel: No, Risk Event, Domain, D, K, Skor, Level, Posisi RAS-RT, Departemen, Respon.
 - Cari: no, risk event, kontrol. Filter: periode register, domain, level, departemen, respon, produk, vendor.
@@ -327,14 +327,14 @@ Kolom:
 - Approval: edit oleh non-Risk Officer yang mengubah level inherent → request "Perubahan Level Risiko" ke Risk Officer. Edit lain langsung.
 - Cancel: Head CLRM.
 - Dashboard (5; visual 6 tidak ditampilkan):
-  1. StatCards High/Medium/Low/Melewati Batas.
-  2. **Heatmap 3×3**: baris Kemungkinan 3→1, kolom Dampak 1→3; isi sel "Level (skor)" + "Jumlah risiko: n"; warna sesuai level; klik sel membuka MiniTable daftar risikonya (klik baris → Detail). Toggle Awal/Setelah kontrol, dengan "Setelah kontrol" disabled dan keterangan "belum dipakai".
+  1. StatCards High/Medium/Low/Breach (RAS-RT).
+  2. **Heatmap 3×3**: baris Kemungkinan Tinggi→Rendah, kolom Dampak Rendah→Tinggi; isi sel "Level (Skor n)" + "Jumlah risiko: n"; warna sesuai level; klik sel membuka MiniTable daftar risikonya (klik baris → Detail). Toggle Awal/Setelah kontrol, dengan "Setelah kontrol" disabled dan keterangan "belum dipakai".
   3. Bar bertumpuk domain × level.
   4. Bar mendatar per departemen.
-  5. Bar Perlu Perhatian/Melewati Batas per domain (kuning/merah).
+  5. Bar Dalam Toleransi/Breach per domain (kuning/merah).
 - Alert (2):
   1. High baru atau naik ke High (≤7 hari sejak register / perubahan level, dari Log), merah → Risk Officer; Head CLRM; Risk Owner.
-  2. RAS-RT Melewati Batas merah / Perlu Perhatian kuning → Head CLRM; Direksi.
+  2. RAS-RT Breach merah / Dalam Toleransi kuning → Head CLRM; Direksi.
 - Seed: ~35 tersebar di semua sel heatmap.
 
 ### C5. Kajian Risiko — Risk — `Kajian.tsx` — export `Kajian_Risiko`
@@ -379,7 +379,7 @@ Kolom:
   1. No: A (format EDD/.. tidak dipakai, lihat E).
   2. Tanggal Terima Tugas: W.
   3. Pihak Pelapor: Master Pihak Pelapor, W.
-  4. Kategori Pelapor (Departemen Internal/Konsumen/Switching/Kepolisian/PJP-Bank/Bank Indonesia/Lainnya) + Media (Email/IASC/GO AML/WhatsApp/Lainnya), W.
+  4. Kategori Pelapor (Departemen Internal/Konsumen/Switching/PJP/Bank/Institusi Berwenang Lainnya/Kepolisian/Bank Indonesia/Asosiasi/Lainnya), W; Media (Email/IASC/GO AML/WhatsApp/Lainnya), W.
   5. Nama Terlapor (teks, `mask`) + Jenis Pengguna Merchant/User, W.
   6. Jenis Dugaan Fraud/Judi Online/Transaksi Anomali + rincian, W.
   7. Uraian (W) + Bukti file (W).
@@ -546,10 +546,10 @@ Kolom:
 
 ### Task 0: Foundation (satu agent, selesai dan build hijau sebelum task page dimulai)
 Selesaikan semua file berikut:
-1. `src/kit/*` sesuai kontrak A. PageShell harus berjalan end-to-end dengan config minimal: tab, tabel, filter popover + simpan filter, Detail, Form tambah/edit dari fields (semua FieldType termasuk `list`, `checklist`, `file` via FileField, multiselect), alasan, cancel/restore, EmailSim (3 per alert, sample), Export + Log, Import Excel (template dari fields non-auto non-file, pratinjau, unduh gagal, Log), approval via `cfg.approvals`.
+1. `src/kit/*` sesuai kontrak A. PageShell harus berjalan end-to-end dengan config minimal: tab, tabel, filter popover, Detail, Form tambah/edit dari fields (semua FieldType termasuk `list`, `checklist`, `file` via FileField, multiselect), alasan, cancel/restore, EmailSim (3 per alert, sample), Export + Log, Import Excel (template dari fields non-auto non-file, pratinjau, unduh gagal, Log), approval via `cfg.approvals`.
 2. `src/shared/*`: Approval (termasuk adapter tracker), MasterData, Admin (Akun, Permission), Log (gabung audit tracker), Login (login/2FA/reset), Profile.
 3. `src/pages/index.ts`: `export const PAGES: Record<string, React.ComponentType>` memetakan route → default export setiap file page. Setiap `src/pages/<X>.tsx` diisi stub yang build: config minimal (2 field, seed 3 baris, Dashboard "Segera hadir") lewat PageShell.
-4. `src/pages/sop.shared.ts`: `export interface SopRec extends BaseRec {...12 kolom + revisi[]}`, `export function seedSop(today): SopRec[]` (~25), `export const sopLabel = (s: SopRec) => \`${s.noDok} - ${s.judul} - ${s.pemilik}\``.
+4. `src/pages/sop.shared.ts`: `export interface SopRec extends BaseRec {...12 kolom}`, `export function seedSop(today): SopRec[]` (~25), `export const sopLabel = (s: SopRec) => \`${s.noDok} - ${s.judul} - ${s.pemilik}\``.
 5. `App.tsx`: AppProvider, login gate mock, sidebar/route baru, header (pemilih akun, profil, reset kedua key, badge Approval).
 6. `lib.ts`: `applyTrackerRequest`. `Tracker.tsx`: `can()` + nama user dari sesi. Perilaku tracker lain tidak diubah.
 7. `docs/keputusan-desain.md` (aturan dasar + kontrak), README (akun contoh, kode 2FA, asumsi), CHANGELOG/VERSION/versions.ts (ritual rilis).
@@ -560,7 +560,7 @@ Masing-masing hanya menyentuh `src/pages/<X>.tsx` dan boleh menambah file baru b
 Reporting, RegChange, Sop, RiskRegister, Kajian, Fraud, Kontrak, Aph, Perizinan.
 - Ganti stub dengan config penuh sesuai bagian C halamannya; default export `() => <PageShell config={cfg} />`.
 - Jangan ubah `src/kit`, `src/shared`, `App.tsx`, `lib.ts`, `index.ts`, `sop.shared.ts`, README, versi. Kalau kit kurang, buat helper lokal di file sendiri dan catat di ringkasan akhir sebagai "usulan kit".
-- RegChange: baca SOP lewat `readModule('sop', seedSop)`, tambah SOP cepat lewat `addRecord('sop', …, seedSop)`.
+- RegChange: baca SOP lewat `readModule('sop', seedSop)` untuk opsi dropdown SOP.
 - Selesai bila `npx tsc --noEmit` tanpa error di file sendiri, halaman bisa diklik (tambah, edit, approval kalau ada, cancel/restore, export, import, simulasi email), dan semua visual dan alert C muncul dengan seed.
 - Integrator terakhir: build penuh, satu entri versi/CHANGELOG, deploy.
 

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import * as XLSX from 'xlsx'
-import { Bell, ChevronDown, ChevronUp, Download, Eye, History, Pencil, Plus, RotateCcw, Save, Search, SlidersHorizontal, Trash2, Upload, XCircle } from 'lucide-react'
+import { Bell, ChevronDown, ChevronUp, Download, Eye, History, Pencil, Plus, RotateCcw, Search, SlidersHorizontal, Upload, XCircle } from 'lucide-react'
 import {
   Audit, DB, EMPTY_FILTER, Filter, Finding, AlertInfo, REGULATORS, RISKS, ROLE_USER, Role, STATUSES, alertsFor, applyFilter,
   addDays, createdOf, diffDays, fmtDate, fmtTime, fmtTimeSec, findingLabel, isPendingReq, lastDueReason, nowStr, todayStr,
@@ -35,7 +35,6 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
   const [size, setSize] = useState(10)
   const [openId, setOpenId] = useState<string | null>(null)
   const [pending, setPending] = useState<Pending>(null)
-  const [saveName, setSaveName] = useState('')
 
   const rows = useMemo(
     () => applyFilter(db.findings, filter).sort((a, b) => createdOf(b).localeCompare(createdOf(a)) || b.no - a.no),
@@ -197,22 +196,6 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
                       <div><label className="lbl">Unit Kerja</label>{sel('unit', appStore.master.unitKerja.map((x) => [x, x]), 'Pilih Unit Kerja')}</div>
                       <div><label className="lbl">Regulator</label>{sel('regulator', [...REGULATORS, 'Lainnya'].map((x) => [x, x]), 'Pilih Regulator')}</div>
                       <div><label className="lbl">Tingkat Risiko</label>{sel('risiko', RISKS.map((x) => [x, x]), 'Pilih Tingkat Risiko')}</div>
-                    </div>
-                    <div className="mt-4 border-t pt-3">
-                      <div className="flex gap-2">
-                        <input className="inp" placeholder="Nama filter" value={saveName} onChange={(e) => setSaveName(e.target.value)} />
-                        <button className="btn whitespace-nowrap" disabled={!saveName.trim()} onClick={() => { const n = saveName.trim(); setDb((d) => ({ ...d, saved: [...d.saved.filter((x) => x.name !== n), { name: n, filter: { ...draft, q: '' } }] })); setSaveName('') }}><Save size={14} />Simpan Filter</button>
-                      </div>
-                      {db.saved.length > 0 && (
-                        <div className="mt-2 flex flex-wrap gap-1.5">
-                          {db.saved.map((sv) => (
-                            <span key={sv.name} className="inline-flex items-center overflow-hidden rounded border border-slate-300 text-xs">
-                              <button className="px-2 py-1 hover:bg-slate-50" onClick={() => { setDraft(sv.filter); setFilter({ ...sv.filter, q: filter.q }); setPage(1); setShowFilters(false) }}>{sv.name}</button>
-                              <button className="border-l px-1.5 py-1 text-red-500 hover:bg-red-50" aria-label={`Hapus ${sv.name}`} onClick={() => setDb((d) => ({ ...d, saved: d.saved.filter((x) => x.name !== sv.name) }))}><Trash2 size={12} /></button>
-                            </span>
-                          ))}
-                        </div>
-                      )}
                     </div>
                     <div className="mt-5 flex gap-3">
                       <button className="flex-1 rounded-full border border-slate-300 bg-white py-2 text-sm font-medium text-slate-700 hover:bg-slate-50" onClick={clearAll}>Clear All</button>

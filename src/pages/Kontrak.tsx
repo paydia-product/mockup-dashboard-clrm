@@ -115,7 +115,7 @@ const alerts: AlertDef<Kontrak>[] = [
 function seed(today: string): Kontrak[] {
   const MITRA = ['Kopi Senja', 'Toko Maju Jaya', 'Bimbel Cerdas', 'PT Telkom Biller', 'Warung Nusantara', 'Apotek Sehat', 'Bank Mitra Utama', 'CV Digital Kreasi', 'Resto Padang Raya', 'Laundry Kilat', 'Sekolah Harapan', 'Minimarket 24', 'PT Logistik Cepat', 'Salon Cantika']
   const PICS = ['Regie', 'Fakhri', 'Osama', 'Regie'] // master PIC
-  const DEPT = ['Business', 'Operation', 'Finance, Accounting, Tax & Treasury', 'IT']
+  const DEPT = ['Business', 'Operation', 'Finance, Accounting, Tax & Treasury', 'Information Technology']
   // [hubungan, jenisDok, mulai (hari lalu), sisa hari (null = kosong), status, perpanjangan, indukIdx]
   type S = [string, string, number, number | null, string, string, number?]
   const sc: S[] = [

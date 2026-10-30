@@ -23,6 +23,7 @@ function Value({ f, r, c }: { f: Field<any>; r: R; c: Ctx }) { // eslint-disable
         <tbody>{(v as R[]).map((it, i) => <tr key={i} className="border-t">{f.sub!.map((s) => <td key={s.key} className="px-2 py-1">{s.type === 'file' ? (it[s.key] as FileMeta | null)?.name ?? '-' : fmtValue(s, it[s.key], c) || '-'}</td>)}</tr>)}</tbody></table>
     )
   }
+  if (f.type === 'multidrop') return <ul className="list-disc space-y-0.5 pl-4">{(v as string[]).map((x) => <li key={x}>{x}</li>)}</ul>
   if (f.type === 'checklist') return <>{(f.sub ?? []).map((s) => <div key={s.key}>{v[s.key] ? '✓' : '✗'} {s.label}</div>)}</>
   return <>{fmtValue(f, v, c)}</>
 }
@@ -47,7 +48,7 @@ export default function DetailModal<T extends BaseRec>({ cfg, r, c, alerts, pend
         <div className="grid grid-cols-2 gap-x-6 gap-y-3">
           <Row l="Tanggal Dibuat">{fmtTimeSec(r.createdAt)}</Row>
           {cfg.fields.filter((f) => f.key !== 'no' && (!f.showIf || f.showIf(r))).map((f) => (
-            <Row key={f.key} l={f.label} wide={f.wide ?? ['textarea', 'list', 'checklist', 'multiselect'].includes(f.type)}><Value f={f} r={r} c={c} /></Row>
+            <Row key={f.key} l={f.label} wide={f.wide ?? ['textarea', 'list', 'checklist', 'multiselect', 'multidrop'].includes(f.type)}><Value f={f} r={r} c={c} /></Row>
           ))}
         </div>
         <LogPerubahan items={kitHistory(r, cfg.module, cfg.title, store)} />

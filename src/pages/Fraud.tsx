@@ -24,7 +24,7 @@ interface Fraud extends BaseRec {
   tglResolved: string; pic: string; group: string; produk: string; channel: string; kerugian: Money
 }
 
-const KATEGORI = ['Departemen Internal', 'Konsumen', 'Switching', 'Kepolisian', 'PJP-Bank', 'Bank Indonesia', 'Lainnya']
+const KATEGORI = ['Departemen Internal', 'Konsumen', 'Switching', 'PJP/Bank', 'Institusi Berwenang Lainnya', 'Kepolisian', 'Bank Indonesia', 'Asosiasi'] // sheet "2. Daftar Pihak Pelapor EDD"
 const MEDIA = ['Email', 'IASC', 'GO AML', 'WhatsApp', 'Lainnya']
 const JENIS = ['Fraud', 'Judi Online', 'Transaksi Anomali']
 const HASIL = ['Tidak Respon', 'Kirim Bukti', 'Email Bouncing', 'Judi Online', 'Lainnya']
@@ -200,7 +200,7 @@ function seed(today: string): Fraud[] {
     const tglTerima = d(ageDays)
     return {
       id: `fraud-${i + 1}`, no: i + 1, status: 'Open', createdAt: tglTerima, createdBy: 'Fakhri', tglTerima,
-      pelapor: PIHAK[i % 7], kategori: KATEGORI[(i * 3) % 7], media: MEDIA[(i * 2) % 5],
+      pelapor: PIHAK[i % 7], kategori: KATEGORI[(i * 3) % KATEGORI.length], media: MEDIA[(i * 2) % 5],
       terlapor: NAMA[i % 8], jenisPengguna: PENGGUNA[i % 2], jenis: JENIS[i % 3], rincian: ['Phishing', 'Akun palsu', 'Pemain judi', 'Pola transaksi tidak wajar'][i % 4],
       uraian: `Laporan dugaan ${JENIS[i % 3].toLowerCase()} melalui ${GROUPS[i % 12]}.`, bukti: FILE, korban: (1 + (i % 9)) * 5_000_000,
       rrn: `4021${String(100000 + i * 7919).slice(0, 6)}`, tglTrx: addDays(tglTerima, -2), noRek: `120${String(1000000 + i * 104729).slice(0, 7)}`,

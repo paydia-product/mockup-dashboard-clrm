@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 2.9.0 | 2026-10-30 | ~400k |
 | 2.8.3 | 2026-10-30 | ~120k |
 | 2.8.2 | 2026-10-30 | ~190k |
 | 2.8.1 | 2026-10-30 | ~360k |
@@ -35,6 +36,26 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [2.9.0] - 2026-10-30
+
+Estimasi token: ~400k (Request Product.xlsx: master, Regulatory Change, SOP, Risk Register, RAS-RT)
+
+### Ditambahkan
+- Field `multidrop` di kit: dropdown pilih banyak dengan chip yang bisa dihapus (dipakai SOP di Regulatory Change).
+- RAS-RT otomatis di Risk Register: Low = Dalam Appetite, Medium = Dalam Toleransi, High = Breach (wajib eskalasi). Detail menampilkan kriteria Appetite/Tolerance/Breach domain terpilih (konstanta `RAS_RT`, 10 domain dari sheet).
+- Pemerintah-DPR kembali jadi pilihan Regulator di Tracker, Regulatory Reporting, dan Regulatory Change.
+
+### Diubah
+- Regulatory Change: Tindak Lanjut menjadi satu teks; Tanggal Sosialisasi Internal wajib; SOP yang harus diperbarui memakai dropdown pilih banyak; PIC tidak dapat mengubah; tooltip rata-rata pemenuhan hanya persen.
+- SOP: Pemilik Dokumen dari Master Unit Kerja tanpa Lainnya; PIC Dokumen wajib; hover Umur dokumen dan SOP per status menampilkan rincian per Unit Kerja.
+- Risk Register: heatmap berlabel Tinggi/Sedang/Rendah dan "Skor n"; Unit Kerja dan Produk tanpa Lainnya; tooltip Risiko per unit kerja memuat High/Medium/Low.
+- Master Unit Kerja, Kategori Pelapor, dan Laporan memakai data sheet; seed Reporting memakai nama dan jadwal sheet.
+- `APP_KEY` clrm.app.v9 dan `KEY` tracker clrm.db.v8 (data lama tidak dibaca; load() tetap aman terhadap bentuk lama).
+
+### Dihapus
+- Simpan filter di semua tabel dan tracker.
+- Tombol "+ SOP cepat", centang "sudah diperbarui" per SOP, dan Daftar revisi SOP (beserta toggle Revisi dokumen).
 
 ## [2.8.3] - 2026-10-30
 

@@ -1,11 +1,12 @@
 import { ReactNode, useMemo, useSyncExternalStore } from 'react'
 import { AREAS, UNITS, addDays, nowStr, todayStr } from '../lib'
+import { LAPORAN_NAMES } from '../pages/laporan.shared'
 import { fmtValue } from './fmt'
 import { DEFAULT_PERMS, MODULE_LABEL, can as canPerm } from './perms'
 import type { Account, Action, ApprovalReq, ApprovalRule, BaseRec, Ctx, LogEntry, ModuleApi, ModuleId, NewRec, PageConfig, PermKey, Role, Session, Store } from './types'
 
 export type { ModuleApi }
-export const APP_KEY = 'clrm.app.v8' // ponytail: v8 = seed tanpa nomor internal di teks, approval simpan nama data; v7 = master PIC (Regie/Fakhri/Osama) menggantikan master Regulator, seed PIC/regulator disesuaikan, akun demo PIC = Regie; v6 = tanggal batal seed Fraud tetap; v5 = pembatal seed Fraud nama orang; v4 = createdBy nama orang + createdAt seed masa lalu + seed Fraud valid; v3 = seed tanpa 'Lainnya' + createdAt datetime; data v2 direset (load() tetap aman membaca data lama)
+export const APP_KEY = 'clrm.app.v9' // ponytail: v9 = master Unit Kerja/Kategori Pelapor/Laporan dari Request Product.xlsx, Regulatory Change tindak lanjut teks + SOP daftar nama, filter tersimpan dihapus (load() membuang `saved` dan mengubah bentuk lama bila ada); v8 = seed tanpa nomor internal di teks, approval simpan nama data; v7 = master PIC (Regie/Fakhri/Osama) menggantikan master Regulator, seed PIC/regulator disesuaikan, akun demo PIC = Regie; v6 = tanggal batal seed Fraud tetap; v5 = pembatal seed Fraud nama orang; v4 = createdBy nama orang + createdAt seed masa lalu + seed Fraud valid; v3 = seed tanpa 'Lainnya' + createdAt datetime; data v2 direset (load() tetap aman membaca data lama)
 export const SESSION_KEY = 'clrm.session'
 export const DEFAULT_PASSWORD = 'Paydia123!'
 export const DEFAULT_PIN = '123456'
@@ -14,18 +15,18 @@ const acc = (n: number, name: string, role: Role, departemen: string, email?: st
   id: `a${n}`, name, email: email ?? `${name.toLowerCase().replace(/ /g, '.')}@paydia.id`, role, departemen, status: 'Aktif', lastLogin: '', password: DEFAULT_PASSWORD, pin: DEFAULT_PIN,
 })
 const ACCOUNTS: Account[] = [
-  acc(1, 'Super Admin', 'Super Admin', 'IT', 'admin@paydia.id'), acc(2, 'Dewi Anggraini', 'Head CLRM', 'Compliance'), acc(3, 'Rina Kartika', 'Compliance Officer', 'Compliance'),
-  acc(4, 'Arief Nugraha', 'Compliance Officer', 'Compliance'), acc(5, 'Rudi Hartono', 'Risk Officer', 'Compliance'), acc(6, 'Lina Marlina', 'Legal Officer', 'Compliance'),
-  acc(7, 'Fakhri', 'Fraud Investigator', 'Operation'), acc(8, 'Yusuf Hakim', 'Ketua SMKI', 'IT'), acc(9, 'Regie', 'PIC', 'Business'), acc(10, 'Tono Santoso', 'Viewer', 'Finance, Accounting, Tax & Treasury'),
+  acc(1, 'Super Admin', 'Super Admin', 'Information Technology', 'admin@paydia.id'), acc(2, 'Dewi Anggraini', 'Head CLRM', 'Compliance Legal & Risk Management'), acc(3, 'Rina Kartika', 'Compliance Officer', 'Compliance Legal & Risk Management'),
+  acc(4, 'Arief Nugraha', 'Compliance Officer', 'Compliance Legal & Risk Management'), acc(5, 'Rudi Hartono', 'Risk Officer', 'Compliance Legal & Risk Management'), acc(6, 'Lina Marlina', 'Legal Officer', 'Compliance Legal & Risk Management'),
+  acc(7, 'Fakhri', 'Fraud Investigator', 'Operation'), acc(8, 'Yusuf Hakim', 'Ketua SMKI', 'Information Technology'), acc(9, 'Regie', 'PIC', 'Business'), acc(10, 'Tono Santoso', 'Viewer', 'Finance, Accounting, Tax & Treasury'),
 ]
 const defaults = (): Store => ({
-  modules: {}, saved: {}, approvals: [], log: [], accounts: ACCOUNTS, perms: DEFAULT_PERMS, seq: {},
+  modules: {}, approvals: [], log: [], accounts: ACCOUNTS, perms: DEFAULT_PERMS, seq: {},
   master: {
-    laporan: ['Pelaporan Dana Floating', 'Laporan RBSP', 'SiPesat', 'LTKT', 'LTKM', 'Laporan Transaksi Harian', 'Laporan Fraud Mingguan', 'Laporan Tahunan Perlindungan Konsumen', 'Laporan PSE Terdaftar', 'Penilaian Kembali Sertifikasi Keamanan', 'Laporan Keamanan Informasi', 'Laporan Insiden Siber'],
+    laporan: [...LAPORAN_NAMES],
     pic: ['Regie', 'Fakhri', 'Osama'],
     kategoriRegulasi: [...AREAS], unitKerja: [...UNITS], produk: ['UE', 'QRIS', 'Biller'],
     mitra: ['Kopi Senja', 'Toko Maju Jaya', 'Bimbel Cerdas', 'PT Telkom Biller', 'Warung Nusantara', 'Apotek Sehat', 'Bank Mitra Utama', 'CV Digital Kreasi', 'Resto Padang Raya', 'Laundry Kilat', 'Sekolah Harapan', 'Minimarket 24', 'PT Logistik Cepat', 'Salon Cantika', 'PT Nusa Cloud', 'PT Data Prima', 'PT Aman Jaya Logistik', 'PT Mitra Bayar', 'PT Sentra Verifikasi', 'PT Cipta Layanan', 'PT Biller Nusantara', 'PT Arta Teknologi', 'PT Kirim Cepat', 'PT Sigma Analitik'],
-    kategoriPelapor: ['Departemen Internal', 'Konsumen', 'Switching', 'Kepolisian', 'PJP-Bank', 'Bank Indonesia'], mediaPelapor: ['Email', 'IASC', 'GO AML', 'WhatsApp'],
+    kategoriPelapor: ['Departemen Internal', 'Konsumen', 'Switching', 'PJP/Bank', 'Institusi Berwenang Lainnya', 'Kepolisian', 'Bank Indonesia', 'Asosiasi'], mediaPelapor: ['Email', 'IASC', 'GO AML', 'WhatsApp'],
   },
 })
 
@@ -36,6 +37,14 @@ const stamp = <T extends BaseRec>(r: T): T => {
   const now = nowStr()
   return { ...r, createdAt: t > now ? `${addDays(now.slice(0, 10), -1)}${t.slice(10)}` : t } // jangan di masa depan/saat load: mundur 1 hari
 }
+
+// Regulatory Change lama: Tindak Lanjut berupa daftar item -> satu teks (uraian digabung); SOP berupa {sop, done} -> daftar nama SOP
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const migrateReg = (r: any) => ({
+  ...r,
+  tindak: Array.isArray(r.tindak) ? r.tindak.map((t: { uraian?: string }) => t?.uraian).filter(Boolean).join('; ') : typeof r.tindak === 'string' ? r.tindak : '',
+  sopList: Array.isArray(r.sopList) ? r.sopList.map((x: string | { sop?: string }) => (typeof x === 'string' ? x : x?.sop)).filter(Boolean) : [],
+})
 
 // ---- Singleton + subscribe (readModule/addRecord dipanggil di luar komponen) ----
 // Migrasi master lama: departemen -> unitKerja (nilai lama dipakai), pihakPelapor dibuang, list baru diisi seed.
@@ -49,7 +58,8 @@ function load(): Store {
   for (const k of Object.keys(d.master)) if (!Array.isArray(m[k])) delete m[k]
   // "Lainnya" tidak disimpan di master; dropdown menambahkannya otomatis (withLainnya)
   for (const k of Object.keys(m)) if (Array.isArray(m[k])) m[k] = m[k].filter((x: unknown) => String(x).trim().toLowerCase() !== 'lainnya')
-  const modules = Object.fromEntries(Object.entries(s.modules ?? {}).map(([k, l]) => [k, Array.isArray(l) ? l.map(stamp) : l]))
+  const modules = Object.fromEntries(Object.entries(s.modules ?? {}).map(([k, l]) => [k, Array.isArray(l) ? l.map(stamp).map(k === 'regchange' ? migrateReg : (x) => x) : l]))
+  delete s.saved // filter tersimpan sudah dihapus
   return { ...d, ...s, modules, master: { ...d.master, ...m } } as Store
 }
 let store: Store = (() => { try { return load() } catch { return defaults() } })()

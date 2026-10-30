@@ -73,7 +73,7 @@ const filters: FilterDef<Kajian>[] = [
 
 const toPic = (r: Kajian) => (r.pic ? `PIC (${r.pic})` : 'PIC')
 const mk = (c: Ctx, o: Partial<Kajian>): Kajian => ({
-  id: 'sample', no: 99, status: 'Proses', createdAt: c.today, createdBy: '-', jenis: 'CR', judul: 'Kajian contoh', dept: 'IT', tglMasuk: addDays(c.today, -10), sla: 7, pic: 'Osama',
+  id: 'sample', no: 99, status: 'Proses', createdAt: c.today, createdBy: '-', jenis: 'CR', judul: 'Kajian contoh', dept: 'Information Technology', tglMasuk: addDays(c.today, -10), sla: 7, pic: 'Osama',
   tglSelesai: '', hasil: '', klasifikasi: 'Tidak Perlu', namaMitra: '', konteks: '', statusMitra: '', adaPks: '', tglPks: '', aksesSistem: '', aksesData: '', aksesKeuangan: '', pantau: '', tglDD: '', ...o,
 })
 const alerts: AlertDef<Kajian>[] = [
@@ -137,7 +137,7 @@ function SelesaiModal({ r, api, close }: { r: Kajian; api: ModuleApi<Kajian>; cl
 }
 
 function seed(today: string): Kajian[] {
-  const DEPT = ['IT', 'Business', 'Operation', 'Finance, Accounting, Tax & Treasury', 'Compliance', 'Support (HRD & GA)']
+  const DEPT = ['Information Technology', 'Business', 'Operation', 'Finance, Accounting, Tax & Treasury', 'Compliance Legal & Risk Management', 'Support']
   const PICS = ['Regie', 'Fakhri', 'Osama', 'Regie'] // master PIC
   const MITRA = ['PT Nusa Cloud', 'PT Data Prima', 'PT Aman Jaya Logistik', 'PT Mitra Bayar', 'PT Sentra Verifikasi', 'PT Cipta Layanan', 'PT Biller Nusantara', 'PT Arta Teknologi', 'PT Kirim Cepat', 'PT Sigma Analitik']
   // [jenis, umur, sla, status, hasil (index atau -1), jadwal DD relatif hari (vendor)]

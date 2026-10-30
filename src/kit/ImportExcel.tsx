@@ -7,7 +7,7 @@ import { fieldsFor, isReq, numericOpts, validateRecord } from './FormModal'
 import type { BaseRec, Ctx, Field, ModuleApi, PageConfig } from './types'
 
 type R = Record<string, any> // eslint-disable-line @typescript-eslint/no-explicit-any
-const SKIP = ['file', 'list', 'checklist']
+const SKIP = ['file', 'list', 'checklist', 'multidrop']
 const optsOf = (f: Field<any>, c: Ctx) => { const o = f.importOptions ?? f.options; return f.type === 'yesno' ? ['Ya', 'Tidak'] : typeof o === 'function' ? o(c) : o ?? [] } // eslint-disable-line @typescript-eslint/no-explicit-any
 export const importFields = <T extends BaseRec>(cfg: PageConfig<T>) => fieldsFor(cfg, 'add').filter((f) => !f.noImport && !SKIP.includes(f.type))
 

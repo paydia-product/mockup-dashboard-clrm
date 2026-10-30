@@ -95,7 +95,7 @@ export function BarCard({ title, data, keys, stacked, horizontal, colors, cellCo
   )
 }
 
-export function DonutCard({ title, data, onClick, className }: { title: string; data: { name: string; value: number; color?: string }[]; onClick?: (name: string) => void; className?: string }) {
+export function DonutCard({ title, data, onClick, className, tip }: { title: string; data: { name: string; value: number; color?: string }[]; onClick?: (name: string) => void; className?: string; tip?: (name: string, value: number) => ReactNode }) {
   const d = data.filter((x) => x.value > 0)
   return (
     <Card title={title} className={className}>
@@ -105,7 +105,7 @@ export function DonutCard({ title, data, onClick, className }: { title: string; 
             <Pie data={d} dataKey="value" nameKey="name" innerRadius={50} outerRadius={85} paddingAngle={2} cursor={onClick ? 'pointer' : undefined} onClick={onClick ? (e) => onClick(e.name) : undefined}>
               {d.map((x, i) => <Cell key={x.name} fill={x.color ?? PALETTE[i % PALETTE.length]} />)}
             </Pie>
-            <Tooltip /><Legend wrapperStyle={{ fontSize: 11 }} />
+            {tip ? <Tooltip content={({ active, payload }) => (active && payload?.length ? <div className="rounded border border-slate-200 bg-white p-2 text-xs shadow">{tip(String(payload[0].name), Number(payload[0].value))}</div> : null)} /> : <Tooltip />}<Legend wrapperStyle={{ fontSize: 11 }} />
           </PieChart>
         </ResponsiveContainer>
       )}

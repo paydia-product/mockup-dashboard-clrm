@@ -1,5 +1,4 @@
 import { addDays, diffDays, fmtDate, todayStr } from '../lib'
-import { withLainnya } from '../kit/Lainnya'
 import PageShell from '../kit/PageShell'
 import { BarCard, DonutCard, MiniTable, StatCards } from '../kit/charts'
 import { StatusPill } from '../kit/fmt'
@@ -11,6 +10,12 @@ const STATUS = ['Aktif', 'Dalam Review', 'Dicabut']
 const UMUR = ['< 1 tahun', '1-2 tahun', '> 2 tahun']
 const REVIEW_WINDOW = 30 // hari sebelum tanggal review untuk alert kuning
 
+// Tooltip: jumlah SOP per Unit Kerja pemilik untuk satu batang / irisan
+const unitTip = (title: string, xs: SopRec[]) => {
+  const by = new Map<string, number>()
+  xs.forEach((r) => by.set(r.pemilik || '-', (by.get(r.pemilik || '-') ?? 0) + 1))
+  return <><div className="mb-1 font-semibold text-slate-800">{title}: {xs.length}</div>{[...by].sort((a, b) => b[1] - a[1]).map(([u, n]) => <div key={u}>{u}: {n}</div>)}</>
+}
 const live = (r: SopRec) => r.status !== 'Dicabut'
 // umur dokumen dihitung dari Tanggal Berlaku
 const umurBucket = (r: SopRec, today: string) => {
@@ -30,9 +35,8 @@ const fields: Field<SopRec>[] = [
   { key: 'noDok', label: 'No Dokumen', type: 'text', required: true, help: 'Unik, contoh SOP-077-PAY.' },
   { key: 'judul', label: 'Judul', type: 'text', required: true, wide: true },
   { key: 'ringkasan', label: 'Ringkasan (Key Point)', type: 'textarea', required: true, wide: true },
-  { key: 'pemilik', label: 'Pemilik Dokumen', type: 'select', options: (c) => withLainnya(c.master.unitKerja), required: true },
+  { key: 'pemilik', label: 'Pemilik Dokumen', type: 'select', options: (c) => c.master.unitKerja, required: true },
   { key: 'tglBerlaku', label: 'Tanggal Berlaku', type: 'date', required: true },
-  { key: 'revisiBaru', label: 'Revisi dokumen', type: 'yesno', inForm: 'edit', noExport: true, noImport: true, help: 'Pilih Ya bila dokumen direvisi: No Revisi dan Tanggal Perubahan wajib baru, revisi lama tersimpan di daftar revisi.' },
   { key: 'tglUbah', label: 'Tanggal Perubahan Terakhir', type: 'date', required: true },
   { key: 'noRevisi', label: 'No Revisi', type: 'text', required: true, help: 'Contoh Rev.1, 2.1.' },
   { key: 'retensi', label: 'Retensi', type: 'select', options: ['5 Tahun', '10 Tahun', 'Permanen'], required: true },
@@ -40,15 +44,7 @@ const fields: Field<SopRec>[] = [
   { key: 'file', label: 'File PDF', type: 'file', required: true, wide: true },
   { key: 'tglReview', label: 'Tanggal Review Berikutnya', type: 'date', required: notImport },
   { key: 'status', label: 'Status', type: 'select', options: STATUS, required: notImport },
-  { key: 'pic', label: 'PIC Dokumen', type: 'select', options: (c) => c.master.pic, required: notImport },
-  {
-    key: 'revisi', label: 'Daftar Revisi', type: 'list', inForm: 'none', wide: true,
-    sub: [
-      { key: 'no', label: 'No Revisi', type: 'text' },
-      { key: 'tgl', label: 'Tanggal', type: 'date' },
-      { key: 'file', label: 'File PDF', type: 'file' },
-    ],
-  },
+  { key: 'pic', label: 'PIC Dokumen', type: 'select', options: (c) => c.master.pic, required: true },
 ]
 
 const columns: Column<SopRec>[] = [
@@ -70,9 +66,9 @@ const filters: FilterDef<SopRec>[] = [
 ]
 
 const mk = (c: Ctx, o: Partial<SopRec>): SopRec => ({
-  id: 'sample', no: 99, status: 'Aktif', createdAt: c.today, createdBy: '-', noDok: 'SOP-099-PAY', judul: 'Contoh SOP', ringkasan: 'Contoh', pemilik: 'IT',
+  id: 'sample', no: 99, status: 'Aktif', createdAt: c.today, createdBy: '-', noDok: 'SOP-099-PAY', judul: 'Contoh SOP', ringkasan: 'Contoh', pemilik: 'Information Technology',
   tglBerlaku: addDays(c.today, -400), tglUbah: addDays(c.today, -400), noRevisi: 'Rev.1', retensi: '5 Tahun', klasifikasi: 'Internal', file: null,
-  tglReview: addDays(c.today, 15), pic: 'Regie', revisi: [], ...o,
+  tglReview: addDays(c.today, 15), pic: 'Regie', ...o,
 })
 const alerts: AlertDef<SopRec>[] = [
   {
@@ -100,27 +96,16 @@ const cfg: PageConfig<SopRec> = {
   module: 'sop', title: 'SOP & Dokumen Kontrol', noun: 'SOP', exportPrefix: 'Daftar_SOP',
   name: (r) => r.judul,
   seed: seedSop, fields, columns, filters, alerts, cancelStatus: 'Dicabut',
-  blank: () => ({ noDok: '', judul: '', ringkasan: '', pemilik: '', tglBerlaku: '', tglUbah: '', noRevisi: '', retensi: '', klasifikasi: '', file: null, tglReview: '', pic: '', revisi: [], status: 'Aktif' }),
+  blank: () => ({ noDok: '', judul: '', ringkasan: '', pemilik: '', tglBerlaku: '', tglUbah: '', noRevisi: '', retensi: '', klasifikasi: '', file: null, tglReview: '', pic: '', status: 'Aktif' }),
   search: (r) => `${r.noDok} ${r.judul} ${r.ringkasan}`, searchPlaceholder: 'Cari no dokumen, judul, ringkasan',
   // Dicabut lewat Cancel diblokir shell (r.cancelled); Dicabut manual tetap bisa diedit/dipulihkan. PIC hanya PIC Dokumen miliknya.
   canEditRow: (r, c) => c.role !== 'PIC' || sameName(r.pic, c.user.name),
-  validate: (r, mode, c) => {
+  validate: (r, _mode, c) => {
     const e: Record<string, string> = {}
     const dup = (c.all('sop') as SopRec[]).find((x) => x.id !== r.id && x.noDok.trim().toLowerCase() === r.noDok.trim().toLowerCase())
     if (r.noDok.trim() && dup) e.noDok = `No Dokumen sudah dipakai SOP ${dup.judul}`
     if (r.tglBerlaku && r.tglUbah && r.tglUbah < r.tglBerlaku) e.tglUbah = 'Tanggal Perubahan tidak boleh sebelum Tanggal Berlaku'
-    if (mode === 'edit' && (r as SopRec & { revisiBaru?: string }).revisiBaru === 'Ya') {
-      const old = (c.all('sop') as SopRec[]).find((x) => x.id === r.id)
-      if (old && r.noRevisi === old.noRevisi) e.noRevisi = 'Revisi dokumen: No Revisi harus berbeda dari revisi sebelumnya'
-      if (old && r.tglUbah === old.tglUbah) e.tglUbah = 'Revisi dokumen: Tanggal Perubahan harus tanggal baru'
-    }
     return e
-  },
-  // revisi lama (no, tanggal, file) dipindah ke daftar revisi; penanda revisiBaru tidak disimpan
-  beforeSave: (old, next) => {
-    const { revisiBaru, ...rest } = next as SopRec & { revisiBaru?: string }
-    if (old && revisiBaru === 'Ya') return { ...rest, revisi: [...(old.revisi ?? []), { no: old.noRevisi, tgl: old.tglUbah, file: old.file }] }
-    return rest as SopRec
   },
   Dashboard: ({ rows, c, open, drill }) => {
     const due = rows.filter((r) => isDue(r, c.today))
@@ -137,8 +122,8 @@ const cfg: PageConfig<SopRec> = {
         ]} />
         <div className="grid gap-3 lg:grid-cols-2">
           <BarCard title="SOP per unit kerja pemilik" horizontal data={c.master.unitKerja.map((d) => ({ name: d, Jumlah: rows.filter((r) => r.pemilik === d).length }))} keys={['Jumlah']} onClick={(row) => drill({ pemilik: row.name })} />
-          <DonutCard title="SOP per status" data={statusData} onClick={(name) => name !== 'Belum diisi' && drill({ status: name })} />
-          <BarCard title="Umur dokumen (sejak Tanggal Berlaku)" data={UMUR.map((u) => ({ name: u, Jumlah: rows.filter((r) => umurBucket(r, c.today) === u).length }))} keys={['Jumlah']} cellColors={['#22c55e', '#f59e0b', '#ef4444']} onClick={(row) => drill({ umur: row.name })} />
+          <DonutCard title="SOP per status" data={statusData} tip={(name) => unitTip(name, rows.filter((r) => r.status === (name === 'Belum diisi' ? '' : name)))} onClick={(name) => name !== 'Belum diisi' && drill({ status: name })} />
+          <BarCard title="Umur dokumen (sejak Tanggal Berlaku)" data={UMUR.map((u) => ({ name: u, Jumlah: rows.filter((r) => umurBucket(r, c.today) === u).length }))} keys={['Jumlah']} cellColors={['#22c55e', '#f59e0b', '#ef4444']} tip={(d) => unitTip(String(d.name), rows.filter((r) => umurBucket(r, c.today) === d.name))} onClick={(row) => drill({ umur: row.name })} />
           <MiniTable<SopRec> title="SOP yang harus direview (<= 30 hari atau lewat)" rows={review} onRow={(r) => open(r.id)}
             cols={[
               { label: 'No Dokumen', get: (r) => r.noDok },

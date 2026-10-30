@@ -17,6 +17,7 @@ export function fmtValue(f: Field<any>, v: unknown, c: Ctx): string { // eslint-
     case 'money': return fmtMoney(v as number)
     case 'percent': return `${v}%`
     case 'multiselect': return (v as string[]).join(', ')
+    case 'multidrop': return (v as string[]).join('; ') // label dapat memuat koma
     case 'file': return (v as { name: string }).name
     case 'checklist': return (f.sub ?? []).filter((s) => (v as Record<string, boolean>)[s.key]).map((s) => s.label).join(', ')
     case 'list': return (v as Record<string, unknown>[]).map((it) => (f.sub ?? []).map((s) => fmtValue(s, it[s.key], c)).filter(Boolean).join(' | ')).join('; ')

@@ -42,7 +42,7 @@ export default function Dashboard({ findings, audit, filter, setFilter, onOpen }
   const overduePage = useDashPaged(overdue)
   const pct = data.length ? Math.round((done.length / data.length) * 100) : 0
 
-  // CR tracker: BI, PPATK, Komdigi, BSSN, Lainnya (teks bebas di luar daftar masuk 'Lainnya')
+  // CR tracker: BI, PPATK, Komdigi, BSSN, Pemerintah-DPR, Lainnya (teks bebas di luar daftar masuk 'Lainnya')
   const regOf = (f: Finding) => (REGULATORS.includes(f.regulator) ? f.regulator : 'Lainnya')
   const byReg = [...REGULATORS, 'Lainnya'].map((r) => ({ name: r, Open: open.filter((f) => regOf(f) === r).length, Selesai: done.filter((f) => regOf(f) === r).length }))
   const unitM = count(data, (f) => f.unit)

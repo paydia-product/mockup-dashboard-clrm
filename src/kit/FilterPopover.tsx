@@ -1,15 +1,13 @@
 import { useEffect, useState } from 'react'
-import { Save, SlidersHorizontal, Trash2 } from 'lucide-react'
-import type { Ctx, FilterDef, SavedFilter } from './types'
+import { SlidersHorizontal } from 'lucide-react'
+import type { Ctx, FilterDef } from './types'
 
 type V = Record<string, unknown>
-export default function FilterPopover<T>({ defs, rows, c, value, onApply, onClear, saved, onSave, onDelete }: {
+export default function FilterPopover<T>({ defs, rows, c, value, onApply, onClear }: {
   defs: FilterDef<T>[]; rows: T[]; c: Ctx; value: V; onApply: (v: V) => void; onClear: () => void
-  saved: SavedFilter[]; onSave: (name: string, v: V) => void; onDelete: (name: string) => void
 }) {
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState<V>(value)
-  const [name, setName] = useState('')
   useEffect(() => {
     if (!open) return
     const h = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false)
@@ -41,22 +39,6 @@ export default function FilterPopover<T>({ defs, rows, c, value, onApply, onClea
                   )}
                 </div>
               ))}
-            </div>
-            <div className="mt-4 border-t pt-3">
-              <div className="flex gap-2">
-                <input className="inp" placeholder="Nama filter" value={name} onChange={(e) => setName(e.target.value)} />
-                <button className="btn whitespace-nowrap" disabled={!name.trim()} onClick={() => { onSave(name.trim(), draft); setName('') }}><Save size={14} />Simpan Filter</button>
-              </div>
-              {saved.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {saved.map((sv) => (
-                    <span key={sv.name} className="inline-flex items-center overflow-hidden rounded border border-slate-300 text-xs">
-                      <button className="px-2 py-1 hover:bg-slate-50" onClick={() => { setDraft(sv.filter); onApply(sv.filter); setOpen(false) }}>{sv.name}</button>
-                      <button className="border-l px-1.5 py-1 text-red-500 hover:bg-red-50" aria-label={`Hapus ${sv.name}`} onClick={() => onDelete(sv.name)}><Trash2 size={12} /></button>
-                    </span>
-                  ))}
-                </div>
-              )}
             </div>
             <div className="mt-5 flex gap-3">
               <button className="flex-1 rounded-full border border-slate-300 bg-white py-2 text-sm font-medium text-slate-700 hover:bg-slate-50" onClick={() => { setDraft({}); onClear() }}>Clear All</button>

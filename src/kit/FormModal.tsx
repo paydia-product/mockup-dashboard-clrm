@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2, X } from 'lucide-react'
 import { FileField, Modal } from '../ui'
 import { maskStr } from './fmt'
 import { MultiOther, OTHER_ERR, SelectOther } from './Lainnya'
@@ -12,7 +12,7 @@ export const isReq = (f: Field<any>, r: R, c: Ctx, mode?: 'add' | 'edit' | 'impo
 const opts = (f: Field<any>, c: Ctx) => (typeof f.options === 'function' ? f.options(c) : f.options ?? []) // eslint-disable-line @typescript-eslint/no-explicit-any
 // select dengan semua opsi angka (mis. skor 1-3) disimpan sebagai number
 export const numericOpts = (o: string[]) => o.length > 0 && o.every((x) => x.trim() !== '' && !isNaN(Number(x)))
-const WIDE = ['textarea', 'list', 'checklist', 'multiselect', 'file']
+const WIDE = ['textarea', 'list', 'checklist', 'multiselect', 'multidrop', 'file']
 export const fieldsFor = <T extends BaseRec>(cfg: PageConfig<T>, mode: Mode) =>
   cfg.fields.filter((f) => f.key !== 'no' && !f.auto && (f.inForm ?? 'both') !== 'none' && ((f.inForm ?? 'both') === 'both' || f.inForm === mode))
 
@@ -47,6 +47,28 @@ function lockList(f: Field<any>, cur: R[], base: R[], c: Ctx): R[] { // eslint-d
   return out
 }
 
+// Dropdown pilih banyak: pilihan yang dipilih tampil sebagai chip dengan tombol hapus
+function MultiDrop({ value, options, set, off }: { value: string[]; options: string[]; set: (v: string[]) => void; off?: boolean }) {
+  const arr = value ?? []
+  return (
+    <div>
+      <select className="inp" value="" disabled={off} onChange={(e) => e.target.value && set([...arr, e.target.value])}>
+        <option value="">{options.length ? 'Pilih...' : 'Belum ada pilihan'}</option>{options.filter((x) => !arr.includes(x)).map((x) => <option key={x}>{x}</option>)}
+      </select>
+      {arr.length > 0 && (
+        <div className="mt-1.5 flex flex-wrap gap-1.5">
+          {arr.map((x) => (
+            <span key={x} className="inline-flex max-w-full items-center gap-1 rounded-full border border-slate-300 bg-slate-50 py-0.5 pl-2.5 pr-1 text-xs">
+              <span className="truncate">{x}</span>
+              {!off && <button type="button" className="rounded-full p-0.5 text-slate-500 hover:bg-slate-200" aria-label={`Hapus ${x}`} onClick={() => set(arr.filter((y) => y !== x))}><X size={12} /></button>}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function Input({ f, v, set, c, err, off, pend }: { f: Field<any>; v: any; set: (v: unknown) => void; c: Ctx; err?: string; off?: boolean; pend?: (b: boolean) => void }) { // eslint-disable-line @typescript-eslint/no-explicit-any
   const o = opts(f, c)
   switch (f.type) {
@@ -64,6 +86,7 @@ function Input({ f, v, set, c, err, off, pend }: { f: Field<any>; v: any; set: (
     case 'select': case 'yesno':
       if (f.type === 'select' && !numericOpts(o)) return <SelectOther value={v} options={o} off={off} extra set={set} onPending={pend} />
       return <select className="inp" value={v ?? ''} disabled={off} onChange={(e) => set(numericOpts(o) && e.target.value !== '' ? Number(e.target.value) : e.target.value)}><option value="">Pilih...</option>{(f.type === 'yesno' ? ['Ya', 'Tidak'] : o).map((x) => <option key={x}>{x}</option>)}</select>
+    case 'multidrop': return <MultiDrop value={v ?? []} options={o} off={off} set={set} />
     case 'multiselect': return <MultiOther value={v ?? []} options={o} off={off} set={set} onPending={pend} />
     case 'checklist':
       return <div className="flex flex-wrap gap-x-4 gap-y-1">{(f.sub ?? []).map((s) => <label key={s.key} className="flex items-center gap-1.5"><input type="checkbox" disabled={off} checked={!!v?.[s.key]} onChange={(e) => set({ ...(v ?? {}), [s.key]: e.target.checked })} />{s.label}</label>)}</div>

@@ -11,9 +11,24 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
-    v: '2.8.3',
+    v: '2.9.0',
     date: '2026-10-30',
     deployed: true,
+    title: 'Request Product: master, Regulatory Change, SOP, RAS-RT',
+    prompt: 'Implementasi Request Product.xlsx (19 butir)',
+    tokens: 400000,
+    changes: [
+      'Hapus simpan filter di semua tabel dan tracker',
+      'Regulatory Change: Tindak Lanjut teks, Sosialisasi wajib, SOP dropdown pilih banyak, hapus SOP cepat',
+      'SOP: Pemilik dari Unit Kerja, PIC wajib, hover per Unit Kerja, hapus Daftar revisi',
+      'Risk Register: label heatmap Tinggi/Sedang/Rendah, RAS-RT otomatis dengan kriteria per domain, Unit Kerja dan Produk tanpa Lainnya',
+      'Master Unit Kerja, Kategori Pelapor, Laporan dari sheet; Pemerintah-DPR kembali di Regulator',
+    ],
+  },
+  {
+    v: '2.8.3',
+    date: '2026-10-30',
+    deployed: false,
     title: 'Rapikan email simulasi',
     prompt: 'Lanjutan QA penuh',
     tokens: 120000,

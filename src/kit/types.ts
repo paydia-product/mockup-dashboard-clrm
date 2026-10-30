@@ -11,9 +11,9 @@ export interface Cancelled { prev: string; reason: string; by: string; at: strin
 export interface BaseRec { id: string; no: number; status: string; createdAt: string; createdBy: string; cancelled?: Cancelled }
 // Data baru = semua kolom kecuali id/no/createdAt/createdBy/cancelled (status ikut, karena status adalah isian form)
 export type NewRec<T> = Omit<T, Exclude<keyof BaseRec, 'status'>>
-// Nilai per FieldType: text/textarea/select/date/datetime/yesno ('Ya'|'Tidak'|'') = string; number/money/percent = number | ''; multiselect = string[];
+// Nilai per FieldType: text/textarea/select/date/datetime/yesno ('Ya'|'Tidak'|'') = string; number/money/percent = number | ''; multiselect/multidrop = string[] (multidrop = dropdown pilih banyak dengan chip);
 // checklist = Record<subKey, boolean>; file = FileMeta | null; list = Record<string, unknown>[]
-export type FieldType = 'text' | 'textarea' | 'number' | 'money' | 'percent' | 'date' | 'datetime' | 'select' | 'multiselect' | 'yesno' | 'checklist' | 'file' | 'list'
+export type FieldType = 'text' | 'textarea' | 'number' | 'money' | 'percent' | 'date' | 'datetime' | 'select' | 'multiselect' | 'multidrop' | 'yesno' | 'checklist' | 'file' | 'list'
 export interface Master { laporan: string[]; pic: string[]; kategoriRegulasi: string[]; unitKerja: string[]; produk: string[]; mitra: string[]; kategoriPelapor: string[]; mediaPelapor: string[] }
 export interface Account { id: string; name: string; email: string; role: Role; departemen: string; status: 'Aktif' | 'Nonaktif'; lastLogin: string; password: string; pin: string }
 export interface Ctx { role: Role; user: Account; today: string; master: Master; all: (m: ModuleId) => BaseRec[] }
@@ -87,10 +87,9 @@ export interface LogEntry {
   recordId?: string; kind?: 'create' | 'edit' | 'cancel' | 'restore' | 'request' | 'decision'
   changes?: { label: string; before: string; after: string }[]; approver?: string; alasan?: string
 }
-export interface SavedFilter { name: string; filter: Record<string, unknown> }
 export type PermMatrix = Record<Role, Partial<Record<PermKey, Action[]>>>
 export interface Store {
-  modules: Partial<Record<ModuleId, BaseRec[]>>; saved: Partial<Record<ModuleId, SavedFilter[]>>
+  modules: Partial<Record<ModuleId, BaseRec[]>>
   approvals: ApprovalReq[]; log: LogEntry[]; master: Master; accounts: Account[]; perms: PermMatrix; seq: Record<string, number>
 }
 export interface Session { accountId: string; verified2fa: boolean }

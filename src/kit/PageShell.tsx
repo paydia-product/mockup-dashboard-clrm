@@ -8,7 +8,7 @@ import { exportRows } from './exportXlsx'
 import FilterPopover from './FilterPopover'
 import FormModal from './FormModal'
 import ImportExcel from './ImportExcel'
-import { useApp, useModule, setStore } from './store'
+import { useApp, useModule } from './store'
 import type { BaseRec, PageConfig } from './types'
 
 type Modal_ = { k: 'detail' | 'edit' | 'cancel' | 'restore'; id: string } | { k: 'add' | 'sim' | 'import' } | { k: 'extra'; node: ReactNode } | null
@@ -18,7 +18,7 @@ const hasVal = (v: unknown) => (Array.isArray(v) ? !!(v[0] || v[1]) : !!v)
 
 export default function PageShell<T extends BaseRec>({ config: cfg }: { config: PageConfig<T> }) {
   const api = useModule(cfg)
-  const { ctx: c, can, log, store } = useApp()
+  const { ctx: c, can, log } = useApp()
   const m = cfg.module
   const [tab, setTab] = useState<'dashboard' | 'table'>('dashboard')
   const [q, setQ] = useState('')
@@ -26,8 +26,6 @@ export default function PageShell<T extends BaseRec>({ config: cfg }: { config: 
   const [modal, setModal] = useState<Modal_>(null)
   const close = () => setModal(null)
   const live = api.rows.filter((r) => !r.cancelled)
-  const saved = store.saved[m] ?? []
-  const setSaved = (f: (l: typeof saved) => typeof saved) => setStore((s) => ({ ...s, saved: { ...s.saved, [m]: f(s.saved[m] ?? []) } }))
 
   const shown = api.rows.filter((r) => {
     if (q.trim() && !cfg.search(r, c).toLowerCase().includes(q.trim().toLowerCase())) return false
@@ -69,10 +67,7 @@ export default function PageShell<T extends BaseRec>({ config: cfg }: { config: 
           <div className="flex flex-wrap items-center gap-2 border-b p-3">
             <div className="relative w-64"><Search size={14} className="absolute left-2.5 top-2.5 text-slate-400" />
               <input className="inp !pl-8" placeholder={cfg.searchPlaceholder} value={q} onChange={(e) => setQ(e.target.value)} /></div>
-            <FilterPopover defs={cfg.filters} rows={api.rows} c={c} value={filter} saved={saved}
-              onApply={setFilter} onClear={() => setFilter({})}
-              onSave={(name, v) => setSaved((l) => [...l.filter((x) => x.name !== name), { name, filter: v }])}
-              onDelete={(name) => setSaved((l) => l.filter((x) => x.name !== name))} />
+            <FilterPopover defs={cfg.filters} rows={api.rows} c={c} value={filter} onApply={setFilter} onClear={() => setFilter({})} />
             <div className="ml-auto flex flex-wrap gap-2">
               <button className="btn" onClick={() => setModal({ k: 'sim' })}><Bell size={14} />Simulasi notifikasi ({hits.length})</button>
               {SHOW_IMPORT && can(m, 'Import') && <button className="btn" onClick={() => setModal({ k: 'import' })}><Upload size={14} />Import Excel</button>}

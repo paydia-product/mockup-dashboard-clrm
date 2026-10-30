@@ -4,7 +4,7 @@ Ringkasan aturan yang berlaku untuk semua halaman. Detail halaman dan kontrak ki
 
 ## Aturan dasar (dari keputusan user di Regulatory Findings Tracker)
 1. Tab Dashboard pertama (default), lalu Table.
-2. Filter berupa popover dengan Clear All dan Apply Filters, simpan filter bernama. Kotak cari terpisah.
+2. Filter berupa popover dengan Clear All dan Apply Filters. Tidak ada simpan filter (dihapus di v2.9.0). Kotak cari terpisah.
 3. Kolom Aksi: Lihat Detail, Edit (sesuai permission dan aturan baris), Batalkan atau Kembalikan (Head CLRM, alasan wajib, tanpa approval).
 4. Detail berupa Modal berjudul "Detail". Tanpa nomor urut kolom, tanpa Riwayat, tanpa tombol Ubah atau Ajukan.
 5. Simulasi notifikasi berupa modal email. Maksimal 3 email per jenis alert, lalu satu contoh statis berlabel.

@@ -51,7 +51,7 @@ const filters: FilterDef<Layanan>[] = [
 ]
 
 const toPic = (r: Layanan) => (r.pic ? `PIC (${r.pic})` : 'PIC')
-const mk = (c: Ctx, o: Partial<Layanan>): Layanan => ({ id: 'sample', no: 99, status: 'Proses', createdAt: c.today, createdBy: '-', dept: 'IT', jenis: 'Review', tglMasuk: addDays(c.today, -10), sla: 7, pic: 'Osama', prioritas: 'Sedang', tglSelesai: '', memo: '', ...o })
+const mk = (c: Ctx, o: Partial<Layanan>): Layanan => ({ id: 'sample', no: 99, status: 'Proses', createdAt: c.today, createdBy: '-', dept: 'Information Technology', jenis: 'Review', tglMasuk: addDays(c.today, -10), sla: 7, pic: 'Osama', prioritas: 'Sedang', tglSelesai: '', memo: '', ...o })
 const alerts: AlertDef<Layanan>[] = [
   {
     key: 'overdue', label: 'Lewat batas waktu', rule: 'Batas waktu terlewat dan permintaan belum Selesai.',
@@ -75,7 +75,7 @@ const alerts: AlertDef<Layanan>[] = [
 ]
 
 function seed(today: string): Layanan[] {
-  const DEPT = ['IT', 'Business', 'Operation', 'Finance, Accounting, Tax & Treasury', 'Compliance', 'Support (HRD & GA)']
+  const DEPT = ['Information Technology', 'Business', 'Operation', 'Finance, Accounting, Tax & Treasury', 'Compliance Legal & Risk Management', 'Support']
   const PICS = ['Osama', 'Osama', 'Fakhri', 'Regie'] // master PIC
   // [umur hari, sla, status, pic kosong?]
   const sc: [number, number, string, boolean?][] = [

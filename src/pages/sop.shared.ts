@@ -1,42 +1,41 @@
 import { addDays } from '../lib'
 import type { BaseRec, FileMeta } from '../kit/types'
 
-export interface SopRevisi { no: string; tgl: string; file: FileMeta | null }
 export interface SopRec extends BaseRec {
   noDok: string; judul: string; ringkasan: string; pemilik: string
   tglBerlaku: string; tglUbah: string; noRevisi: string
   retensi: string; klasifikasi: string; file: FileMeta | null
-  tglReview: string; pic: string; revisi: SopRevisi[]
+  tglReview: string; pic: string
   // status (BaseRec): 'Aktif' | 'Dalam Review' | 'Dicabut'
 }
 export const sopLabel = (s: SopRec) => `${s.noDok} - ${s.judul} - ${s.pemilik}`
 
 const TITLES: [string, string, string][] = [
   ['Penerimaan Merchant QRIS', 'Business', 'Prosedur onboarding dan verifikasi merchant QRIS.'],
-  ['Penanganan Keluhan Konsumen', 'Support (HRD & GA)', 'Alur penerimaan, eskalasi, dan penyelesaian keluhan konsumen.'],
-  ['Pemantauan Transaksi Mencurigakan', 'Compliance', 'Kriteria dan alur pelaporan transaksi keuangan mencurigakan.'],
-  ['Manajemen Akses Sistem', 'IT', 'Pemberian, peninjauan, dan pencabutan hak akses sistem.'],
+  ['Penanganan Keluhan Konsumen', 'Support', 'Alur penerimaan, eskalasi, dan penyelesaian keluhan konsumen.'],
+  ['Pemantauan Transaksi Mencurigakan', 'Compliance Legal & Risk Management', 'Kriteria dan alur pelaporan transaksi keuangan mencurigakan.'],
+  ['Manajemen Akses Sistem', 'Information Technology', 'Pemberian, peninjauan, dan pencabutan hak akses sistem.'],
   ['Rekonsiliasi Settlement Harian', 'Finance, Accounting, Tax & Treasury', 'Langkah rekonsiliasi dana settlement dengan bank mitra.'],
-  ['Penanganan Insiden Siber', 'IT', 'Deteksi, eskalasi, dan pelaporan insiden siber kepada regulator.'],
-  ['Prosedur APU PPT', 'Compliance', 'Penerapan prinsip mengenali pengguna jasa dan pelaporan PPATK.'],
+  ['Penanganan Insiden Siber', 'Information Technology', 'Deteksi, eskalasi, dan pelaporan insiden siber kepada regulator.'],
+  ['Prosedur APU PPT', 'Compliance Legal & Risk Management', 'Penerapan prinsip mengenali pengguna jasa dan pelaporan PPATK.'],
   ['Pengelolaan Vendor', 'Operation', 'Seleksi, evaluasi, dan pemutusan kerja sama vendor.'],
-  ['Backup dan Pemulihan Data', 'IT', 'Jadwal backup, uji pemulihan, dan penyimpanan salinan data.'],
+  ['Backup dan Pemulihan Data', 'Information Technology', 'Jadwal backup, uji pemulihan, dan penyimpanan salinan data.'],
   ['Penanganan Fraud', 'Operation', 'Investigasi dugaan fraud, EDD, dan tindak lanjut blokir.'],
   ['Hold dan Release Settlement', 'Finance, Accounting, Tax & Treasury', 'Syarat, persetujuan, dan pencatatan penahanan dana merchant.'],
-  ['Pengelolaan Dokumen Kontrol', 'Compliance', 'Penomoran, revisi, dan retensi dokumen kontrol.'],
-  ['Perubahan Sistem (Change Management)', 'IT', 'Pengajuan, uji, dan persetujuan perubahan sistem produksi.'],
-  ['Pelatihan Kepatuhan Tahunan', 'Support (HRD & GA)', 'Rencana, pelaksanaan, dan evaluasi pelatihan kepatuhan.'],
+  ['Pengelolaan Dokumen Kontrol', 'Compliance Legal & Risk Management', 'Penomoran, revisi, dan retensi dokumen kontrol.'],
+  ['Perubahan Sistem (Change Management)', 'Information Technology', 'Pengajuan, uji, dan persetujuan perubahan sistem produksi.'],
+  ['Pelatihan Kepatuhan Tahunan', 'Support', 'Rencana, pelaksanaan, dan evaluasi pelatihan kepatuhan.'],
   ['Pengelolaan Risiko Operasional', 'Operation', 'Identifikasi, penilaian, dan mitigasi risiko operasional.'],
-  ['Pelindungan Data Pribadi', 'IT', 'Pengumpulan, penyimpanan, dan penghapusan data pribadi pengguna.'],
+  ['Pelindungan Data Pribadi', 'Information Technology', 'Pengumpulan, penyimpanan, dan penghapusan data pribadi pengguna.'],
   ['Biller Gateway Onboarding', 'Business', 'Integrasi dan uji biller baru pada gateway.'],
   ['Penerbitan Laporan Keuangan Mitra', 'Finance, Accounting, Tax & Treasury', 'Penyusunan laporan keuangan dan tagihan mitra.'],
   ['Pengadaan Barang dan Jasa', 'Operation', 'Proses pengadaan dan persetujuan anggaran.'],
-  ['Kebijakan Sanksi Merchant', 'Compliance', 'Teguran, penangguhan, dan terminasi merchant.'],
+  ['Kebijakan Sanksi Merchant', 'Compliance Legal & Risk Management', 'Teguran, penangguhan, dan terminasi merchant.'],
   ['Business Continuity Plan', 'Operation', 'Rencana keberlangsungan layanan saat gangguan besar.'],
-  ['Pengelolaan Perangkat Kantor', 'Support (HRD & GA)', 'Inventaris, penggunaan, dan pengembalian perangkat.'],
-  ['Pemantauan Kapasitas Sistem', 'IT', 'Ambang kapasitas dan tindakan penambahan sumber daya.'],
-  ['Permintaan Layanan Hukum Internal', 'Compliance', 'Alur permintaan review dan pendapat hukum.'],
-  ['Pengarsipan Dokumen Legal', 'Compliance', 'Penyimpanan dan akses dokumen legal.'],
+  ['Pengelolaan Perangkat Kantor', 'Support', 'Inventaris, penggunaan, dan pengembalian perangkat.'],
+  ['Pemantauan Kapasitas Sistem', 'Information Technology', 'Ambang kapasitas dan tindakan penambahan sumber daya.'],
+  ['Permintaan Layanan Hukum Internal', 'Compliance Legal & Risk Management', 'Alur permintaan review dan pendapat hukum.'],
+  ['Pengarsipan Dokumen Legal', 'Compliance Legal & Risk Management', 'Penyimpanan dan akses dokumen legal.'],
 ]
 
 // ~25 SOP. Tiga baris sengaja tidak lengkap (tanpa tgl review / PIC / status) untuk alert "data belum lengkap"
@@ -56,7 +55,6 @@ export function seedSop(today: string): SopRec[] {
       file: { name: `SOP-${String(70 + no).padStart(3, '0')}-PAY.pdf`, size: (200 + i * 37) * 1024, type: 'application/pdf' },
       tglReview: incomplete && i === 22 ? '' : addDays(today, reviewOff[i]),
       pic: incomplete && i === 23 ? '' : ['Regie', 'Fakhri', 'Osama'][i % 3], // master PIC
-      revisi: rev > 1 ? Array.from({ length: rev - 1 }, (_, k) => ({ no: `Rev.${k + 1}`, tgl: addDays(ubah, -180 * (rev - 1 - k)), file: { name: `SOP-${String(70 + no).padStart(3, '0')}-Rev${k + 1}.pdf`, size: 150 * 1024, type: 'application/pdf' } })) : [],
     }
   })
 }

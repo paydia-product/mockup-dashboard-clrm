@@ -1,4 +1,5 @@
-import { addDays, diffDays, fmtDate, fmtTime } from '../lib'
+import { REGULATORS, addDays, diffDays, fmtDate, fmtTime } from '../lib'
+import { CAT, Item, itemOf, nearest, periodeOf } from './laporan.shared'
 import PageShell from '../kit/PageShell'
 import { BarCard, CalendarCard, LineCard, MiniTable, useMonthRange } from '../kit/charts'
 import { monthKey } from '../kit/dates'
@@ -13,7 +14,7 @@ interface Laporan extends BaseRec {
   tglSubmit: string; picPenyusun: string; picReviewer: string
   bukti: FileMeta | null; noTerima: string; dasar: string; alasan: string
 }
-const REG = ['BI', 'PPATK', 'Komdigi', 'BSSN']
+const REG = [...REGULATORS] // BI, PPATK, Komdigi, BSSN, Pemerintah-DPR
 const JENIS = ['Harian', 'Mingguan', 'Bulanan', 'Triwulanan', 'Tahunan', '3 Tahun Sekali', 'Insidental']
 const STATUS = ['Belum Disiapkan', 'Disusun', 'Review', 'Terkirim', 'Terlambat'] // Terlambat otomatis (normalize) dan boleh dipilih manual hanya bila Batas Waktu sudah lewat (validate)
 const SENT = (r: Laporan) => r.status === 'Terkirim'
@@ -110,55 +111,47 @@ const alerts: AlertDef<Laporan>[] = [
   },
 ]
 
-type Item = [nama: string, regulator: string, jenis: string, dasar: string]
-const CAT: Item[] = [
-  ['Pelaporan Dana Floating', 'BI', 'Bulanan', 'PBI Uang Elektronik'], ['Laporan RBSP', 'BI', 'Triwulanan', 'PADG RBSP'], ['SiPesat', 'BI', 'Bulanan', 'PADG Pelaporan PJP'],
-  ['LTKT', 'PPATK', 'Bulanan', 'UU 8/2010 TPPU'], ['LTKM', 'PPATK', 'Insidental', 'UU 8/2010 TPPU'], ['Laporan Transaksi Harian', 'BI', 'Harian', 'PADG Pelaporan PJP'],
-  ['Laporan Fraud Mingguan', 'BI', 'Mingguan', 'PADG Manajemen Risiko'], ['Laporan Tahunan Perlindungan Konsumen', 'BI', 'Tahunan', 'PBI Perlindungan Konsumen'],
-  ['Laporan PSE Terdaftar', 'Komdigi', 'Triwulanan', 'Permenkominfo 5/2020'], ['Penilaian Kembali Sertifikasi Keamanan', 'Komdigi', '3 Tahun Sekali', 'PP 71/2019'],
-  ['Laporan Keamanan Informasi', 'BSSN', 'Tahunan', 'Perpres 82/2022'], ['Laporan Insiden Siber', 'BSSN', 'Insidental', 'Perban BSSN 8/2020'],
-]
 const PEN = ['Regie', 'Fakhri', 'Osama'] // master PIC; reviewer selalu orang lain (REV bergeser satu)
 const REV = ['Fakhri', 'Osama', 'Regie']
-const PERIODE: Record<string, (i: number) => string> = {
-  Harian: (i) => `Hari ke-${i + 1}`, Mingguan: (i) => `Minggu ke-${i + 1}`, Bulanan: (i) => `Bulan ke-${i + 1}`, Triwulanan: (i) => `Triwulan ${(i % 4) + 1}`,
-  Tahunan: () => 'Tahun 2025', '3 Tahun Sekali': () => '2024-2026', Insidental: (i) => `Kejadian #${i + 1}`,
-}
+// Insiden siber tidak ada di sheet pelaporan rutin; dua baris seed ini tetap ada untuk memperlihatkan alert jam berjalan
+const SIBER: Item = { nama: 'Laporan Insiden Siber', regulator: 'BSSN', jenis: 'Insidental', dasar: 'Perban BSSN 8/2020', s: { u: 'd' } }
 
 function seed(today: string): Laporan[] {
   const out: Laporan[] = []
   const push = (it: Item, o: Partial<Laporan>) => {
     const i = out.length
-    const [nama, regulator, jenis, dasar] = it
+    const { nama, regulator, jenis, dasar } = it
     const batas = o.batas ?? `${today}`
     const dibuat = addDays(dOf(batas), -14) // dibuat 2 minggu sebelum batas (maks hari ini); jam diberi store.stamp
     out.push({
-      id: `reporting-${i + 1}`, no: i + 1, status: 'Terkirim', createdAt: dibuat >= today ? addDays(today, -1) : dibuat, createdBy: 'Rina Kartika', nama, regulator, jenis, periode: PERIODE[jenis](i), batas: `${today}`,
+      id: `reporting-${i + 1}`, no: i + 1, status: 'Terkirim', createdAt: dibuat >= today ? addDays(today, -1) : dibuat, createdBy: 'Rina Kartika', nama, regulator, jenis, periode: periodeOf(it, batas), batas: `${today}`,
       siber: '', waktuKejadian: '', waktuNotif: '', tglSubmit: '', picPenyusun: PEN[i % 3], picReviewer: REV[i % 3], bukti: null, noTerima: '', dasar, alasan: '', ...o,
     })
   }
-  // 12 bulan ke belakang: Terkirim, tiap 5 laporan satu terlambat (alasan terisi)
+  const by = (nama: string, jenis: string) => itemOf(nama, jenis)
+  // 12 bulan ke belakang: Terkirim, tiap 5 laporan satu terlambat (alasan terisi). Batas = jatuh tempo jadwal terdekat dengan tanggal target
   for (let i = 0; i < 34; i++) {
-    const batasD = addDays(today, -(12 + i * 10))
+    const it = CAT[(i * 7) % CAT.length] // langkah 7 (7 dan 38 saling prima): 34 laporan berbeda dengan jenis periode bervariasi
+    const batasD = nearest(it.s, today, addDays(today, -(12 + i * 10)))
     const late = i % 5 === 3
     const sub = late ? `${addDays(batasD, 1 + (i % 3))}T10:30` : `${addDays(batasD, -1)}T14:00`
-    push(CAT[i % CAT.length], { batas: `${batasD}`, tglSubmit: sub, noTerima: `TT-${String(2026000 + i)}`, alasan: late ? 'Data pendukung terlambat diterima dari unit terkait.' : '' })
+    push(it, { batas: `${batasD}`, tglSubmit: sub, noTerima: `TT-${String(2026000 + i)}`, alasan: late ? 'Data pendukung terlambat diterima dari unit terkait.' : '' })
   }
   // H-7, H-3, H-1
-  push(CAT[1], { status: 'Review', batas: `${addDays(today, 7)}`, periode: 'Triwulan 3' })
-  push(CAT[2], { status: 'Disusun', batas: `${addDays(today, 3)}`, periode: 'Bulan berjalan' })
-  push(CAT[6], { status: 'Belum Disiapkan', batas: `${addDays(today, 1)}`, periode: 'Minggu berjalan' })
+  push(by('Laporan Keuangan UnAudited', 'Triwulanan'), { status: 'Review', batas: `${addDays(today, 7)}`, periode: 'Triwulan 3 2026' })
+  push(by('Pengguna QRIS', 'Bulanan'), { status: 'Disusun', batas: `${addDays(today, 3)}`, periode: 'Bulan berjalan' })
+  push(by('QRIS Transaksi', 'Mingguan'), { status: 'Belum Disiapkan', batas: `${addDays(today, 1)}`, periode: 'Minggu berjalan' })
   // jatuh tempo jauh
-  push(CAT[7], { status: 'Belum Disiapkan', batas: `${addDays(today, 25)}`, periode: 'Tahun 2026' })
-  push(CAT[8], { status: 'Belum Disiapkan', batas: `${addDays(today, 40)}`, periode: 'Triwulan 4' })
+  push(by('Laporan Rencana Edukasi Plan', 'Tahunan'), { status: 'Belum Disiapkan', batas: `${addDays(today, 25)}`, periode: 'Tahun 2026' })
+  push(by('Laporan Tahunan SP', 'Tahunan'), { status: 'Belum Disiapkan', batas: `${addDays(today, 40)}`, periode: 'Tahun 2026' })
   // terlambat (status dihitung normalize)
-  push(CAT[0], { status: 'Disusun', batas: `${addDays(today, -3)}`, periode: 'Bulan lalu', alasan: 'Menunggu rekonsiliasi saldo dari Finance.' })
-  push(CAT[10], { status: 'Review', batas: `${addDays(today, -6)}`, periode: 'Tahun 2026', alasan: 'Review internal belum selesai.' })
+  push(by('Dana Float', 'Harian'), { status: 'Disusun', batas: `${addDays(today, -3)}`, periode: 'Hari lalu', alasan: 'Menunggu rekonsiliasi saldo dari Finance.' })
+  push(by('Laporan Keuangan Audited', 'Tahunan'), { status: 'Review', batas: `${addDays(today, -6)}`, periode: 'Tahun 2025', alasan: 'Review internal belum selesai.' })
   // terkirim tanpa bukti
-  push(CAT[3], { batas: `${addDays(today, -2)}`, tglSubmit: `${addDays(today, -3)}T15:00`, periode: 'Bulan lalu' })
+  push(by('Laporan Data Fraud Transaksi Sistem Pembayaran', 'Bulanan'), { batas: `${addDays(today, -2)}`, tglSubmit: `${addDays(today, -3)}T15:00`, periode: 'Bulan lalu' })
   // insiden siber dengan jam berjalan
-  push(CAT[11], { status: 'Disusun', jenis: 'Insidental', siber: 'Ya', waktuKejadian: agoLocal(30 * 60), waktuNotif: agoLocal(29 * 60), batas: `${addDays(today, 2)}`, periode: 'Insiden akses tidak sah' })
-  push(CAT[11], { status: 'Belum Disiapkan', jenis: 'Insidental', siber: 'Ya', waktuKejadian: agoLocal(50), batas: `${addDays(today, 3)}`, periode: 'Insiden DDoS' })
+  push(SIBER, { status: 'Disusun', jenis: 'Insidental', siber: 'Ya', waktuKejadian: agoLocal(30 * 60), waktuNotif: agoLocal(29 * 60), batas: `${addDays(today, 2)}`, periode: 'Insiden akses tidak sah' })
+  push(SIBER, { status: 'Belum Disiapkan', jenis: 'Insidental', siber: 'Ya', waktuKejadian: agoLocal(50), batas: `${addDays(today, 3)}`, periode: 'Insiden DDoS' })
   return out
 }
 

@@ -5,12 +5,12 @@ export const WAIT_VALIDATION_DAYS = 7 // usulan: Menunggu Validasi > 7 hari memi
 export const NEAR_DUE_DAYS = 7
 export const DIRECTOR_DAYS = 7
 
-export const REGULATORS = ['BI', 'PPATK', 'Komdigi', 'BSSN'] // 'Lainnya' tidak lagi ada di master; ditambahkan otomatis oleh withLainnya di dropdown
+export const REGULATORS = ['BI', 'PPATK', 'Komdigi', 'BSSN', 'Pemerintah-DPR'] // 'Lainnya' tidak ada di master; ditambahkan otomatis oleh withLainnya di dropdown
 export const AREAS = ['APU PPT', 'QRIS', 'SNAP', 'Pelindungan Konsumen', 'Ketahanan Siber']
 export const ROOT_TYPES = ['Orang', 'Proses', 'Sistem', 'Kebijakan', 'Pihak Ketiga']
 export const STATUSES = ['Open', 'Proses', 'Menunggu Validasi', 'Selesai', 'Dibatalkan'] as const
 export const RISKS = ['High', 'Medium', 'Low'] as const
-export const UNITS = ['IT', 'Operation', 'Business', 'Support (HRD & GA)', 'Compliance', 'Legal & Risk Management', 'Finance, Accounting, Tax & Treasury']
+export const UNITS = ['Internal Audit', 'Business', 'Operation', 'Information Technology', 'Compliance Legal & Risk Management', 'Support', 'Finance, Accounting, Tax & Treasury'] // ponytail: sheet "4. Daftar Departemen Paydia" tanpa nomor
 const VALIDATORS = ['Rina Kartika', 'Arief Nugraha']
 export const ROLES = ['Compliance Officer', 'PIC', 'Head CLRM', 'Viewer'] as const
 
@@ -69,7 +69,7 @@ export const EMPTY_FILTER: Filter = { q: '', from: '', to: '', status: '', pic: 
 export interface ChangeReq { id: string; no?: number; status?: 'Menunggu' | 'Disetujui' | 'Ditolak'; decidedBy?: string; decidedAt?: string; catatan?: string; fid: string; by: string; time: string; alasan: string; changes: { key: keyof Finding; label: string; lama: string; baru: string; value: unknown }[] }
 export const findingLabel = (f: Pick<Finding, 'regulator' | 'area'>) => `${f.regulator} - ${f.area}` // pengganti nomor internal di teks
 export const isPendingReq = (r: ChangeReq) => (r.status ?? 'Menunggu') === 'Menunggu' // data lama tanpa status = Menunggu
-export interface DB { requests: ChangeReq[]; findings: Finding[]; audit: Audit[]; saved: { name: string; filter: Filter }[] }
+export interface DB { requests: ChangeReq[]; findings: Finding[]; audit: Audit[] }
 
 // ---- Tanggal ----
 const pad = (n: number) => String(n).padStart(2, '0')
@@ -203,17 +203,17 @@ export function makeSeed(): DB {
     if (s.status === 'Dibatalkan') log(f, addDays(t, -3), 'Dewi Anggraini', 'Batalkan temuan', 'Status', 'Proses', 'Dibatalkan', 'Temuan duplikat dengan laporan regulator sebelumnya')
     findings.push(f)
   })
-  return { requests: [], findings, audit, saved: [] }
+  return { requests: [], findings, audit }
 }
 
 // ---- Penyimpanan ----
 // ponytail: v5 = seed punya createdAt dan tanpa 'Lainnya' di daftar; data v4 lama tetap aman dibaca (createdOf) tetapi direset agar seed baru dipakai
-export const KEY = 'clrm.db.v7' // ponytail: v7 = teks audit tanpa nomor internal; v6 = PIC seed Regie/Fakhri/Osama; v5 seed lama tidak dibaca lagi (key beda), load() tetap aman membaca bentuk lama
+export const KEY = 'clrm.db.v8' // ponytail: v8 = Unit Kerja seed dari sheet Departemen, Pemerintah-DPR di daftar regulator, filter tersimpan dihapus; v7 = teks audit tanpa nomor internal; v6 = PIC seed Regie/Fakhri/Osama; v5 seed lama tidak dibaca lagi (key beda), load() tetap aman membaca bentuk lama
 const ROLE_KEY = 'clrm.role'
 function load(): DB {
   try {
     const s = localStorage.getItem(KEY)
-    if (s) return { requests: [], ...JSON.parse(s) } as DB
+    if (s) { const { saved: _saved, ...d } = JSON.parse(s); return { requests: [], ...d } as DB } // `saved` (filter tersimpan) sudah dihapus: dibuang dari data lama
   } catch { /* abaikan */ }
   return makeSeed()
 }
