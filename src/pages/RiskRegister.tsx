@@ -71,7 +71,7 @@ const filters: FilterDef<Risk>[] = [
   { key: 'dept', label: 'Unit Kerja', type: 'select', options: (_, c) => c.master.unitKerja, match: (r, v) => r.dept === v },
   { key: 'respon', label: 'Respon', type: 'select', options: RESPON, match: (r, v) => r.respon === v },
   { key: 'produk', label: 'Produk', type: 'select', options: (_, c) => c.master.produk, match: (r, v) => r.produk === v },
-  { key: 'vendor', label: 'Vendor / Mitra', type: 'select', options: (rows) => uniq(rows, (r) => r.vendor), match: (r, v) => r.vendor === v },
+  { key: 'vendor', label: 'Vendor / Mitra', type: 'select', options: (_, c) => c.master.mitra, match: (r, v) => r.vendor === v },
   { key: 'rasrt', label: 'Posisi RAS-RT', type: 'select', options: [APPETITE, TOLERANSI, BREACH], match: (r, v) => rasrt(r) === v },
 ]
 

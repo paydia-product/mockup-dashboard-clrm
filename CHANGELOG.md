@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 2.10.1 | 2026-10-30 | ~230k |
 | 2.10.0 | 2026-10-30 | ~250k |
 | 2.9.2 | 2026-10-30 | ~130k |
 | 2.9.1 | 2026-10-30 | ~300k |
@@ -39,6 +40,14 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [2.10.1] - 2026-10-30
+
+Estimasi token: ~230k (QA penuh oleh agent terpisah dan perbaikan)
+
+### Diperbaiki
+- Filter Vendor / Mitra di Risk Register memakai daftar master Mitra Vendor.
+- Field Tanggal EDD 1 dan EDD 2 di Fraud tampil setiap Jenis Data = EDD, tidak bergantung pada Hasil Asesmen Awal.
 
 ## [2.10.0] - 2026-10-30
 

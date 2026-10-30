@@ -11,9 +11,18 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
-    v: '2.10.0',
+    v: '2.10.1',
     date: '2026-10-30',
     deployed: true,
+    title: 'Perbaikan hasil QA v2.10.0',
+    prompt: 'Lanjutan QA penuh',
+    tokens: 230000,
+    changes: ['Filter Vendor / Mitra di Risk Register memakai master Mitra Vendor', 'Field EDD di Fraud tampil setiap Jenis Data = EDD'],
+  },
+  {
+    v: '2.10.0',
+    date: '2026-10-30',
+    deployed: false,
     title: 'Mitra Vendor master, revisi Kajian Risiko dan Fraud',
     prompt: 'Revisi Kajian Risiko (kartu mitra, Unit Kerja tanpa Lainnya, modal Selesai), master Mitra Vendor, dan Fraud Case Monitoring',
     tokens: 250000,
