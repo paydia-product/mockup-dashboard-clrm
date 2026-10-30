@@ -67,11 +67,14 @@ export interface PageConfig<T extends BaseRec> {
   normalize?: (r: T, c: Ctx) => T
   beforeSave?: (old: T | null, next: T, c: Ctx) => T // hook saat tambah/ubah (mis. simpan revisi lama)
   validate?: (r: T, mode: 'add' | 'edit', c: Ctx) => Record<string, string>
+  onChange?: (next: T, key: string, prev: T) => T // form Tambah/Edit: dipanggil tiap satu isian berubah (mis. kosongkan isian turunan)
   canEditRow?: (r: T, c: Ctx) => boolean
   name?: (r: T) => string // label data yang tampil ke user (pengganti nomor internal) di judul modal, log, approval, email
   approvals?: ApprovalRule<T>[]
   rowActions?: RowAction<T>[]
-  Dashboard: (p: { rows: T[]; c: Ctx; open: (id: string) => void; drill: (filter: Record<string, unknown>) => void }) => JSX.Element
+  dashDate?: { get: (r: T) => string; label: string } // tanggal utama untuk filter Periode di atas dashboard
+  // rows = sudah difilter Periode halaman; allRows = tidak difilter (untuk grafik bulanan dengan filter bulan sendiri)
+  Dashboard: (p: { rows: T[]; allRows: T[]; c: Ctx; open: (id: string) => void; drill: (filter: Record<string, unknown>) => void }) => JSX.Element
 }
 export interface ApprovalReq {
   id: string; no: number; module: ModuleId; jenis: string; recordId: string; recordNo: number; recordLabel?: string

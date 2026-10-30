@@ -193,7 +193,8 @@ const cfg: PageConfig<Laporan> = {
     if (r.waktuNotif && r.waktuKejadian && r.waktuNotif < r.waktuKejadian) e.waktuNotif = 'Waktu notifikasi tidak boleh sebelum waktu kejadian'
     return e
   },
-  Dashboard: ({ rows, c, open, drill }) => {
+  dashDate: { get: (r) => r.batas, label: 'Batas Waktu' },
+  Dashboard: ({ rows, allRows, c, open, drill }) => {
     const pct = (xs: Laporan[]) => { const s = xs.filter((r) => SENT(r) && r.tglSubmit); const ok = s.filter((r) => !lateBy(r)).length; return { 'Tepat Waktu (%)': s.length ? Math.round((ok / s.length) * 100) : 0, ok, total: s.length } }
     const tepatData = [
       ...JENIS.map((j) => ({ name: `Jenis: ${j}`, ...pct(rows.filter((r) => r.jenis === j)) })),
@@ -215,7 +216,7 @@ const cfg: PageConfig<Laporan> = {
             onClick={(row) => { const n = String(row.name); if (n.startsWith('Jenis: ')) drill({ jenis: n.slice(7) }); else drill({ regulator: n.slice(11) }) }} />
           <BarCard title="Beban laporan per jenis periode" stacked data={beban} keys={['Terkirim', 'Dalam proses', 'Terlambat']} colors={{ Terkirim: '#10b981', 'Dalam proses': '#f59e0b', Terlambat: '#ef4444' }}
             onClick={(row) => drill({ jenis: String(row.name) })} />
-          <TrenTerlambat rows={rows} />
+          <TrenTerlambat rows={allRows} />
           <SoonTable rows={soon} open={open} />
         </div>
       </div>

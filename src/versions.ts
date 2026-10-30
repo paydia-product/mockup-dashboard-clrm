@@ -11,9 +11,26 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
-    v: '2.10.1',
+    v: '2.11.0',
     date: '2026-10-30',
     deployed: true,
+    title: 'Filter Periode dashboard, Kontrak Merchant, rincian hover, tanggal Perizinan wajib',
+    prompt: 'Filter tanggal semua dashboard kit, satuan Hari, revisi Kontrak, APH, Perizinan, Layanan Hukum',
+    tokens: 200000,
+    changes: [
+      'Semua dashboard kit: filter Periode tanggal utama di atas dashboard (Reset dan jumlah data); grafik per bulan tetap memakai filter bulan sendiri',
+      'Grafik berbasis hari diberi satuan Hari (label sumbu dan hover)',
+      'Kontrak: judul kartu diawali Kontrak; Nama Merchant (teks bebas) untuk Jenis Hubungan Merchant, Nama Mitra (dropdown master) untuk lainnya',
+      'APH: hover Permintaan per kasus dan Surat masuk per bulan menampilkan rincian Instansi Pengirim; kartu Active lewat batas jawaban dihapus',
+      'Perizinan: Tanggal Terbit, Berlaku, Kedaluwarsa wajib untuk semua kategori; alert Izin tanpa tanggal dihapus',
+      'Layanan Hukum: hover Permintaan per jenis menampilkan rincian Unit Kerja',
+      'APP_KEY naik ke v12',
+    ],
+  },
+  {
+    v: '2.10.1',
+    date: '2026-10-30',
+    deployed: false,
     title: 'Perbaikan hasil QA v2.10.0',
     prompt: 'Lanjutan QA penuh',
     tokens: 230000,

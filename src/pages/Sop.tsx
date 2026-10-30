@@ -107,6 +107,7 @@ const cfg: PageConfig<SopRec> = {
     if (r.tglBerlaku && r.tglUbah && r.tglUbah < r.tglBerlaku) e.tglUbah = 'Tanggal Perubahan tidak boleh sebelum Tanggal Berlaku'
     return e
   },
+  dashDate: { get: (r) => r.tglBerlaku, label: 'Tanggal Berlaku' },
   Dashboard: ({ rows, c, open, drill }) => {
     const due = rows.filter((r) => isDue(r, c.today))
     const over = rows.filter((r) => isOverdue(r, c.today))

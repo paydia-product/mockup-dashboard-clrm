@@ -167,6 +167,7 @@ const cfg: PageConfig<Risk> = {
     jenis: 'Perubahan Level Risiko', approver: 'Risk Officer', keys: ['dampak', 'kemungkinan'],
     needs: (old, next, c) => c.role !== 'Risk Officer' && level(old) !== level(next),
   }],
+  dashDate: { get: (r) => r.tglRegister, label: 'Tanggal Register' },
   Dashboard: ({ rows, open, drill }) => {
     const cnt = (lv: string) => rows.filter((r) => level(r) === lv).length
     const over = rows.filter((r) => rasrt(r) === BREACH).length

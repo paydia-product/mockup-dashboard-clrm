@@ -1,6 +1,6 @@
 import { addDays, diffDays, fmtDate } from '../lib'
 import PageShell from '../kit/PageShell'
-import { BarCard, DonutCard, StatCards } from '../kit/charts'
+import { BarCard, Breakdown, DonutCard, StatCards, countBy } from '../kit/charts'
 import { ageBuckets, ageBucket, workDaysBetween } from '../kit/dates'
 import { StatusPill } from '../kit/fmt'
 import type { AlertDef, BaseRec, Column, Ctx, Field, FilterDef, PageConfig } from '../kit/types'
@@ -110,6 +110,7 @@ const cfg: PageConfig<Layanan> = {
     if (r.status === 'Selesai' && r.tglSelesai && r.tglMasuk && r.tglSelesai < r.tglMasuk) e.tglSelesai = 'Tanggal Selesai tidak boleh sebelum Tanggal Masuk'
     return e
   },
+  dashDate: { get: (r) => r.tglMasuk, label: 'Tanggal Masuk' },
   Dashboard: ({ rows, c, drill }) => {
     const n = (s: string) => rows.filter((r) => r.status === s).length
     const late = rows.filter((r) => lateDays(r, c.today) > 0).length
@@ -127,10 +128,11 @@ const cfg: PageConfig<Layanan> = {
           { label: 'Lewat batas', value: late, tone: late ? 'red' : 'gray' },
         ]} />
         <div className="grid gap-3 lg:grid-cols-2">
-          <DonutCard title="Permintaan per jenis" data={JENIS.map((j) => ({ name: j, value: rows.filter((r) => r.jenis === j).length }))} onClick={(name) => drill({ jenis: name })} />
-          <BarCard title="Belum selesai menurut umur (hari)" data={umur} keys={['Jumlah']} cellColors={['#f59e0b', '#f59e0b', '#ef4444']} />
+          <DonutCard title="Permintaan per jenis" data={JENIS.map((j) => ({ name: j, value: rows.filter((r) => r.jenis === j).length }))} onClick={(name) => drill({ jenis: name })}
+            tip={(name, value) => <Breakdown title={`${name}: ${value} permintaan`} sub="Per unit kerja" items={countBy(rows.filter((r) => r.jenis === name), (r) => r.dept)} />} />
+          <BarCard title="Belum selesai menurut umur (hari)" data={umur} keys={['Jumlah']} catLabel="Hari" cellColors={['#f59e0b', '#f59e0b', '#ef4444']} />
           <BarCard title="Permintaan per unit kerja" horizontal data={c.master.unitKerja.map((d) => ({ name: d, Jumlah: rows.filter((r) => r.dept === d).length }))} keys={['Jumlah']} onClick={(row) => drill({ dept: row.name })} />
-          <BarCard title="Rata-rata lama selesai per jenis (hari)" data={JENIS.map((j) => { const x = done.filter((r) => r.jenis === j); return { name: j, Hari: x.length ? Math.round(x.reduce((a, r) => a + diffDays(r.tglSelesai, r.tglMasuk), 0) / x.length) : 0 } })} keys={['Hari']} />
+          <BarCard title="Rata-rata lama selesai per jenis (hari)" data={JENIS.map((j) => { const x = done.filter((r) => r.jenis === j); return { name: j, Hari: x.length ? Math.round(x.reduce((a, r) => a + diffDays(r.tglSelesai, r.tglMasuk), 0) / x.length) : 0 } })} keys={['Hari']} unit="Hari" />
         </div>
       </div>
     )

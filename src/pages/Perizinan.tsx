@@ -17,7 +17,7 @@ interface Izin extends BaseRec {
 const KAT = ['Akta + SK', 'Izin', 'Legalitas Lainnya']
 const STATUS = ['Aktif', 'Dalam Perpanjangan', 'Kedaluwarsa']
 const SOON180 = '180 hari atau kurang'
-const GRUP = ['Kedaluwarsa', '90 hari atau kurang', '91 sampai 180 hari', 'Lebih dari 180 hari', 'Tanpa tanggal kedaluwarsa']
+const GRUP = ['Kedaluwarsa', '90 hari atau kurang', '91 sampai 180 hari', 'Lebih dari 180 hari']
 const LIVE = (r: Izin) => r.status !== 'Tidak Berlaku' && !r.cancelled
 const sisa = (r: Izin, today: string) => (r.tglKedaluwarsa ? diffDays(r.tglKedaluwarsa, today) : null)
 const sisaTone = (d: number | null): Tone => (d === null ? 'gray' : d <= 90 ? 'red' : d <= 180 ? 'yellow' : 'green')
@@ -27,19 +27,17 @@ const SisaBadge = ({ r, today }: { r: Izin; today: string }) => {
 }
 const grup = (r: Izin, today: string) => {
   const d = sisa(r, today)
-  return d === null ? GRUP[4] : d < 0 ? GRUP[0] : d <= 90 ? GRUP[1] : d <= 180 ? GRUP[2] : GRUP[3]
+  return d === null ? '' : d < 0 ? GRUP[0] : d <= 90 ? GRUP[1] : d <= 180 ? GRUP[2] : GRUP[3]
 }
-const izinTanpaTgl = (r: Izin) => r.kategori === 'Izin' && (!r.tglBerlaku || !r.tglKedaluwarsa)
-const dateReq = (r: Izin) => r.kategori === 'Izin'
 
 const fields: Field<Izin>[] = [
   { key: 'kategori', label: 'Kategori Dokumen', type: 'select', options: KAT, required: true },
   { key: 'nama', label: 'Nama Dokumen', type: 'text', required: true, help: 'Mis. Izin QRIS, Izin Transfer Dana.' },
   { key: 'nomor', label: 'Nomor Dokumen', type: 'text', required: true },
   { key: 'penerbit', label: 'Penerbit', type: 'text', required: true },
-  { key: 'tglTerbit', label: 'Tanggal Terbit', type: 'date', required: dateReq },
-  { key: 'tglBerlaku', label: 'Tanggal Berlaku', type: 'date', required: dateReq },
-  { key: 'tglKedaluwarsa', label: 'Tanggal Kedaluwarsa', type: 'date', required: (r) => dateReq(r) || r.perpanjang === 'Ya', help: 'Wajib untuk Izin.' },
+  { key: 'tglTerbit', label: 'Tanggal Terbit', type: 'date', required: true },
+  { key: 'tglBerlaku', label: 'Tanggal Berlaku', type: 'date', required: true },
+  { key: 'tglKedaluwarsa', label: 'Tanggal Kedaluwarsa', type: 'date', required: true },
   { key: 'tglReview', label: 'Tanggal Review', type: 'date', help: 'Opsional.' },
   { key: 'kewajiban', label: 'Kewajiban Pelaporan terkait Izin', type: 'textarea', wide: true, help: 'Teks bebas (tidak ada master Daftar Laporan).' },
   { key: 'pic', label: 'PIC', type: 'select', options: (c) => c.master.pic, required: true },
@@ -98,17 +96,12 @@ const alerts: AlertDef<Izin>[] = [
     },
     sample: (c) => mk(c, { tglKedaluwarsa: addDays(c.today, -20), status: 'Kedaluwarsa' }),
   },
-  {
-    key: 'tanpatgl', label: 'Izin tanpa tanggal', rule: 'Izin belum memiliki tanggal berlaku atau tanggal kedaluwarsa.',
-    check: (r) => (LIVE(r) && izinTanpaTgl(r) ? { color: 'yellow', detail: 'Tanggal berlaku/kedaluwarsa belum diisi', to: ['Legal Officer'] } : null),
-    sample: (c) => mk(c, { tglBerlaku: '', tglKedaluwarsa: '' }),
-  },
 ]
 
 function seed(today: string): Izin[] {
   const f = (n: string): FileMeta => ({ name: n, size: 240000, type: 'application/pdf' } as FileMeta)
   const PIC = ['Regie', 'Fakhri', 'Osama'] // master PIC
-  // [kategori, nama, nomor, penerbit, sisaHari|null, status, tanpaBerlaku?, versiLama?]
+  // [kategori, nama, nomor, penerbit, sisaHari|null (null = berlaku lama, kedaluwarsa jauh), status, -, versiLama?]
   type S = [string, string, string, string, number | null, string, boolean?, number?]
   const sc: S[] = [
     ['Izin', 'Izin Penyelenggara Uang Elektronik', 'PJSP/0101/2023', 'Bank Indonesia', 40, 'Aktif'],
@@ -130,13 +123,13 @@ function seed(today: string): Izin[] {
     ['Legalitas Lainnya', 'Sertifikat ISO 27001', 'ISO/27001/PAY/2024', 'TUV Rheinland', 110, 'Aktif'],
     ['Legalitas Lainnya', 'Sertifikat PCI DSS', 'PCI/DSS/PAY/2024', 'PCI Security Standards Council', 800, 'Aktif'],
   ]
-  return sc.map(([kategori, nama, nomor, penerbit, s, status, tanpa, nLama], i) => {
-    const exp = s === null ? '' : addDays(today, s)
-    const berlaku = tanpa ? '' : exp ? addDays(exp, -730) : addDays(today, -400 - i * 10)
+  return sc.map(([kategori, nama, nomor, penerbit, s, status, , nLama], i) => {
+    const exp = addDays(today, s ?? 3000 + i * 10) // semua dokumen wajib punya tiga tanggal
+    const berlaku = s === null ? addDays(today, -400 - i * 10) : addDays(exp, -730)
     const versi = (nLama ?? 0) + 1
     return {
       id: `perizinan-${i + 1}`, no: i + 1, status, createdAt: addDays(today, -300 + i * 5), createdBy: 'Regie',
-      kategori, nama, nomor, penerbit, tglTerbit: tanpa ? '' : berlaku, tglBerlaku: berlaku, tglKedaluwarsa: tanpa ? '' : exp,
+      kategori, nama, nomor, penerbit, tglTerbit: berlaku, tglBerlaku: berlaku, tglKedaluwarsa: exp,
       tglReview: i % 3 === 0 ? addDays(today, 30 + i) : '',
       kewajiban: kategori === 'Izin' ? 'Laporan berkala triwulanan ke regulator' : '',
       pic: PIC[i % 3], versi, file: f(`${nomor.replace(/[^A-Za-z0-9]/g, '_')}.pdf`), perpanjang: '',
@@ -170,6 +163,7 @@ const cfg: PageConfig<Izin> = {
     }
     return e
   },
+  dashDate: { get: (r) => r.tglTerbit, label: 'Tanggal Terbit' },
   Dashboard: ({ rows, c, open, drill }) => {
     const live = rows.filter(LIVE)
     const withExp = live.filter((r) => r.tglKedaluwarsa)

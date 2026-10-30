@@ -46,6 +46,12 @@ export function useMonthRange(def = '12') {
   return { months, toolbar: <MonthRangeFilter r={{ p, setP, from, setFrom, to, setTo }} /> }
 }
 
+// Rincian untuk tooltip: hitung per kunci, urut terbanyak
+export function countBy<T>(x: T[], g: (r: T) => string): [string, number][] { const m = new Map<string, number>(); x.forEach((r) => { const k = g(r) || '-'; m.set(k, (m.get(k) ?? 0) + 1) }); return [...m].sort((a, b) => b[1] - a[1]) }
+export const Breakdown = ({ title, sub, items }: { title: string; sub: string; items: [string, number][] }) => (
+  <div><div className="font-semibold">{title}</div><div className="mb-1 text-slate-500">{sub}</div>{items.map(([k, v]) => <div key={k} className="flex justify-between gap-4"><span>{k}</span><span className="font-medium">{v}</span></div>)}{!items.length && <div className="text-slate-400">Tidak ada data</div>}</div>
+)
+
 export const Card = ({ title, children, className = '', toolbar }: { title?: string; children: ReactNode; className?: string; toolbar?: ReactNode }) => (
   <div className={`rounded-lg border border-slate-200 bg-white p-4 ${className}`}>
     {title && <h3 className="mb-3 text-sm font-semibold text-slate-800">{title}</h3>}
@@ -70,7 +76,8 @@ export function StatCards({ items }: { items: { label: string; value: string | n
 }
 
 // data: [{ name, <key1>, <key2> ... }]; cellColors mewarnai tiap batang (hanya untuk satu seri)
-export function BarCard({ title, data, keys, stacked, horizontal, colors, cellColors, xKey = 'name', onClick, height = 240, className, tip, toolbar }: {
+export function BarCard({ title, data, keys, stacked, horizontal, colors, cellColors, xKey = 'name', onClick, height = 240, className, tip, toolbar, unit, catLabel }: {
+  unit?: string; catLabel?: string; // unit = satuan sumbu angka (mis. 'Hari': label sumbu + tooltip 'N hari'); catLabel = label sumbu kategori
   title: string; toolbar?: ReactNode; data: Row[]; keys: string[]; stacked?: boolean; horizontal?: boolean; colors?: Colors; cellColors?: string[]; xKey?: string; tip?: (row: Row) => ReactNode
   onClick?: (row: Row, key: string) => void; height?: number; className?: string
 }) {
@@ -80,8 +87,10 @@ export function BarCard({ title, data, keys, stacked, horizontal, colors, cellCo
         <ResponsiveContainer width="100%" height={horizontal ? Math.max(height, data.length * 28 + 40) : height}>
           <BarChart data={data} layout={horizontal ? 'vertical' : 'horizontal'} margin={{ left: horizontal ? 20 : 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#eef0f4" />
-            {horizontal ? <><XAxis type="number" allowDecimals={false} fontSize={11} /><YAxis type="category" dataKey={xKey} width={110} fontSize={11} /></> : <><XAxis dataKey={xKey} fontSize={11} /><YAxis allowDecimals={false} fontSize={11} /></>}
-            {tip ? <Tooltip content={({ active, payload }) => (active && payload?.length ? <div className="rounded border border-slate-200 bg-white p-2 text-xs shadow">{tip(payload[0].payload as Row)}</div> : null)} /> : <Tooltip />}
+            {horizontal
+              ? <><XAxis type="number" allowDecimals={false} fontSize={11} height={unit ? 40 : undefined} label={unit ? { value: unit, position: 'insideBottom', offset: -2, fontSize: 11 } : undefined} /><YAxis type="category" dataKey={xKey} width={110} fontSize={11} label={catLabel ? { value: catLabel, angle: -90, position: 'insideLeft', fontSize: 11 } : undefined} /></>
+              : <><XAxis dataKey={xKey} fontSize={11} height={catLabel ? 40 : undefined} label={catLabel ? { value: catLabel, position: 'insideBottom', offset: -2, fontSize: 11 } : undefined} /><YAxis allowDecimals={false} fontSize={11} width={unit ? 50 : undefined} label={unit ? { value: unit, angle: -90, position: 'insideLeft', fontSize: 11 } : undefined} /></>}
+            {tip ? <Tooltip content={({ active, payload }) => (active && payload?.length ? <div className="rounded border border-slate-200 bg-white p-2 text-xs shadow">{tip(payload[0].payload as Row)}</div> : null)} /> : <Tooltip formatter={unit ? (v) => `${v} ${unit.toLowerCase()}` : undefined} />}
             {keys.length > 1 && <Legend wrapperStyle={{ fontSize: 11 }} />}
             {keys.map((k, i) => (
               <Bar key={k} dataKey={k} stackId={stacked ? 's' : undefined} fill={colorOf(colors, k, i)} cursor={onClick ? 'pointer' : undefined} onClick={onClick ? (d) => onClick(d.payload as Row, k) : undefined}>
@@ -113,13 +122,13 @@ export function DonutCard({ title, data, onClick, className, tip }: { title: str
   )
 }
 
-export function LineCard({ title, data, keys, colors, xKey = 'name', height = 240, className, toolbar }: { title: string; data: Row[]; keys: string[]; colors?: Colors; xKey?: string; height?: number; className?: string; toolbar?: ReactNode }) {
+export function LineCard({ title, data, keys, colors, xKey = 'name', height = 240, className, toolbar, tip }: { title: string; data: Row[]; keys: string[]; colors?: Colors; xKey?: string; height?: number; className?: string; toolbar?: ReactNode; tip?: (row: Row) => ReactNode }) {
   return (
     <Card title={title} className={className} toolbar={toolbar}>
       {!hasData(data, keys, !!toolbar) ? <Empty /> : (
         <ResponsiveContainer width="100%" height={height}>
           <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#eef0f4" /><XAxis dataKey={xKey} fontSize={11} /><YAxis allowDecimals={false} fontSize={11} /><Tooltip />
+            <CartesianGrid strokeDasharray="3 3" stroke="#eef0f4" /><XAxis dataKey={xKey} fontSize={11} /><YAxis allowDecimals={false} fontSize={11} />{tip ? <Tooltip content={({ active, payload }) => (active && payload?.length ? <div className="rounded border border-slate-200 bg-white p-2 text-xs shadow">{tip(payload[0].payload as Row)}</div> : null)} /> : <Tooltip />}
             {keys.length > 1 && <Legend wrapperStyle={{ fontSize: 11 }} />}
             {keys.map((k, i) => <Line key={k} type="monotone" dataKey={k} stroke={colorOf(colors, k, i)} strokeWidth={2} dot={{ r: 3 }} />)}
           </LineChart>

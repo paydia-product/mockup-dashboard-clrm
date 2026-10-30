@@ -26,6 +26,10 @@ export default function PageShell<T extends BaseRec>({ config: cfg }: { config: 
   const [modal, setModal] = useState<Modal_>(null)
   const close = () => setModal(null)
   const live = api.rows.filter((r) => !r.cancelled)
+  const [dFrom, setDFrom] = useState('')
+  const [dTo, setDTo] = useState('')
+  const dd = cfg.dashDate
+  const dashRows = dd && (dFrom || dTo) ? live.filter((r) => { const d = (dd.get(r) ?? '').slice(0, 10); return !!d && (!dFrom || d >= dFrom) && (!dTo || d <= dTo) }) : live
 
   const shown = api.rows.filter((r) => {
     if (q.trim() && !cfg.search(r, c).toLowerCase().includes(q.trim().toLowerCase())) return false
@@ -62,7 +66,21 @@ export default function PageShell<T extends BaseRec>({ config: cfg }: { config: 
         ))}
       </div>
 
-      {tab === 'dashboard' ? <D rows={live} c={c} open={openDetail} drill={drill} /> : (
+      {tab === 'dashboard' ? (
+        <div className="space-y-3">
+          {dd && (
+            <div className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 bg-white p-3">
+              <span className="text-xs font-medium text-slate-500">Periode {dd.label}</span>
+              <input type="date" className="inp !w-auto" value={dFrom} onChange={(e) => setDFrom(e.target.value)} />
+              <span>sampai</span>
+              <input type="date" className="inp !w-auto" value={dTo} onChange={(e) => setDTo(e.target.value)} />
+              <button className="btn" onClick={() => { setDFrom(''); setDTo('') }}>Reset</button>
+              <span className="ml-auto text-xs text-slate-400">{dashRows.length} data (tanpa yang dibatalkan)</span>
+            </div>
+          )}
+          <D rows={dashRows} allRows={live} c={c} open={openDetail} drill={drill} />
+        </div>
+      ) : (
         <div className="rounded-lg border border-slate-200 bg-white">
           <div className="flex flex-wrap items-center gap-2 border-b p-3">
             <div className="relative w-64"><Search size={14} className="absolute left-2.5 top-2.5 text-slate-400" />

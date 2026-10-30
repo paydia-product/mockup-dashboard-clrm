@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 2.11.0 | 2026-10-30 | ~200k |
 | 2.10.1 | 2026-10-30 | ~230k |
 | 2.10.0 | 2026-10-30 | ~250k |
 | 2.9.2 | 2026-10-30 | ~130k |
@@ -40,6 +41,26 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [2.11.0] - 2026-10-30
+
+Estimasi token: ~200k
+
+### Ditambah
+- Semua dashboard kit (Regulatory Reporting sampai Layanan Hukum): filter Periode tanggal utama di atas dashboard, dengan Reset dan jumlah data. Grafik per bulan tetap memakai filter bulan sendiri dan tidak terpengaruh.
+- Kontrak: Nama Merchant (teks bebas) untuk Jenis Hubungan Merchant; Nama Mitra (dropdown master Mitra Vendor) untuk jenis lain. Mengganti Jenis Hubungan mengosongkan isian yang tidak cocok.
+- APH: hover Permintaan per kasus dan Surat masuk per bulan menampilkan rincian per Instansi Pengirim.
+- Layanan Hukum: hover Permintaan per jenis menampilkan rincian per Unit Kerja.
+
+### Diubah
+- Grafik berbasis hari (Kajian, Fraud, Layanan Hukum, APH, Regulatory Change) diberi satuan Hari pada sumbu dan hover.
+- Kontrak: semua judul kartu diawali Kontrak; kartu Tanggal kosong menjadi Kontrak Tanggal Berakhir Kosong.
+- Perizinan: Tanggal Terbit, Berlaku, Kedaluwarsa wajib untuk semua kategori; seed dilengkapi tiga tanggal.
+- APP_KEY naik ke v12.
+
+### Dihapus
+- APH: kartu Active lewat batas jawaban.
+- Perizinan: alert Izin tanpa tanggal dan kelompok Tanpa tanggal kedaluwarsa (tidak mungkin lagi terjadi).
 
 ## [2.10.1] - 2026-10-30
 

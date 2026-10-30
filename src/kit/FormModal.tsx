@@ -104,7 +104,7 @@ export default function FormModal<T extends BaseRec>({ cfg, mode, init, norm, c,
   const edit = mode === 'edit'
   const fields = fieldsFor(cfg, mode)
   const need = edit ? fields.filter((f) => f.reasonOnChange && !isEmpty(init[f.key]) && JSON.stringify(init[f.key]) !== JSON.stringify(r[f.key])) : []
-  const set = (k: string, v: unknown) => setR((p) => ({ ...p, [k]: v }))
+  const set = (k: string, v: unknown) => setR((p) => { const n = { ...p, [k]: v }; return cfg.onChange ? (cfg.onChange(n as T, k, p as T) as R) : n })
   const editable = (f: Field<any>) => !edit || !f.editableBy || f.editableBy(c, init as T) // eslint-disable-line @typescript-eslint/no-explicit-any
   const masked = (f: Field<any>) => edit && !!f.mask?.(c) // eslint-disable-line @typescript-eslint/no-explicit-any
   const locked = (f: Field<any>) => masked(f) || !editable(f) // eslint-disable-line @typescript-eslint/no-explicit-any

@@ -185,6 +185,7 @@ const cfg: PageConfig<Kajian> = {
     show: (r, c) => r.status !== 'Batal' && (r.status !== 'Selesai' || !r.hasil) && (c.role !== 'PIC' || sameName(r.pic, c.user.name)),
     run: (r, api, close) => <SelesaiModal r={r} api={api} close={close} />,
   }],
+  dashDate: { get: (r) => r.tglMasuk, label: 'Tanggal Masuk' },
   Dashboard: ({ rows, c, drill, open }) => {
     const n = (s: string) => rows.filter((r) => r.status === s).length
     const late = rows.filter((r) => lateDays(r, c.today) > 0)
@@ -205,7 +206,7 @@ const cfg: PageConfig<Kajian> = {
             ]} rows={late} onRow={(r) => open(r.id)} empty="Tidak ada kajian lewat batas" />
           </Card>
           <BarCard title="Kajian per unit kerja" horizontal data={c.master.unitKerja.map((d) => ({ name: d, Jumlah: rows.filter((r) => r.dept === d).length }))} keys={['Jumlah']} onClick={(row) => drill({ dept: row.name })} />
-          <BarCard title="Rata-rata lama masuk sampai selesai per jenis (hari)" data={JENIS.map((j) => { const x = done.filter((r) => r.jenis === j); return { name: j, Hari: x.length ? Math.round(x.reduce((a, r) => a + lamaSelesai(r), 0) / x.length) : 0 } })} keys={['Hari']} />
+          <BarCard title="Rata-rata lama masuk sampai selesai per jenis (hari)" data={JENIS.map((j) => { const x = done.filter((r) => r.jenis === j); return { name: j, Hari: x.length ? Math.round(x.reduce((a, r) => a + lamaSelesai(r), 0) / x.length) : 0 } })} keys={['Hari']} unit="Hari" />
           <DonutCard title="Kajian per hasil / opini" data={HASIL.map((h) => ({ name: h, value: rows.filter((r) => r.hasil === h).length }))} onClick={(name) => drill({ hasil: name })} />
           <Card title="Mitra: jadwal due diligence / evaluasi ≤30 hari atau lewat">
             <MiniTable cols={[

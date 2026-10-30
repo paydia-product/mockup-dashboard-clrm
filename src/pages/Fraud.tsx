@@ -280,7 +280,8 @@ const cfg: PageConfig<Fraud> = {
     if (r.tglBlokir && r.tglTerima && r.tglBlokir < r.tglTerima) e.tglBlokir = 'Tanggal Blokir tidak boleh sebelum Tanggal Terima'
     return e
   },
-  Dashboard: ({ rows, c, drill }) => {
+  dashDate: { get: (r) => r.tglTerima, label: 'Tanggal Terima' },
+  Dashboard: ({ rows, allRows, c, drill }) => {
     const n = (s: string) => rows.filter((r) => r.status === s).length
     const old = rows.filter((r) => OPEN(r) && age(r, c.today) > 90).length
     const hold = rows.reduce((a, r) => a + num(r.holdNom), 0)
@@ -288,11 +289,11 @@ const cfg: PageConfig<Fraud> = {
     // filter bulan per kartu (independen satu sama lain dan dari filter halaman)
     const rgKasus = useMonthRange('12')
     const rgUang = useMonthRange('12')
-    const keys = rows.map((r) => monthKey(r.tglTerima))
+    const keys = allRows.map((r) => monthKey(r.tglTerima))
     const mk = (rg: typeof rgKasus) => rg.months(keys).map((key) => ({ key, name: `${MON[Number(key.slice(5)) - 1]} ${key.slice(2, 4)}` }))
     const monthsKasus = mk(rgKasus)
     const monthsUang = mk(rgUang)
-    const inM = (k: string) => rows.filter((r) => monthKey(r.tglTerima) === k)
+    const inM = (k: string) => allRows.filter((r) => monthKey(r.tglTerima) === k)
     const sum = (x: Fraud[], g: (r: Fraud) => Money) => x.reduce((a, r) => a + num(g(r)), 0)
     const edges = [30, 60, 90]
     const open = rows.filter(OPEN)
@@ -323,8 +324,8 @@ const cfg: PageConfig<Fraud> = {
           <BarCard title="Kasus per tindakan dan saldo tertahan (juta Rp)" data={TINDAKAN.map((x) => ({ name: x, Kasus: rows.filter((r) => r.tindakan === x).length, 'Saldo Tertahan (juta)': juta(sum(rows.filter((r) => r.tindakan === x), (r) => r.saldo)) }))} keys={['Kasus', 'Saldo Tertahan (juta)']} onClick={(row) => drill({ tindakan: row.name })} />
           <BarCard title="Top 10 merchant / group" horizontal data={top} keys={['Kasus']} onClick={(row) => drill({ group: row.name })} tip={(row) => <Breakdown title={`${row.name}: ${row.Kasus} kasus`} sub="Per jenis dugaan" items={countBy(rows.filter((r) => r.group === row.name), (r) => r.jenis)} />} />
           <ComboCard title="Nilai uang per bulan (juta Rp)" toolbar={rgUang.toolbar} bars={['Korban', 'Hold', 'Released']} lines={['Saldo Tertahan']} data={monthsUang.map((m) => { const x = inM(m.key); return { name: m.name, Korban: juta(sum(x, (r) => r.korban)), Hold: juta(sum(x, (r) => r.holdNom)), Released: juta(sum(x, (r) => r.relNom)), 'Saldo Tertahan': juta(sum(x, (r) => r.saldo)) } })} />
-          <BarCard title="Lama proses (hari): rata-rata dan terlama" data={spans.map(([name, v]) => ({ name, 'Rata-rata': avg(v), Terlama: v.length ? Math.max(...v) : 0 }))} keys={['Rata-rata', 'Terlama']} />
-          <BarCard title="Umur kasus Open (hari)" data={ageBuckets(edges).map((name) => ({ name, Jumlah: open.filter((r) => ageBucket(age(r, c.today), edges) === name).length }))} keys={['Jumlah']} cellColors={['#22c55e', '#f59e0b', '#f59e0b', '#ef4444']} />
+          <BarCard title="Lama proses (hari): rata-rata dan terlama" data={spans.map(([name, v]) => ({ name, 'Rata-rata': avg(v), Terlama: v.length ? Math.max(...v) : 0 }))} keys={['Rata-rata', 'Terlama']} unit="Hari" />
+          <BarCard title="Umur kasus Open (hari)" data={ageBuckets(edges).map((name) => ({ name, Jumlah: open.filter((r) => ageBucket(age(r, c.today), edges) === name).length }))} keys={['Jumlah']} catLabel="Hari" cellColors={['#22c55e', '#f59e0b', '#f59e0b', '#ef4444']} />
           <BarCard title="Lapor regulator setelah blokir" stacked data={lapor} keys={['Sudah Lapor', 'Belum Lapor', 'Terlambat']} colors={{ 'Sudah Lapor': '#10b981', 'Belum Lapor': '#f59e0b', Terlambat: '#ef4444' }} />
         </div>
       </div>

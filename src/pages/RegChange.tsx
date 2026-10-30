@@ -203,10 +203,11 @@ const cfg: PageConfig<Reg> = {
     if (r.perluJawab === 'Ya' && r.jawabTgl && r.jawabBatas && r.jawabTgl < r.tglDicatat) e.jawabTgl = 'Tanggal Dijawab tidak boleh sebelum Tanggal Dicatat'
     return e
   },
-  Dashboard: ({ rows, c, drill, open }) => {
+  dashDate: { get: (r) => r.tglDicatat, label: 'Tanggal Dicatat' },
+  Dashboard: ({ rows, allRows, c, drill, open }) => {
     const n = (k: string) => rows.filter((r) => kep(r) === k).length
     const rg = useMonthRange('12') // filter bulan kartu Tren, independen dari filter halaman
-    const mons = rg.months(rows.map((r) => r.tglDicatat.slice(0, 7)))
+    const mons = rg.months(allRows.map((r) => r.tglDicatat.slice(0, 7)))
     const rated = rows.filter((r) => r.pemenuhan !== '')
     const edges = [10, 20]
     const un = rows.filter(unrated)
@@ -220,12 +221,12 @@ const cfg: PageConfig<Reg> = {
       <div className="space-y-3">
         <div className="grid gap-3 lg:grid-cols-2">
           <BarCard title="Peraturan per regulator dan jenis perubahan" stacked data={REGULATOR.map((g) => ({ name: g, ...Object.fromEntries(JP.map((j) => [j, rows.filter((r) => regB(r) === g && r.jp === j).length])) }))} keys={JP} colors={['#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6']} onClick={(row) => drill({ regulator: row.name })} />
-          <LineCard title="Tren peraturan baru dan perubahan per bulan" toolbar={rg.toolbar} data={mons.map((m) => ({ name: m, Baru: rows.filter((r) => r.tglDicatat.startsWith(m) && r.jp === 'Baru').length, Perubahan: rows.filter((r) => r.tglDicatat.startsWith(m) && r.jp === 'Perubahan').length }))} keys={['Baru', 'Perubahan']} colors={['#3b82f6', '#f59e0b']} />
+          <LineCard title="Tren peraturan baru dan perubahan per bulan" toolbar={rg.toolbar} data={mons.map((m) => ({ name: m, Baru: allRows.filter((r) => r.tglDicatat.startsWith(m) && r.jp === 'Baru').length, Perubahan: allRows.filter((r) => r.tglDicatat.startsWith(m) && r.jp === 'Perubahan').length }))} keys={['Baru', 'Perubahan']} colors={['#3b82f6', '#f59e0b']} />
           <DonutCard title="Status kepatuhan" data={KEP.map((k) => ({ name: k, value: n(k), color: KEP_COLOR[k] }))} onClick={(name) => drill({ kepatuhan: name })} />
           <BarCard title="Rata-rata pemenuhan per kategori (%)" data={c.master.kategoriRegulasi.map((k) => { const x = rated.filter((r) => r.kategori === k); const sum = x.reduce((a, r) => a + Number(r.pemenuhan), 0); return { name: k, Pemenuhan: x.length ? Math.round(sum / x.length) : 0 } })} keys={['Pemenuhan']}
             tip={(d) => <><div className="mb-1 font-semibold text-slate-800">{String(d.name)}</div><div>Rata-rata pemenuhan: {d.Pemenuhan}%</div></>} />
           <div className="space-y-3">
-            <BarCard title="Belum dinilai menurut lama sejak dicatat (hari)" data={ageBuckets(edges).map((b) => ({ name: b, Jumlah: un.filter((r) => ageBucket(age(r), edges) === b).length }))} keys={['Jumlah']} colors={['#f59e0b']} />
+            <BarCard title="Belum dinilai menurut lama sejak dicatat (hari)" data={ageBuckets(edges).map((b) => ({ name: b, Jumlah: un.filter((r) => ageBucket(age(r), edges) === b).length }))} keys={['Jumlah']} colors={['#f59e0b']} catLabel="Hari" />
             <MiniTable title="Peraturan belum dinilai" rows={un} onRow={(r) => open(r.id)} empty="Semua sudah dinilai"
               cols={[{ label: 'No', get: (r) => r.no }, { label: 'Peraturan', get: label }, { label: 'Dicatat', get: (r) => fmtDate(r.tglDicatat) }, { label: 'Umur (hari)', get: (r) => age(r) }]} />
           </div>

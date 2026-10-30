@@ -6,7 +6,7 @@ import { StatusPill } from '../kit/fmt'
 import type { AlertDef, BaseRec, Column, Ctx, Field, FilterDef, PageConfig } from '../kit/types'
 
 interface Kontrak extends BaseRec {
-  jenisHubungan: string; mitra: string; nomor: string; jenisDok: string; mulai: string; berakhir: string
+  jenisHubungan: string; mitra: string; merchant: string; nomor: string; jenisDok: string; mulai: string; berakhir: string
   perpanjangan: string; lamaBulan: number | ''; bidang: string; pic: string; dept: string; induk: string
   kelengkapan: Record<string, boolean>; file: { name: string; size: number; type: string } | null
 }
@@ -15,6 +15,8 @@ const JENIS_DOK = ['PKS QRIS', 'Biller Gateway', 'Account Linkage', 'Payout', 'P
 const PERPANJANGAN = ['Otomatis', 'Manual', 'Sampai Diputus', 'Tidak Diperpanjang']
 const STATUS = ['Draft', 'Review', 'Aktif', 'Akan Berakhir', 'Expired', 'Diperpanjang', 'Berakhir']
 const BIDANG = ['F&B', 'Retail', 'Jasa', 'Pendidikan', 'Lainnya']
+const isMerchant = (r: Kontrak) => r.jenisHubungan === 'Merchant'
+const nm = (r: Kontrak) => (isMerchant(r) ? r.merchant : r.mitra) // Merchant = teks bebas; selain itu = master Mitra Vendor
 const LIVE = (r: Kontrak) => r.status === 'Aktif' || r.status === 'Akan Berakhir'
 const G = { d30: '≤30 hari', d60: '30–60 hari', d90: '60–90 hari', over: '>90 hari', exp: 'Expired', empty: 'Kosong' }
 const GROUPS = [G.d30, G.d60, G.d90, G.over, G.exp, G.empty]
@@ -35,11 +37,12 @@ const needsLama = (r: Kontrak) => r.perpanjangan === 'Otomatis' || r.perpanjanga
 
 const fields: Field<Kontrak>[] = [
   { key: 'jenisHubungan', label: 'Jenis Hubungan', type: 'select', options: HUBUNGAN, required: true, editableBy: notPic },
-  { key: 'mitra', label: 'Nama Mitra', type: 'select', options: (c) => c.master.mitra, required: true, editableBy: notPic },
+  { key: 'mitra', label: 'Nama Mitra', type: 'select', options: (c) => c.master.mitra, required: true, editableBy: notPic, showIf: (r) => !isMerchant(r) },
+  { key: 'merchant', label: 'Nama Merchant', type: 'text', required: true, editableBy: notPic, showIf: isMerchant },
   { key: 'nomor', label: 'Nomor PKS / NDA', type: 'text', required: true, editableBy: notPic, help: 'Harus unik.' },
   { key: 'jenisDok', label: 'Jenis Dokumen', type: 'select', options: JENIS_DOK, required: true, editableBy: notPic },
   { key: 'mulai', label: 'Tanggal Mulai', type: 'date', required: true, editableBy: notPic },
-  { key: 'berakhir', label: 'Tanggal Berakhir', type: 'date', help: 'Boleh kosong (masuk kartu "Tanggal kosong").' },
+  { key: 'berakhir', label: 'Tanggal Berakhir', type: 'date', help: 'Boleh kosong (masuk kartu "Kontrak Tanggal Berakhir Kosong").' },
   { key: 'perpanjangan', label: 'Perpanjangan', type: 'select', options: PERPANJANGAN, required: true },
   { key: 'lamaBulan', label: 'Lama Perpanjangan (bulan)', type: 'number', required: needsLama, showIf: needsLama },
   { key: 'status', label: 'Status', type: 'select', options: STATUS, required: true, help: 'Aktif otomatis menjadi Akan Berakhir (≤90 hari) atau Expired menurut Tanggal Berakhir.' },
@@ -58,7 +61,7 @@ const fields: Field<Kontrak>[] = [
 const columns: Column<Kontrak>[] = [
   { label: 'No', get: (r) => r.no },
   { label: 'Jenis Hubungan', get: (r) => r.jenisHubungan },
-  { label: 'Mitra', get: (r) => r.mitra },
+  { label: 'Mitra / Merchant', get: nm },
   { label: 'Nomor PKS / NDA', get: (r) => r.nomor },
   { label: 'Jenis Dokumen', get: (r) => r.jenisDok },
   { label: 'Mulai', get: (r) => r.mulai, render: (r) => fmtDate(r.mulai) },
@@ -81,7 +84,7 @@ const filters: FilterDef<Kontrak>[] = [
 
 const toPic = (r: Kontrak) => (r.pic ? `PIC (${r.pic})` : 'PIC')
 const mk = (c: Ctx, o: Partial<Kontrak>): Kontrak => ({
-  id: 'sample', no: 99, status: 'Aktif', createdAt: c.today, createdBy: '-', jenisHubungan: 'Merchant', mitra: 'Kopi Senja', nomor: 'PKS/CLRM/099/2026', jenisDok: 'PKS QRIS',
+  id: 'sample', no: 99, status: 'Aktif', createdAt: c.today, createdBy: '-', jenisHubungan: 'Merchant', mitra: '', merchant: 'Kopi Senja', nomor: 'PKS/CLRM/099/2026', jenisDok: 'PKS QRIS',
   mulai: addDays(c.today, -300), berakhir: addDays(c.today, 60), perpanjangan: 'Manual', lamaBulan: 12, bidang: 'F&B', pic: 'Regie', dept: '', induk: '',
   kelengkapan: { hardcopy: true, ttd: true }, file: { name: 'PKS-099.pdf', size: 120000, type: 'application/pdf' }, ...o,
 })
@@ -112,7 +115,8 @@ const alerts: AlertDef<Kontrak>[] = [
 ]
 
 function seed(today: string): Kontrak[] {
-  const MITRA = ['Kopi Senja', 'Toko Maju Jaya', 'Bimbel Cerdas', 'PT Telkom Biller', 'Warung Nusantara', 'Apotek Sehat', 'Bank Mitra Utama', 'CV Digital Kreasi', 'Resto Padang Raya', 'Laundry Kilat', 'Sekolah Harapan', 'Minimarket 24', 'PT Logistik Cepat', 'Salon Cantika']
+  const MERCH = ['Kopi Senja', 'Toko Maju Jaya', 'Bimbel Cerdas', 'Warung Nusantara', 'Apotek Sehat', 'Resto Padang Raya', 'Laundry Kilat', 'Sekolah Harapan', 'Minimarket 24', 'Salon Cantika'] // nama merchant (teks bebas, tidak harus ada di master)
+  const VEND = ['PT Telkom Biller', 'Bank Mitra Utama', 'PT Logistik Cepat', 'PT Nusa Cloud', 'PT Data Prima', 'PT Mitra Bayar', 'PT Biller Nusantara', 'PT Arta Teknologi'] // semua ada di master Mitra Vendor
   const PICS = ['Regie', 'Fakhri', 'Osama', 'Regie'] // master PIC
   const DEPT = ['Business', 'Operation', 'Finance, Accounting, Tax & Treasury', 'Information Technology']
   // [hubungan, jenisDok, mulai (hari lalu), sisa hari (null = kosong), status, perpanjangan, indukIdx]
@@ -132,13 +136,13 @@ function seed(today: string): Kontrak[] {
     ['Merchant', 'Amandemen', 70, 260, 'Aktif', 'Manual', 3], ['Partner-Vendor', 'Payout', 10, 540, 'Aktif', 'Sampai Diputus'], ['Merchant', 'PKS QRIS', 5, 365, 'Aktif', 'Otomatis'],
   ]
   const nomor = (i: number, jd: string) => `${jd === 'NDA' ? 'NDA' : jd === 'Amandemen' ? 'AMD' : 'PKS'}/CLRM/${String(i + 1).padStart(3, '0')}/2026`
-  const mitraOf = (i: number) => MITRA[i % MITRA.length]
+  const nameOf = (i: number) => (sc[i][0] === 'Merchant' ? MERCH[i % MERCH.length] : VEND[i % VEND.length])
   return sc.map(([hub, jd, ago, sisaHari, status, perp, indukIdx], i) => {
     const mulai = addDays(today, -ago)
     const induk = indukIdx !== undefined ? nomor(indukIdx, sc[indukIdx][1]) : ''
     return {
       id: `kontrak-${i + 1}`, no: i + 1, status, createdAt: mulai, createdBy: 'Rudi Hartono',
-      jenisHubungan: hub, mitra: indukIdx !== undefined ? mitraOf(indukIdx) : mitraOf(i), nomor: nomor(i, jd), jenisDok: jd, mulai,
+      jenisHubungan: hub, mitra: hub === 'Merchant' ? '' : nameOf(indukIdx ?? i), merchant: hub === 'Merchant' ? nameOf(indukIdx ?? i) : '', nomor: nomor(i, jd), jenisDok: jd, mulai,
       berakhir: sisaHari === null ? '' : addDays(today, sisaHari), perpanjangan: perp, lamaBulan: perp === 'Otomatis' || perp === 'Manual' ? (i % 2 ? 12 : 24) : '',
       bidang: hub === 'Merchant' ? BIDANG[i % 5] : '', pic: i % 5 === 4 ? '' : PICS[i % 4], dept: i % 5 === 4 ? DEPT[i % 4] : '', induk,
       kelengkapan: { hardcopy: i % 3 !== 0, ttd: i % 4 !== 0 },
@@ -150,10 +154,10 @@ function seed(today: string): Kontrak[] {
 
 const cfg: PageConfig<Kontrak> = {
   module: 'kontrak', title: 'Kontrak', noun: 'Kontrak', exportPrefix: 'Kontrak',
-  name: (r) => `${r.mitra} - ${r.nomor}`,
+  name: (r) => `${nm(r)} - ${r.nomor}`,
   seed, fields, columns, filters,
-  blank: () => ({ jenisHubungan: '', mitra: '', nomor: '', jenisDok: '', mulai: '', berakhir: '', perpanjangan: '', lamaBulan: '', status: 'Draft', bidang: '', pic: '', dept: '', induk: '', kelengkapan: {}, file: null }),
-  search: (r) => `${r.mitra} ${r.nomor} ${r.jenisDok}`, searchPlaceholder: 'Cari mitra, nomor, jenis dokumen',
+  blank: () => ({ jenisHubungan: '', mitra: '', merchant: '', nomor: '', jenisDok: '', mulai: '', berakhir: '', perpanjangan: '', lamaBulan: '', status: 'Draft', bidang: '', pic: '', dept: '', induk: '', kelengkapan: {}, file: null }),
+  search: (r) => `${nm(r)} ${r.nomor} ${r.jenisDok}`, searchPlaceholder: 'Cari mitra, nomor, jenis dokumen',
   alerts, cancelStatus: 'Dibatalkan',
   normalize: (r, c) => {
     if (!LIVE(r) || !r.berakhir) return r
@@ -161,6 +165,8 @@ const cfg: PageConfig<Kontrak> = {
     const status = s < 0 ? 'Expired' : s <= 90 ? 'Akan Berakhir' : 'Aktif'
     return status === r.status ? r : { ...r, status }
   },
+  // ganti Jenis Hubungan: kosongkan isian nama yang tidak lagi cocok (Merchant = teks bebas, lainnya = dropdown master)
+  onChange: (n, k) => (k !== 'jenisHubungan' ? n : isMerchant(n) ? { ...n, mitra: '' } : { ...n, merchant: '' }),
   canEditRow: (r, c) => c.role !== 'PIC' || sameName(r.pic, c.user.name) || (!!r.dept && r.dept === c.user.departemen),
   validate: (r, _mode, c) => {
     const e: Record<string, string> = {}
@@ -171,26 +177,27 @@ const cfg: PageConfig<Kontrak> = {
     if (r.lamaBulan !== '' && Number(r.lamaBulan) < 1) e.lamaBulan = 'Minimal 1 bulan'
     return e
   },
-  Dashboard: ({ rows, c, open, drill }) => {
+  dashDate: { get: (r) => r.mulai, label: 'Tanggal Mulai' },
+  Dashboard: ({ rows, allRows, c, open, drill }) => {
     const cnt = (g: string) => rows.filter((r) => grup(r, c.today) === g).length
     const card = (label: string, g: string, tone: 'green' | 'yellow' | 'red') => ({ label, value: cnt(g), tone, onClick: () => drill({ kelompok: g }) })
     const dekat = rows.filter((r) => LIVE(r) && r.berakhir && (sisa(r, c.today) as number) >= 0 && (sisa(r, c.today) as number) <= 90).sort((a, b) => a.berakhir.localeCompare(b.berakhir))
     const rg = useMonthRange('12') // filter bulan kartu ini, independen dari filter halaman
-    const bulan = rg.months(rows.map((r) => r.mulai.slice(0, 7)))
+    const bulan = rg.months(allRows.map((r) => r.mulai.slice(0, 7)))
     return (
       <div className="space-y-3">
         <StatCards items={[
-          card('Aktif >90 hari', G.over, 'green'), card('Berakhir 60–90 hari', G.d90, 'yellow'), card('Berakhir 30–60 hari', G.d60, 'yellow'),
-          card('Berakhir <30 hari', G.d30, 'red'), card('Expired', G.exp, 'red'), card('Tanggal kosong', G.empty, 'yellow'),
+          card('Kontrak Aktif > 90 hari', G.over, 'green'), card('Kontrak Berakhir 60–90 hari', G.d90, 'yellow'), card('Kontrak Berakhir 30–60 hari', G.d60, 'yellow'),
+          card('Kontrak Berakhir < 30 hari', G.d30, 'red'), card('Kontrak Expired', G.exp, 'red'), card('Kontrak Tanggal Berakhir Kosong', G.empty, 'yellow'),
         ]} />
         <div className="grid gap-3 lg:grid-cols-2">
           <BarCard title="Kontrak per jenis dokumen" horizontal data={JENIS_DOK.map((j) => ({ name: j, Jumlah: rows.filter((r) => r.jenisDok === j).length }))} keys={['Jumlah']} onClick={(row) => drill({ jenisDok: row.name })} />
-          <LineCard title="Kontrak baru per bulan" toolbar={rg.toolbar} data={bulan.map((m) => ({ name: m, 'Kontrak baru': rows.filter((r) => r.mulai.slice(0, 7) === m).length }))} keys={['Kontrak baru']} />
+          <LineCard title="Kontrak baru per bulan" toolbar={rg.toolbar} data={bulan.map((m) => ({ name: m, 'Kontrak baru': allRows.filter((r) => r.mulai.slice(0, 7) === m).length }))} keys={['Kontrak baru']} />
         </div>
         <MiniTable
           title="Kontrak berakhir dalam 90 hari (terdekat dulu)" rows={dekat} onRow={(r) => open(r.id)}
           cols={[
-            { label: 'Mitra', get: (r) => r.mitra }, { label: 'Nomor PKS / NDA', get: (r) => r.nomor }, { label: 'Jenis Dokumen', get: (r) => r.jenisDok },
+            { label: 'Mitra / Merchant', get: nm }, { label: 'Nomor PKS / NDA', get: (r) => r.nomor }, { label: 'Jenis Dokumen', get: (r) => r.jenisDok },
             { label: 'Berakhir', get: (r) => fmtDate(r.berakhir) }, { label: 'Sisa hari', get: (r) => sisa(r, c.today) },
             { label: 'PIC / Unit', get: (r) => picOf(r) },
           ]}
