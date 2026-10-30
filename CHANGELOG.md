@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 2.11.1 | 2026-10-30 | ~60k |
 | 2.11.0 | 2026-10-30 | ~200k |
 | 2.10.1 | 2026-10-30 | ~230k |
 | 2.10.0 | 2026-10-30 | ~250k |
@@ -41,6 +42,16 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [2.11.1] - 2026-10-30
+
+### Diperbaiki
+- Master Mitra Vendor: nama merchant dibuang; seed Kajian, Kontrak, Risk Register tetap ada di master
+- Kontrak Tambah: Nama Mitra / Nama Merchant tampil setelah Jenis Hubungan dipilih
+- Kontrak: kartu dan alert Tanggal Berakhir Kosong memakai aturan sama (tanpa Berakhir/Dibatalkan)
+- load() membuang slice modul bukan array (seed dipakai ulang); helper tanggal menoleransi nilai kosong
+- Tracker: label sumbu Hari pada grafik Temuan Lewat Batas Waktu
+- APP_KEY naik ke v13
 
 ## [2.11.0] - 2026-10-30
 

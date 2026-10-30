@@ -6,7 +6,7 @@ import { DEFAULT_PERMS, MODULE_LABEL, can as canPerm } from './perms'
 import type { Account, Action, ApprovalReq, ApprovalRule, BaseRec, Ctx, LogEntry, ModuleApi, ModuleId, NewRec, PageConfig, PermKey, Role, Session, Store } from './types'
 
 export type { ModuleApi }
-export const APP_KEY = 'clrm.app.v12' // ponytail: v12 = seed Kontrak (Merchant teks bebas, Mitra dari master) + seed Perizinan dengan tiga tanggal; v11 = master Mitra Vendor (seed + PT Jaringan Nusa/PT Data Aman), seed Fraud dengan Jenis Data dan Produk master, tanpa No. Rekening; v10 = seed Regulatory Change (dampak Tinggi baru, sosialisasi terisi) dan PIC seed APH terisi; v9 = master Unit Kerja/Kategori Pelapor/Laporan dari Request Product.xlsx, Regulatory Change tindak lanjut teks + SOP daftar nama, filter tersimpan dihapus (load() membuang `saved` dan mengubah bentuk lama bila ada); v8 = seed tanpa nomor internal di teks, approval simpan nama data; v7 = master PIC (Regie/Fakhri/Osama) menggantikan master Regulator, seed PIC/regulator disesuaikan, akun demo PIC = Regie; v6 = tanggal batal seed Fraud tetap; v5 = pembatal seed Fraud nama orang; v4 = createdBy nama orang + createdAt seed masa lalu + seed Fraud valid; v3 = seed tanpa 'Lainnya' + createdAt datetime; data v2 direset (load() tetap aman membaca data lama)
+export const APP_KEY = 'clrm.app.v13' // ponytail: v13 = master Mitra Vendor tanpa nama merchant, load() membuang slice modul rusak; v12 = seed Kontrak (Merchant teks bebas, Mitra dari master) + seed Perizinan dengan tiga tanggal; v11 = master Mitra Vendor (seed + PT Jaringan Nusa/PT Data Aman), seed Fraud dengan Jenis Data dan Produk master, tanpa No. Rekening; v10 = seed Regulatory Change (dampak Tinggi baru, sosialisasi terisi) dan PIC seed APH terisi; v9 = master Unit Kerja/Kategori Pelapor/Laporan dari Request Product.xlsx, Regulatory Change tindak lanjut teks + SOP daftar nama, filter tersimpan dihapus (load() membuang `saved` dan mengubah bentuk lama bila ada); v8 = seed tanpa nomor internal di teks, approval simpan nama data; v7 = master PIC (Regie/Fakhri/Osama) menggantikan master Regulator, seed PIC/regulator disesuaikan, akun demo PIC = Regie; v6 = tanggal batal seed Fraud tetap; v5 = pembatal seed Fraud nama orang; v4 = createdBy nama orang + createdAt seed masa lalu + seed Fraud valid; v3 = seed tanpa 'Lainnya' + createdAt datetime; data v2 direset (load() tetap aman membaca data lama)
 export const SESSION_KEY = 'clrm.session'
 export const DEFAULT_PASSWORD = 'Paydia123!'
 export const DEFAULT_PIN = '123456'
@@ -25,7 +25,7 @@ const defaults = (): Store => ({
     laporan: [...LAPORAN_NAMES],
     pic: ['Regie', 'Fakhri', 'Osama'],
     kategoriRegulasi: [...AREAS], unitKerja: [...UNITS], produk: ['UE', 'QRIS', 'Biller'],
-    mitra: ['Kopi Senja', 'Toko Maju Jaya', 'Bimbel Cerdas', 'PT Telkom Biller', 'Warung Nusantara', 'Apotek Sehat', 'Bank Mitra Utama', 'CV Digital Kreasi', 'Resto Padang Raya', 'Laundry Kilat', 'Sekolah Harapan', 'Minimarket 24', 'PT Logistik Cepat', 'Salon Cantika', 'PT Nusa Cloud', 'PT Data Prima', 'PT Aman Jaya Logistik', 'PT Mitra Bayar', 'PT Sentra Verifikasi', 'PT Cipta Layanan', 'PT Biller Nusantara', 'PT Arta Teknologi', 'PT Kirim Cepat', 'PT Sigma Analitik', 'PT Jaringan Nusa', 'PT Data Aman'],
+    mitra: ['PT Telkom Biller', 'Bank Mitra Utama', 'CV Digital Kreasi', 'PT Logistik Cepat', 'PT Nusa Cloud', 'PT Data Prima', 'PT Aman Jaya Logistik', 'PT Mitra Bayar', 'PT Sentra Verifikasi', 'PT Cipta Layanan', 'PT Biller Nusantara', 'PT Arta Teknologi', 'PT Kirim Cepat', 'PT Sigma Analitik', 'PT Jaringan Nusa', 'PT Data Aman'],
     kategoriPelapor: ['Departemen Internal', 'Konsumen', 'Switching', 'PJP/Bank', 'Institusi Berwenang Lainnya', 'Kepolisian', 'Bank Indonesia', 'Asosiasi'], mediaPelapor: ['Email', 'IASC', 'GO AML', 'WhatsApp'],
   },
 })
@@ -58,7 +58,9 @@ function load(): Store {
   for (const k of Object.keys(d.master)) if (!Array.isArray(m[k])) delete m[k]
   // "Lainnya" tidak disimpan di master; dropdown menambahkannya otomatis (withLainnya)
   for (const k of Object.keys(m)) if (Array.isArray(m[k])) m[k] = m[k].filter((x: unknown) => String(x).trim().toLowerCase() !== 'lainnya')
-  const modules = Object.fromEntries(Object.entries(s.modules ?? {}).map(([k, l]) => [k, Array.isArray(l) ? l.map(stamp).map(k === 'regchange' ? migrateReg : (x) => x) : l]))
+  // data rusak: slice modul yang bukan array dibuang (seed dipakai ulang), rekaman bukan objek dibuang
+  const raw = s.modules && typeof s.modules === 'object' && !Array.isArray(s.modules) ? s.modules : {}
+  const modules = Object.fromEntries(Object.entries(raw).filter(([, l]) => Array.isArray(l)).map(([k, l]) => [k, (l as unknown[]).filter((x) => x && typeof x === 'object').map((x) => stamp(x as BaseRec)).map(k === 'regchange' ? migrateReg : (x) => x)]))
   delete s.saved // filter tersimpan sudah dihapus
   return { ...d, ...s, modules, master: { ...d.master, ...m } } as Store
 }

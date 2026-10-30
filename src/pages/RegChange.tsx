@@ -2,7 +2,7 @@ import { addDays, diffDays, fmtDate, todayStr } from '../lib'
 import { withLainnya } from '../kit/Lainnya'
 import PageShell from '../kit/PageShell'
 import { BarCard, DonutCard, LineCard, MiniTable, useMonthRange } from '../kit/charts'
-import { ageBucket, ageBuckets, workDaysBetween } from '../kit/dates'
+import { ageBucket, ageBuckets, monthKey, workDaysBetween } from '../kit/dates'
 import { StatusPill } from '../kit/fmt'
 import { readModule } from '../kit/store'
 import type { AlertDef, BaseRec, Column, Ctx, Field, FilterDef, PageConfig } from '../kit/types'
@@ -207,7 +207,7 @@ const cfg: PageConfig<Reg> = {
   Dashboard: ({ rows, allRows, c, drill, open }) => {
     const n = (k: string) => rows.filter((r) => kep(r) === k).length
     const rg = useMonthRange('12') // filter bulan kartu Tren, independen dari filter halaman
-    const mons = rg.months(allRows.map((r) => r.tglDicatat.slice(0, 7)))
+    const mons = rg.months(allRows.map((r) => monthKey(r.tglDicatat)))
     const rated = rows.filter((r) => r.pemenuhan !== '')
     const edges = [10, 20]
     const un = rows.filter(unrated)

@@ -76,13 +76,14 @@ const pad = (n: number) => String(n).padStart(2, '0')
 export const iso = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 export const todayStr = () => iso(new Date())
 export const addDays = (s: string, n: number) => {
-  const d = new Date(s + 'T00:00:00')
+  const d = new Date((s ?? '') + 'T00:00:00')
+  if (isNaN(d.getTime())) return '' // tanggal kosong/rusak: jangan error
   d.setDate(d.getDate() + n)
   return iso(d)
 }
-export const diffDays = (a: string, b: string) => Math.round((Date.parse(a.slice(0, 10) + 'T00:00:00Z') - Date.parse(b.slice(0, 10) + 'T00:00:00Z')) / 864e5) // a - b
+export const diffDays = (a: string, b: string) => Math.round((Date.parse((a ?? '').slice(0, 10) + 'T00:00:00Z') - Date.parse((b ?? '').slice(0, 10) + 'T00:00:00Z')) / 864e5) // a - b
 export const fmtDate = (s: string) => (s ? `${s.slice(8, 10)}/${s.slice(5, 7)}/${s.slice(0, 4)}` : '-')
-export const fmtTime = (s: string) => `${fmtDate(s.slice(0, 10))} ${s.slice(11, 16)}`
+export const fmtTime = (s: string) => (s ? `${fmtDate(s.slice(0, 10))} ${s.slice(11, 16)}` : '-')
 export const fmtTimeSec = (s: string) => (s ? `${fmtDate(s.slice(0, 10))} ${(s.slice(11, 19) || '00:00:00').padEnd(8, ':00').slice(0, 8)}` : '-') // dd/mm/yyyy HH:mm:ss
 export const nowStr = () => {
   const d = new Date()

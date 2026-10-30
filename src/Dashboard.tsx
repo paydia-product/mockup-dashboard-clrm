@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Audit, EMPTY_FILTER, Filter, Finding, REGULATORS, RISKS, STATUSES, fmtDate, lateDays } from './lib'
+import { monthKey } from './kit/dates'
 import { RiskBadge, StatusBadge } from './ui'
 import { useDashPaged } from './shared/Pager'
 import { useMonthRange } from './kit/charts'
@@ -61,10 +62,10 @@ export default function Dashboard({ findings, audit, filter, setFilter, onOpen }
     const m = new Map<string, { bulan: string; Masuk: number; Selesai: number }>()
     const row = (k: string) => { if (!m.has(k)) m.set(k, { bulan: k, Masuk: 0, Selesai: 0 }); return m.get(k)! }
     all.forEach((f) => {
-      row(f.tglTemuan.slice(0, 7)).Masuk++
+      row(monthKey(f.tglTemuan)).Masuk++
       if (f.status === 'Selesai') {
         const e = audit.filter((a) => a.fid === f.id && a.kolom === 'Status' && a.baru === 'Selesai').sort((a, b) => b.time.localeCompare(a.time))[0]
-        row((e?.time ?? f.persetujuanTgl).slice(0, 7)).Selesai++
+        row(monthKey(e?.time ?? f.persetujuanTgl)).Selesai++
       }
     })
     return range.months([...m.keys()]).map((k) => m.get(k) ?? { bulan: k, Masuk: 0, Selesai: 0 })
@@ -130,7 +131,7 @@ export default function Dashboard({ findings, audit, filter, setFilter, onOpen }
       <Card title="Temuan Lewat Batas Waktu" className="border-red-200">
         <div className="grid gap-4 lg:grid-cols-3">
           <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={byBucket}><CartesianGrid strokeDasharray="3 3" vertical={false} /><XAxis dataKey="name" fontSize={12} /><YAxis allowDecimals={false} fontSize={12} /><Tooltip />
+            <BarChart data={byBucket}><CartesianGrid strokeDasharray="3 3" vertical={false} /><XAxis dataKey="name" fontSize={12} height={40} label={{ value: 'Hari', position: 'insideBottom', offset: -2, fontSize: 11 }} /><YAxis allowDecimals={false} fontSize={12} /><Tooltip />
               <Bar dataKey="v" name="Temuan" fill="#dc2626" />
             </BarChart>
           </ResponsiveContainer>

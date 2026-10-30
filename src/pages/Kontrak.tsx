@@ -1,4 +1,5 @@
 import { addDays, diffDays, fmtDate, todayStr } from '../lib'
+import { monthKey } from '../kit/dates'
 import { sameName } from '../kit/perms'
 import PageShell from '../kit/PageShell'
 import { BarCard, LineCard, MiniTable, StatCards, useMonthRange } from '../kit/charts'
@@ -24,7 +25,7 @@ const GROUPS = [G.d30, G.d60, G.d90, G.over, G.exp, G.empty]
 const sisa = (r: Kontrak, today: string) => (r.berakhir ? diffDays(r.berakhir, today) : null)
 // Kelompok masa berlaku: hanya kontrak berjalan (Aktif / Akan Berakhir), ditambah Expired dan Kosong.
 const grup = (r: Kontrak, today: string) => {
-  if (!r.berakhir) return G.empty
+  if (!r.berakhir) return r.status === 'Berakhir' || r.status === 'Dibatalkan' || r.cancelled ? '' : G.empty // sama dengan alert "Tanggal berakhir kosong"
   if (r.status === 'Expired') return G.exp
   if (!LIVE(r)) return ''
   const s = sisa(r, today)!
@@ -37,8 +38,8 @@ const needsLama = (r: Kontrak) => r.perpanjangan === 'Otomatis' || r.perpanjanga
 
 const fields: Field<Kontrak>[] = [
   { key: 'jenisHubungan', label: 'Jenis Hubungan', type: 'select', options: HUBUNGAN, required: true, editableBy: notPic },
-  { key: 'mitra', label: 'Nama Mitra', type: 'select', options: (c) => c.master.mitra, required: true, editableBy: notPic, showIf: (r) => !isMerchant(r) },
-  { key: 'merchant', label: 'Nama Merchant', type: 'text', required: true, editableBy: notPic, showIf: isMerchant },
+  { key: 'mitra', label: 'Nama Mitra', type: 'select', options: (c) => c.master.mitra, required: true, editableBy: notPic, showIf: (r) => !!r.jenisHubungan && !isMerchant(r) },
+  { key: 'merchant', label: 'Nama Merchant', type: 'text', required: true, editableBy: notPic, showIf: (r) => !!r.jenisHubungan && isMerchant(r) },
   { key: 'nomor', label: 'Nomor PKS / NDA', type: 'text', required: true, editableBy: notPic, help: 'Harus unik.' },
   { key: 'jenisDok', label: 'Jenis Dokumen', type: 'select', options: JENIS_DOK, required: true, editableBy: notPic },
   { key: 'mulai', label: 'Tanggal Mulai', type: 'date', required: true, editableBy: notPic },
@@ -109,7 +110,7 @@ const alerts: AlertDef<Kontrak>[] = [
   },
   {
     key: 'kosong', label: 'Tanggal berakhir kosong', rule: 'Tanggal Berakhir belum diisi. Kuning.',
-    check: (r) => (!r.berakhir && r.status !== 'Berakhir' ? { color: 'yellow', detail: 'Tanggal Berakhir belum diisi', to: ['Legal Officer'] } : null),
+    check: (r) => (!r.berakhir && r.status !== 'Berakhir' && r.status !== 'Dibatalkan' && !r.cancelled ? { color: 'yellow', detail: 'Tanggal Berakhir belum diisi', to: ['Legal Officer'] } : null),
     sample: (c) => mk(c, { berakhir: '', status: 'Aktif' }),
   },
 ]
@@ -183,7 +184,7 @@ const cfg: PageConfig<Kontrak> = {
     const card = (label: string, g: string, tone: 'green' | 'yellow' | 'red') => ({ label, value: cnt(g), tone, onClick: () => drill({ kelompok: g }) })
     const dekat = rows.filter((r) => LIVE(r) && r.berakhir && (sisa(r, c.today) as number) >= 0 && (sisa(r, c.today) as number) <= 90).sort((a, b) => a.berakhir.localeCompare(b.berakhir))
     const rg = useMonthRange('12') // filter bulan kartu ini, independen dari filter halaman
-    const bulan = rg.months(allRows.map((r) => r.mulai.slice(0, 7)))
+    const bulan = rg.months(allRows.map((r) => monthKey(r.mulai)))
     return (
       <div className="space-y-3">
         <StatCards items={[
@@ -192,7 +193,7 @@ const cfg: PageConfig<Kontrak> = {
         ]} />
         <div className="grid gap-3 lg:grid-cols-2">
           <BarCard title="Kontrak per jenis dokumen" horizontal data={JENIS_DOK.map((j) => ({ name: j, Jumlah: rows.filter((r) => r.jenisDok === j).length }))} keys={['Jumlah']} onClick={(row) => drill({ jenisDok: row.name })} />
-          <LineCard title="Kontrak baru per bulan" toolbar={rg.toolbar} data={bulan.map((m) => ({ name: m, 'Kontrak baru': allRows.filter((r) => r.mulai.slice(0, 7) === m).length }))} keys={['Kontrak baru']} />
+          <LineCard title="Kontrak baru per bulan" toolbar={rg.toolbar} data={bulan.map((m) => ({ name: m, 'Kontrak baru': allRows.filter((r) => monthKey(r.mulai) === m).length }))} keys={['Kontrak baru']} />
         </div>
         <MiniTable
           title="Kontrak berakhir dalam 90 hari (terdekat dulu)" rows={dekat} onRow={(r) => open(r.id)}

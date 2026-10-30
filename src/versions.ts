@@ -11,9 +11,25 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
-    v: '2.11.0',
+    v: '2.11.1',
     date: '2026-10-30',
     deployed: true,
+    title: 'Perbaikan master Mitra Vendor, form Kontrak, data lokal rusak, label Hari Tracker',
+    prompt: 'Rapikan master Mitra Vendor, Nama Mitra/Merchant menunggu Jenis Hubungan, aturan Tanggal Berakhir kosong, load() tahan data rusak, label Hari grafik Tracker',
+    tokens: 60000,
+    changes: [
+      'Master Mitra Vendor: nama merchant dibuang, hanya vendor/mitra (seed Kajian, Kontrak, Risk Register tetap ada di master)',
+      'Kontrak Tambah: Nama Mitra / Nama Merchant tampil setelah Jenis Hubungan dipilih',
+      'Kontrak: kartu dan alert Tanggal Berakhir Kosong memakai aturan sama (tanpa status Berakhir/Dibatalkan)',
+      'Data lokal rusak tidak membuat aplikasi error: slice modul bukan array memakai seed lagi, tanggal kosong ditoleransi',
+      'Tracker: grafik Temuan Lewat Batas Waktu diberi label sumbu Hari',
+      'APP_KEY naik ke v13',
+    ],
+  },
+  {
+    v: '2.11.0',
+    date: '2026-10-30',
+    deployed: false,
     title: 'Filter Periode dashboard, Kontrak Merchant, rincian hover, tanggal Perizinan wajib',
     prompt: 'Filter tanggal semua dashboard kit, satuan Hari, revisi Kontrak, APH, Perizinan, Layanan Hukum',
     tokens: 200000,
