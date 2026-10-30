@@ -12,10 +12,10 @@ export function alertHits<T extends BaseRec>(cfg: PageConfig<T>, rows: T[], c: C
 }
 
 export default function EmailSim<T extends BaseRec>({ cfg, rows, c, onClose }: { cfg: PageConfig<T>; rows: T[]; c: Ctx; onClose: () => void }) {
-  // Maks 3 email per jenis alert: data yang cocok dulu, lalu satu contoh statis kalau kurang dari 3
+  // Maks 3 email per jenis alert dari data yang cocok; contoh statis hanya kalau tidak ada yang cocok
   const mails = cfg.alerts.flatMap((a: AlertDef<T>) => {
     const real = rows.flatMap((r) => { const hit = a.check(r, c); return hit ? [{ a, r, hit, sample: false }] : [] }).slice(0, 3)
-    if (real.length >= 3) return real
+    if (real.length) return real
     const s = a.sample(c)
     return [...real, { a, r: s, hit: (a.check(s, c) ?? { color: 'yellow', detail: '', to: [] }) as Hit, sample: true }]
   })
