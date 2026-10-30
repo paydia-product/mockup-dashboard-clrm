@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 2.7.2 | 2026-10-30 | ~160k |
 | 2.7.1 | 2026-10-30 | ~330k |
 | 2.7.0 | 2026-10-30 | ~250k |
 | 2.6.1 | 2026-10-30 | ~200k |
@@ -29,6 +30,14 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [2.7.2] - 2026-10-30
+
+Estimasi token: ~160k (cek ulang oleh agent terpisah dan perbaikan)
+
+### Diperbaiki
+- Export tracker: Tanggal Dibuat memakai format dd/mm/yyyy HH:mm:ss dan berada di kolom kedua, sama dengan halaman lain.
+- Kasus Fraud contoh yang dibatalkan tercatat atas nama orang, bukan peran. Data demo direset (key `clrm.app.v5`).
 
 ## [2.7.1] - 2026-10-30
 

@@ -11,9 +11,18 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
-    v: '2.7.1',
+    v: '2.7.2',
     date: '2026-10-30',
     deployed: true,
+    title: 'Export tracker dan data contoh Fraud',
+    prompt: 'Lanjutan QA penuh',
+    tokens: 160000,
+    changes: ['Export tracker: Tanggal Dibuat dd/mm/yyyy HH:mm:ss di kolom kedua, sama dengan halaman lain', 'Kasus Fraud contoh yang dibatalkan tercatat atas nama orang, bukan peran'],
+  },
+  {
+    v: '2.7.1',
+    date: '2026-10-30',
+    deployed: false,
     title: 'Perbaikan hasil QA v2.7.0',
     prompt: 'Lanjutan QA penuh',
     tokens: 330000,

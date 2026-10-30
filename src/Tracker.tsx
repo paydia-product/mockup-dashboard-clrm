@@ -3,7 +3,7 @@ import * as XLSX from 'xlsx'
 import { Bell, ChevronDown, ChevronUp, Download, Eye, History, Pencil, Plus, RotateCcw, Save, Search, SlidersHorizontal, Trash2, Upload, XCircle } from 'lucide-react'
 import {
   Audit, DB, EMPTY_FILTER, Filter, Finding, AlertInfo, RISKS, ROLE_USER, Role, STATUSES, alertsFor, applyFilter,
-  addDays, createdOf, diffDays, fmtDate, fmtTime, isPendingReq, lastDueReason, nowStr, todayStr,
+  addDays, createdOf, diffDays, fmtDate, fmtTime, fmtTimeSec, isPendingReq, lastDueReason, nowStr, todayStr,
 } from './lib'
 import { getStore, setStore, useApp } from './kit/store'
 import type { Action } from './kit/types'
@@ -121,11 +121,11 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
 
   const doExport = () => {
     const data = rows.map((f, i) => ({
-      Nomor: i + 1, Regulator: f.regulator, 'Tanggal Temuan': fmtDate(f.tglTemuan), 'Area Temuan': f.area, 'Penyebab Utama (Root Cause)': `${f.rootCause} (${f.rootType})`,
+      Nomor: i + 1, 'Tanggal Dibuat': fmtTimeSec(createdOf(f)), Regulator: f.regulator, 'Tanggal Temuan': fmtDate(f.tglTemuan), 'Area Temuan': f.area, 'Penyebab Utama (Root Cause)': `${f.rootCause} (${f.rootType})`,
       PIC: f.pic, 'Batas Waktu': fmtDate(f.dueDate), Status: f.status,
       'Validasi Ulang': f.validasi === 'Belum' ? 'Belum' : `${f.validasi} - ${f.validasiOleh} - ${f.validasiTgl}`,
       'Persetujuan Penutupan': f.persetujuanOleh ? `${f.persetujuan} - ${f.persetujuanOleh} - ${f.persetujuanTgl}` : f.persetujuan,
-      'Unit Kerja': f.unit, 'Tingkat Risiko': f.risiko, 'Rencana Tindak Lanjut': f.tindak, 'File Bukti Tindak Lanjut': f.tindakFile?.name ?? '', 'Bukti Surat Regulator': f.suratFile?.name ?? '', 'Tanggal Dibuat': fmtTime(createdOf(f)),
+      'Unit Kerja': f.unit, 'Tingkat Risiko': f.risiko, 'Rencana Tindak Lanjut': f.tindak, 'File Bukti Tindak Lanjut': f.tindakFile?.name ?? '', 'Bukti Surat Regulator': f.suratFile?.name ?? '',
     }))
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data), 'Temuan')

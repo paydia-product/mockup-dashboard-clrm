@@ -236,7 +236,7 @@ function seed(today: string): Fraud[] {
     rows.push(r)
   }
   rows[rows.length - 1].status = 'Dibatalkan'
-  rows[rows.length - 1].cancelled = { prev: 'Closed', reason: 'Kasus duplikat', by: 'Head CLRM', at: today }
+  rows[rows.length - 1].cancelled = { prev: 'Closed', reason: 'Kasus duplikat', by: 'Dewi Anggraini', at: today }
   return rows
 }
 
