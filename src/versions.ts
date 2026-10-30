@@ -11,9 +11,23 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
-    v: '2.6.1',
+    v: '2.7.0',
     date: '2026-10-30',
     deployed: true,
+    title: 'Tanggal Dibuat, nomor urut, Log Perubahan',
+    prompt: 'Pager ganda di Reporting; Tanggal Dibuat; nomor urut tanpa sort; Log Perubahan di detail; master izinkan ` \' - &, hapus Lainnya dari master',
+    tokens: 250000,
+    changes: [
+      'Dashboard Reporting: pager ganda dan warna kuning di Jatuh tempo 7 hari dihapus',
+      'Semua tabel: kolom Tanggal Dibuat, nomor urut 1 = data terbaru, tanpa sort kolom',
+      'Detail: field Tanggal Dibuat dan segmen Log Perubahan (dibuat, perubahan before/after, approval, batal/kembalikan, timestamp, user)',
+      'Master Data: nama boleh memakai ` \' - &; opsi Lainnya dihapus dari master dan otomatis tersedia di dropdown',
+    ],
+  },
+  {
+    v: '2.6.1',
+    date: '2026-10-30',
+    deployed: false,
     title: 'Perbaikan hasil QA master data',
     prompt: 'Lanjutan QA master data',
     tokens: 200000,

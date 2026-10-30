@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Pencil, Plus, Search, Trash2 } from 'lucide-react'
+import { LAINNYA } from '../kit/Lainnya'
 import { setStore, useApp } from '../kit/store'
 import type { Master } from '../kit/types'
 import { Modal } from '../ui'
@@ -23,8 +24,9 @@ export function validateMasterName(name: string, existing: string[], currentName
   if (!v) return 'Nama wajib diisi'
   if (v.length < 2) return 'Minimal 2 karakter'
   if (v.length > 255) return 'Maksimal 255 karakter'
-  if (!/^[\p{L}\p{N} ]+$/u.test(v)) return 'Hanya huruf, angka, dan spasi'
+  if (!/^[\p{L}\p{N} `'&-]+$/u.test(v)) return "Hanya huruf, angka, spasi, dan karakter ` ' - &"
   const low = v.toLowerCase()
+  if (low === LAINNYA.toLowerCase()) return 'Lainnya sudah tersedia otomatis di setiap dropdown'
   if (existing.some((x) => x.toLowerCase() === low && x !== currentName)) return 'Nama sudah ada'
   return ''
 }

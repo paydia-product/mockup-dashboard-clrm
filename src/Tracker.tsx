@@ -3,7 +3,7 @@ import * as XLSX from 'xlsx'
 import { Bell, ChevronDown, ChevronUp, Download, Eye, History, Pencil, Plus, RotateCcw, Save, Search, SlidersHorizontal, Trash2, Upload, XCircle } from 'lucide-react'
 import {
   Audit, DB, EMPTY_FILTER, Filter, Finding, AlertInfo, RISKS, ROLE_USER, Role, STATUSES, alertsFor, applyFilter,
-  addDays, diffDays, fmtDate, fmtTime, isPendingReq, lastDueReason, nowStr, todayStr,
+  addDays, createdOf, diffDays, fmtDate, fmtTime, isPendingReq, lastDueReason, nowStr, todayStr,
 } from './lib'
 import { getStore, setStore, useApp } from './kit/store'
 import type { Action } from './kit/types'
@@ -13,12 +13,9 @@ import Form from './Form'
 import TrackerImport from './TrackerImport'
 import { Modal, ReasonModal, RiskBadge, StatusBadge } from './ui'
 
-type SortKey = 'no' | 'regulator' | 'tglTemuan' | 'area' | 'pic' | 'dueDate' | 'status' | 'risiko'
 const SHOW_IMPORT = false // ponytail: disembunyikan atas permintaan user; set true untuk mengaktifkan
-const COLS: { k: SortKey; l: string }[] = [
-  { k: 'no', l: 'Nomor' }, { k: 'regulator', l: 'Regulator' }, { k: 'tglTemuan', l: 'Tanggal Temuan' }, { k: 'area', l: 'Area Temuan' },
-  { k: 'pic', l: 'PIC' }, { k: 'dueDate', l: 'Batas Waktu' }, { k: 'status', l: 'Status' }, { k: 'risiko', l: 'Tingkat Risiko' },
-]
+// Tanpa sort kolom. Nomor = posisi baris; urutan tetap Tanggal Dibuat terbaru dulu (f.no hanya internal: log/approval/email)
+const COLS = ['Nomor', 'Regulator', 'Tanggal Temuan', 'Area Temuan', 'PIC', 'Batas Waktu', 'Status', 'Tingkat Risiko', 'Tanggal Dibuat']
 type Pending = { kind: 'add' } | { kind: 'edit'; id: string } | { kind: 'reason'; title: string; danger?: boolean; run: (r: string) => void } | { kind: 'sim' } | { kind: 'import' } | null
 
 export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb: React.Dispatch<React.SetStateAction<DB>>; role: Role; user: { name: string }; can: (a: Action) => boolean }) {
@@ -33,21 +30,16 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
     addEventListener('keydown', h)
     return () => removeEventListener('keydown', h)
   }, [showFilters])
-  const [sort, setSort] = useState<{ k: SortKey; dir: 1 | -1 }>({ k: 'no', dir: -1 })
   const [page, setPage] = useState(1)
   const [size, setSize] = useState(10)
   const [openId, setOpenId] = useState<string | null>(null)
   const [pending, setPending] = useState<Pending>(null)
   const [saveName, setSaveName] = useState('')
 
-  const rows = useMemo(() => {
-    const val = (f: Finding): string | number => f[sort.k]
-    return applyFilter(db.findings, filter).sort((a, b) => {
-      const x = val(a), y = val(b)
-      return (typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y))) * sort.dir
-    })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [db, filter, sort])
+  const rows = useMemo(
+    () => applyFilter(db.findings, filter).sort((a, b) => createdOf(b).localeCompare(createdOf(a)) || b.no - a.no),
+    [db, filter],
+  )
   const pages = Math.max(1, Math.ceil(rows.length / size))
   const cur = Math.min(page, pages)
   const slice = rows.slice((cur - 1) * size, cur * size)
@@ -73,7 +65,7 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
   const saveForm = (f: Finding, mode: 'add' | 'edit', alasan = '') => {
     if (mode === 'add') {
       const n = db.findings.reduce((m, x) => Math.max(m, x.no), 0) + 1
-      const nf = { ...f, no: n, id: `f${Date.now()}` }
+      const nf = { ...f, no: n, id: `f${Date.now()}`, createdAt: nowStr() }
       commit(nf, [{ aksi: 'Tambah temuan', kolom: 'Nomor Temuan', baru: String(n) }])
       setPending(null)
       return
@@ -105,7 +97,7 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
   const importRows = (list: Finding[]) => {
     let n = db.findings.reduce((m, x) => Math.max(m, x.no), 0)
     const stamp = Date.now()
-    const nfs = list.map((f, i) => ({ ...f, no: ++n, id: `f${stamp}-${i}` }))
+    const nfs = list.map((f, i) => ({ ...f, no: ++n, id: `f${stamp}-${i}`, createdAt: nowStr() }))
     setDb((d) => ({ ...d, findings: [...nfs.slice().reverse(), ...d.findings], audit: [...d.audit, ...nfs.flatMap((nf) => mkAudit(nf.id, [{ aksi: 'Import Excel', kolom: 'Nomor Temuan', baru: String(nf.no) }]))] }))
   }
 
@@ -128,12 +120,12 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
   const canEdit = (f: Finding) => !hasReq(f) && f.status !== 'Dibatalkan' && f.status !== 'Selesai' && can('Ubah') && (role !== 'PIC' || f.pic === user.name)
 
   const doExport = () => {
-    const data = rows.map((f) => ({
-      Nomor: f.no, Regulator: f.regulator, 'Tanggal Temuan': f.tglTemuan, 'Area Temuan': f.area, 'Penyebab Utama (Root Cause)': `${f.rootCause} (${f.rootType})`,
+    const data = rows.map((f, i) => ({
+      Nomor: i + 1, Regulator: f.regulator, 'Tanggal Temuan': f.tglTemuan, 'Area Temuan': f.area, 'Penyebab Utama (Root Cause)': `${f.rootCause} (${f.rootType})`,
       PIC: f.pic, 'Batas Waktu': f.dueDate, Status: f.status,
       'Validasi Ulang': f.validasi === 'Belum' ? 'Belum' : `${f.validasi} - ${f.validasiOleh} - ${f.validasiTgl}`,
       'Persetujuan Penutupan': f.persetujuanOleh ? `${f.persetujuan} - ${f.persetujuanOleh} - ${f.persetujuanTgl}` : f.persetujuan,
-      'Unit Kerja': f.unit, 'Tingkat Risiko': f.risiko, 'Rencana Tindak Lanjut': f.tindak, 'File Bukti Tindak Lanjut': f.tindakFile?.name ?? '', 'Bukti Surat Regulator': f.suratFile?.name ?? '',
+      'Unit Kerja': f.unit, 'Tingkat Risiko': f.risiko, 'Rencana Tindak Lanjut': f.tindak, 'File Bukti Tindak Lanjut': f.tindakFile?.name ?? '', 'Bukti Surat Regulator': f.suratFile?.name ?? '', 'Tanggal Dibuat': fmtTime(createdOf(f)),
     }))
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data), 'Temuan')
@@ -166,7 +158,7 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
   const dashFilter = (nf: Filter) => setFilter({ ...EMPTY_FILTER, from: nf.from, to: nf.to })
   const editing = pending?.kind === 'edit' ? db.findings.find((f) => f.id === pending.id) : null
   const blank = (): Finding => ({
-    id: '', no: 0, regulator: '', tglTemuan: '', area: '', rootCause: '', rootType: '', pic: '', dueDate: '', status: 'Open',
+    id: '', createdAt: '', no: 0, regulator: '', tglTemuan: '', area: '', rootCause: '', rootType: '', pic: '', dueDate: '', status: 'Open',
     validasi: 'Belum', validasiOleh: '', validasiTgl: '', persetujuan: 'Menunggu', persetujuanOleh: '', persetujuanTgl: '', unit: '', risiko: '' as never, tindak: '', tindakFile: null, suratFile: null,
   })
   const sel = (k: keyof Filter, opts: [string, string][], ph: string) => (
@@ -241,18 +233,14 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
             <table className="w-full text-left">
               <thead className="bg-slate-100 text-xs text-slate-600">
                 <tr>
-                  {COLS.map((c) => (
-                    <th key={c.k} className="cursor-pointer whitespace-nowrap px-3 py-2.5 font-semibold" onClick={() => setSort({ k: c.k, dir: sort.k === c.k ? (-sort.dir as 1 | -1) : 1 })}>
-                      {c.l}{sort.k === c.k ? (sort.dir === 1 ? ' ▲' : ' ▼') : ''}
-                    </th>
-                  ))}
+                  {COLS.map((c) => <th key={c} className="whitespace-nowrap px-3 py-2.5 font-semibold">{c}</th>)}
                   <th className="px-3 py-2.5 font-semibold">Aksi</th>
                 </tr>
               </thead>
               <tbody>
-                {slice.map((f) => (
+                {slice.map((f, i) => (
                   <tr key={f.id} className={`border-t align-top hover:bg-slate-50 ${f.status === 'Dibatalkan' ? 'text-slate-400' : ''}`}>
-                    <td className="whitespace-nowrap px-3 py-2.5 font-medium">{f.no}</td>
+                    <td className="whitespace-nowrap px-3 py-2.5 font-medium">{(cur - 1) * size + i + 1}</td>
                     <td className="px-3 py-2.5">{f.regulator}</td>
                     <td className="whitespace-nowrap px-3 py-2.5">{fmtDate(f.tglTemuan)}</td>
                     <td className="px-3 py-2.5">{f.area}</td>
@@ -260,6 +248,7 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
                     <td className="whitespace-nowrap px-3 py-2.5">{fmtDate(f.dueDate)}</td>
                     <td className="px-3 py-2.5"><StatusBadge s={f.status} /></td>
                     <td className="px-3 py-2.5"><RiskBadge r={f.risiko} /></td>
+                    <td className="whitespace-nowrap px-3 py-2.5">{fmtTime(createdOf(f))}</td>
                     <td className="px-3 py-2.5">
                       <div className="flex gap-1">
                         <button className="btn !px-2 !py-1" onClick={() => setOpenId(f.id)}><Eye size={13} />Lihat Detail</button>
@@ -270,7 +259,7 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
                     </td>
                   </tr>
                 ))}
-                {!slice.length && <tr><td colSpan={10} className="p-8 text-center text-slate-400">Tidak ada data</td></tr>}
+                {!slice.length && <tr><td colSpan={11} className="p-8 text-center text-slate-400">Tidak ada data</td></tr>}
               </tbody>
             </table>
           </div>
@@ -292,7 +281,7 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
         </div>
       )}
 
-      {open && <Drawer f={open} audit={db.audit} req={db.requests.find((r) => r.fid === open.id && isPendingReq(r))} role={role} acts={actsFor(open)} onClose={() => setOpenId(null)} />}
+      {open && <Drawer f={open} audit={db.audit} db={db} req={db.requests.find((r) => r.fid === open.id && isPendingReq(r))} role={role} acts={actsFor(open)} onClose={() => setOpenId(null)} />}
       {pending?.kind === 'add' && <Form mode="add" init={blank()} onSave={(f) => saveForm(f, 'add')} onClose={() => setPending(null)} />}
       {editing && <Form mode="edit" init={editing} prevReason={lastDueReason(editing.id, db.audit)} onSave={(f, al) => saveForm(f, 'edit', al)} onClose={() => setPending(null)} />}
       {pending?.kind === 'import' && <TrackerImport blank={blank} onImport={importRows} onClose={() => setPending(null)} />}

@@ -1,7 +1,9 @@
 import { FileText } from 'lucide-react'
-import { fmtDate, fmtSize, fmtTime } from '../lib'
+import { fmtDate, fmtSize, fmtTime, fmtTimeSec } from '../lib'
 import { Badge, Modal } from '../ui'
 import { fmtValue, isMasked, maskStr } from './fmt'
+import { LogPerubahan, kitHistory } from './history'
+import { useApp } from './store'
 import type { AlertDef, ApprovalReq, BaseRec, Ctx, Field, FileMeta, PageConfig } from './types'
 
 type R = Record<string, any> // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -26,6 +28,7 @@ function Value({ f, r, c }: { f: Field<any>; r: R; c: Ctx }) { // eslint-disable
 }
 
 export default function DetailModal<T extends BaseRec>({ cfg, r, c, alerts, pending, onClose }: { cfg: PageConfig<T>; r: T; c: Ctx; alerts: { a: AlertDef<T>; hit: { color: 'yellow' | 'red'; detail: string; to: string[] } }[]; pending?: ApprovalReq; onClose: () => void }) {
+  const { store } = useApp()
   return (
     <Modal wide title="Detail" onClose={onClose}>
       <div className="space-y-4">
@@ -42,11 +45,12 @@ export default function DetailModal<T extends BaseRec>({ cfg, r, c, alerts, pend
           </div>
         )}
         <div className="grid grid-cols-2 gap-x-6 gap-y-3">
-          <Row l="No">{r.no}</Row>
+          <Row l="Tanggal Dibuat">{fmtTimeSec(r.createdAt)}</Row>
           {cfg.fields.filter((f) => f.key !== 'no' && (!f.showIf || f.showIf(r))).map((f) => (
             <Row key={f.key} l={f.label} wide={f.wide ?? ['textarea', 'list', 'checklist', 'multiselect'].includes(f.type)}><Value f={f} r={r} c={c} /></Row>
           ))}
         </div>
+        <LogPerubahan items={kitHistory(r, cfg.module, cfg.title, store)} />
       </div>
       <div className="mt-5 flex justify-end border-t pt-3"><button className="btn" onClick={onClose}>Tutup</button></div>
     </Modal>

@@ -1,19 +1,15 @@
-import { ReactNode, useMemo, useState } from 'react'
+import { ReactNode, useEffect, useMemo, useState } from 'react'
+import { fmtTime } from '../lib'
 import type { BaseRec, Ctx, PageConfig } from './types'
 
-export default function DataTable<T extends BaseRec>({ cfg, rows, c, actions }: { cfg: PageConfig<T>; rows: T[]; c: Ctx; actions: (r: T) => ReactNode }) {
-  const [sort, setSort] = useState<{ i: number; dir: 1 | -1 } | null>(null)
+// Tabel utama: tanpa sort kolom. Urutan tetap Tanggal Dibuat terbaru dulu; "Nomor" = posisi baris (1..n, lanjut antar halaman).
+// Kolom 'No' bawaan konfigurasi (nomor internal) tidak ditampilkan; no tetap dipakai untuk log/approval/email.
+export default function DataTable<T extends BaseRec>({ cfg, rows, c, actions, resetKey }: { cfg: PageConfig<T>; rows: T[]; c: Ctx; actions: (r: T) => ReactNode; resetKey?: string }) {
   const [page, setPage] = useState(1)
   const [size, setSize] = useState(10)
-  const sorted = useMemo(() => {
-    const out = [...rows]
-    if (!sort) return out.sort((a, b) => b.no - a.no)
-    const g = cfg.columns[sort.i].get
-    return out.sort((a, b) => {
-      const x = g(a, c), y = g(b, c)
-      return (typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y), 'id', { numeric: true })) * sort.dir
-    })
-  }, [rows, sort]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => setPage(1), [resetKey]) // cari/filter berubah: kembali ke halaman 1, nomor mulai dari 1
+  const sorted = useMemo(() => [...rows].sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || '') || b.no - a.no), [rows])
+  const cols = cfg.columns.filter((col) => col.label !== 'No')
   const pages = Math.max(1, Math.ceil(sorted.length / size))
   const cur = Math.min(page, pages)
   const slice = sorted.slice((cur - 1) * size, cur * size)
@@ -23,22 +19,22 @@ export default function DataTable<T extends BaseRec>({ cfg, rows, c, actions }: 
         <table className="w-full text-left">
           <thead className="bg-slate-100 text-xs text-slate-600">
             <tr>
-              {cfg.columns.map((col, i) => (
-                <th key={col.label} className="cursor-pointer whitespace-nowrap px-3 py-2.5 font-semibold" onClick={() => setSort({ i, dir: sort?.i === i ? (-sort.dir as 1 | -1) : 1 })}>
-                  {col.label}{sort?.i === i ? (sort.dir === 1 ? ' ▲' : ' ▼') : ''}
-                </th>
-              ))}
+              <th className="whitespace-nowrap px-3 py-2.5 font-semibold">Nomor</th>
+              {cols.map((col) => <th key={col.label} className="whitespace-nowrap px-3 py-2.5 font-semibold">{col.label}</th>)}
+              <th className="whitespace-nowrap px-3 py-2.5 font-semibold">Tanggal Dibuat</th>
               <th className="px-3 py-2.5 font-semibold">Aksi</th>
             </tr>
           </thead>
           <tbody>
-            {slice.map((r) => (
+            {slice.map((r, i) => (
               <tr key={r.id} className={`border-t align-top hover:bg-slate-50 ${r.cancelled ? 'text-slate-400' : ''}`}>
-                {cfg.columns.map((col) => <td key={col.label} className="px-3 py-2.5">{col.render ? col.render(r, c) : col.get(r, c)}</td>)}
+                <td className="whitespace-nowrap px-3 py-2.5 font-medium">{(cur - 1) * size + i + 1}</td>
+                {cols.map((col) => <td key={col.label} className="px-3 py-2.5">{col.render ? col.render(r, c) : col.get(r, c)}</td>)}
+                <td className="whitespace-nowrap px-3 py-2.5">{fmtTime(r.createdAt)}</td>
                 <td className="px-3 py-2.5"><div className="flex gap-1">{actions(r)}</div></td>
               </tr>
             ))}
-            {!slice.length && <tr><td colSpan={cfg.columns.length + 1} className="p-8 text-center text-slate-400">Tidak ada data</td></tr>}
+            {!slice.length && <tr><td colSpan={cols.length + 3} className="p-8 text-center text-slate-400">Tidak ada data</td></tr>}
           </tbody>
         </table>
       </div>

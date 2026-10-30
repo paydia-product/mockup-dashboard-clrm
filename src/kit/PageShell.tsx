@@ -80,7 +80,7 @@ export default function PageShell<T extends BaseRec>({ config: cfg }: { config: 
               {can(m, 'Tambah') && <button className="btn btn-primary" onClick={() => setModal({ k: 'add' })}><Plus size={14} />Tambah</button>}
             </div>
           </div>
-          <DataTable cfg={cfg} rows={shown} c={c} actions={actions} />
+          <DataTable cfg={cfg} rows={shown} c={c} actions={actions} resetKey={JSON.stringify([q, filter])} />
         </div>
       )}
 

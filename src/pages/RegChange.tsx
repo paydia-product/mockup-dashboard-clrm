@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { addDays, diffDays, fmtDate, todayStr } from '../lib'
+import { withLainnya } from '../kit/Lainnya'
 import PageShell from '../kit/PageShell'
 import { BarCard, DonutCard, LineCard, MiniTable } from '../kit/charts'
 import { ageBucket, ageBuckets, workDaysBetween } from '../kit/dates'
@@ -45,9 +46,9 @@ const fields: Field<Reg>[] = [
   { key: 'jenis', label: 'Jenis Peraturan / Surat', type: 'select', options: JENIS, required: true, editableBy: (c) => !isPic(c) },
   { key: 'nomor', label: 'Nomor', type: 'text', required: true, editableBy: (c) => !isPic(c) },
   { key: 'tahun', label: 'Tahun', type: 'text', required: true, editableBy: (c) => !isPic(c) },
-  { key: 'regulator', label: 'Regulator / Penerbit', type: 'select', options: (c) => c.master.regulator, required: true, editableBy: (c) => !isPic(c) },
+  { key: 'regulator', label: 'Regulator / Penerbit', type: 'select', options: (c) => withLainnya(c.master.regulator), required: true, editableBy: (c) => !isPic(c) },
   { key: 'tentang', label: 'Tentang', type: 'textarea', required: true, editableBy: (c) => !isPic(c) },
-  { key: 'kategori', label: 'Kategori (Perihal / Fitur)', type: 'select', options: (c) => c.master.kategoriRegulasi, required: true, editableBy: (c) => !isPic(c) },
+  { key: 'kategori', label: 'Kategori (Perihal / Fitur)', type: 'select', options: (c) => withLainnya(c.master.kategoriRegulasi), required: true, editableBy: (c) => !isPic(c) },
   { key: 'jp', label: 'Jenis Perubahan', type: 'select', options: JP, required: true, editableBy: (c) => !isPic(c) },
   { key: 'status', label: 'Status Peraturan', type: 'select', options: STATUS, required: true, editableBy: (c) => !isPic(c) },
   { key: 'tglTerbit', label: 'Tanggal Terbit', type: 'date', required: true, editableBy: (c) => !isPic(c) },
@@ -59,7 +60,7 @@ const fields: Field<Reg>[] = [
   },
   { key: 'dampak', label: 'Tingkat Dampak bagi Paydia', type: 'select', options: DAMPAK, required: (r) => !!r.tglSosialisasi, help: 'Wajib dinilai sebelum Tanggal Sosialisasi diisi.', editableBy: (c) => !isPic(c) },
   { key: 'dampakUraian', label: 'Uraian Dampak', type: 'textarea', required: (r) => !!r.tglSosialisasi, editableBy: (c) => !isPic(c) },
-  { key: 'dept', label: 'Unit Kerja Terdampak', type: 'multiselect', options: (c) => c.master.unitKerja, required: true, editableBy: (c) => !isPic(c) },
+  { key: 'dept', label: 'Unit Kerja Terdampak', type: 'multiselect', options: (c) => withLainnya(c.master.unitKerja), required: true, editableBy: (c) => !isPic(c) },
   { key: 'pemenuhan', label: 'Pemenuhan (%)', type: 'percent', help: 'Kosong = belum dinilai.', editableBy: (c) => !isPic(c) },
   { key: 'kepatuhan', label: 'Status Kepatuhan', type: 'text', auto: (r) => kep(r) },
   {

@@ -30,7 +30,7 @@ const lamaSelesai = (r: Kajian) => diffDays(r.tglSelesai, r.tglMasuk)
 const fields: Field<Kajian>[] = [
   { key: 'jenis', label: 'Jenis', type: 'select', options: JENIS, required: true },
   { key: 'judul', label: 'Judul / Objek', type: 'text', required: true, wide: true },
-  { key: 'dept', label: 'Unit Kerja Pengusul', type: 'select', options: (c) => c.master.unitKerja, required: true },
+  { key: 'dept', label: 'Unit Kerja Pengusul', type: 'select', options: (c) => withLainnya(c.master.unitKerja), required: true },
   { key: 'tglMasuk', label: 'Tanggal Masuk', type: 'date', required: true, reasonOnChange: true, help: 'Mengubah Tanggal Masuk menggeser batas waktu; wajib disertai alasan.' },
   { key: 'sla', label: 'SLA (hari kalender)', type: 'number', required: true, reasonOnChange: true, help: 'Mengubah SLA (batas waktu) wajib disertai alasan.' },
   { key: 'batas', label: 'Tanggal Batas', type: 'date', auto: (r) => batas(r) },

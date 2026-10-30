@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 2.7.0 | 2026-10-30 | ~250k |
 | 2.6.1 | 2026-10-30 | ~200k |
 | 2.6.0 | 2026-10-30 | ~200k |
 | 2.5.1 | 2026-10-30 | ~25k |
@@ -27,6 +28,19 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [2.7.0] - 2026-10-30
+
+Estimasi token: ~250k
+
+### Diubah
+- Dashboard Reporting: tabel Jatuh tempo 7 hari ke depan tidak lagi punya pager ganda dan latar kuning.
+- Semua tabel: kolom Tanggal Dibuat. Nomor menunjukkan urutan baris, 1 adalah data terbaru. Sort per kolom dihapus.
+- Master Data: nama boleh memakai karakter ` ' - &. Opsi "Lainnya" dihapus dari data master dan otomatis tersedia di setiap dropdown.
+
+### Ditambah
+- Detail: field Tanggal Dibuat dan segmen Log Perubahan berisi data dibuat, perubahan field (sebelum dan sesudah), pengajuan dan hasil approval, batal, dan kembalikan. Setiap entri punya timestamp dd/mm/yyyy HH:mm:ss dan user pelaku serta approver.
+- Data demo direset (key `clrm.app.v3` dan `clrm.db.v5`).
 
 ## [2.6.1] - 2026-10-30
 

@@ -5,7 +5,7 @@ import { DEFAULT_PERMS, MODULE_LABEL, can as canPerm } from './perms'
 import type { Account, Action, ApprovalReq, ApprovalRule, BaseRec, Ctx, LogEntry, ModuleApi, ModuleId, NewRec, PageConfig, PermKey, Role, Session, Store } from './types'
 
 export type { ModuleApi }
-export const APP_KEY = 'clrm.app.v2' // ponytail: v2 = seed Unit Kerja disamakan dengan master; data demo lama direset
+export const APP_KEY = 'clrm.app.v3' // ponytail: v3 = seed tanpa 'Lainnya' + createdAt datetime; data v2 direset (load() tetap aman membaca data lama)
 export const SESSION_KEY = 'clrm.session'
 export const DEFAULT_PASSWORD = 'Paydia123!'
 export const DEFAULT_PIN = '123456'
@@ -22,12 +22,20 @@ const defaults = (): Store => ({
   modules: {}, saved: {}, approvals: [], log: [], accounts: ACCOUNTS, perms: DEFAULT_PERMS, seq: {},
   master: {
     laporan: ['Pelaporan Dana Floating', 'Laporan RBSP', 'SiPesat', 'LTKT', 'LTKM', 'Laporan Transaksi Harian', 'Laporan Fraud Mingguan', 'Laporan Tahunan Perlindungan Konsumen', 'Laporan PSE Terdaftar', 'Penilaian Kembali Sertifikasi Keamanan', 'Laporan Keamanan Informasi', 'Laporan Insiden Siber'],
-    regulator: ['BI', 'PPATK', 'Komdigi', 'BSSN', 'Pemerintah-DPR', 'Lainnya'],
+    regulator: ['BI', 'PPATK', 'Komdigi', 'BSSN', 'Pemerintah-DPR'],
     kategoriRegulasi: [...AREAS], unitKerja: [...UNITS], produk: ['UE', 'QRIS', 'Biller'],
     mitra: ['Kopi Senja', 'Toko Maju Jaya', 'Bimbel Cerdas', 'PT Telkom Biller', 'Warung Nusantara', 'Apotek Sehat', 'Bank Mitra Utama', 'CV Digital Kreasi', 'Resto Padang Raya', 'Laundry Kilat', 'Sekolah Harapan', 'Minimarket 24', 'PT Logistik Cepat', 'Salon Cantika', 'PT Nusa Cloud', 'PT Data Prima', 'PT Aman Jaya Logistik', 'PT Mitra Bayar', 'PT Sentra Verifikasi', 'PT Cipta Layanan', 'PT Biller Nusantara', 'PT Arta Teknologi', 'PT Kirim Cepat', 'PT Sigma Analitik'],
-    kategoriPelapor: ['Departemen Internal', 'Konsumen', 'Switching', 'Kepolisian', 'PJP-Bank', 'Bank Indonesia', 'Lainnya'], mediaPelapor: ['Email', 'IASC', 'GO AML', 'WhatsApp', 'Lainnya'],
+    kategoriPelapor: ['Departemen Internal', 'Konsumen', 'Switching', 'Kepolisian', 'PJP-Bank', 'Bank Indonesia'], mediaPelapor: ['Email', 'IASC', 'GO AML', 'WhatsApp'],
   },
 })
+
+// createdAt harus datetime lengkap: seed/data lama yang hanya tanggal diberi jam yang naik mengikuti no (urutan Tanggal Dibuat stabil)
+const stamp = <T extends BaseRec>(r: T): T => {
+  if (!r || typeof r.createdAt !== 'string' || r.createdAt.length !== 10) return r
+  const t = `${r.createdAt}T${new Date((8 * 3600 + ((r.no || 0) * 300) % 43200) * 1000).toISOString().slice(11, 19)}`
+  const now = nowStr()
+  return { ...r, createdAt: t > now ? now : t } // jangan di masa depan (seed tanggal hari ini)
+}
 
 // ---- Singleton + subscribe (readModule/addRecord dipanggil di luar komponen) ----
 // Migrasi master lama: departemen -> unitKerja (nilai lama dipakai), pihakPelapor dibuang, list baru diisi seed.
@@ -39,7 +47,10 @@ function load(): Store {
   if (!Array.isArray(m.unitKerja) && Array.isArray(m.departemen)) m.unitKerja = m.departemen
   delete m.departemen; delete m.pihakPelapor
   for (const k of Object.keys(d.master)) if (!Array.isArray(m[k])) delete m[k]
-  return { ...d, ...s, master: { ...d.master, ...m } } as Store
+  // "Lainnya" tidak disimpan di master; dropdown menambahkannya otomatis (withLainnya)
+  for (const k of Object.keys(m)) if (Array.isArray(m[k])) m[k] = m[k].filter((x: unknown) => String(x).trim().toLowerCase() !== 'lainnya')
+  const modules = Object.fromEntries(Object.entries(s.modules ?? {}).map(([k, l]) => [k, Array.isArray(l) ? l.map(stamp) : l]))
+  return { ...d, ...s, modules, master: { ...d.master, ...m } } as Store
 }
 let store: Store = (() => { try { return load() } catch { return defaults() } })()
 let session: Session | null = (() => { try { const s = localStorage.getItem(SESSION_KEY); if (s) return JSON.parse(s) as Session } catch { /* abaikan */ } return null })()
@@ -59,7 +70,7 @@ export function useSession() { useSyncExternalStore(subscribe, () => ver); retur
 export const AppProvider = ({ children }: { children: ReactNode }) => <>{children}</> // store berupa singleton; provider hanya untuk kontrak
 
 const uid = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`
-export const mkLog = (u: Account, module: string, aksi: string, nomor: string | number = '', ket = ''): LogEntry => ({ id: `l${uid()}`, time: nowStr(), user: u.name, role: u.role, module, aksi, nomor: String(nomor), keterangan: ket })
+export const mkLog = (u: Account, module: string, aksi: string, nomor: string | number = '', ket = '', extra: Partial<LogEntry> = {}): LogEntry => ({ id: `l${uid()}`, time: nowStr(), user: u.name, role: u.role, module, aksi, nomor: String(nomor), keterangan: ket, ...extra })
 export const withLogs = (s: Store, ...e: LogEntry[]): Store => ({ ...s, log: [...e.reverse(), ...s.log].slice(0, 3000) })
 export function pushLog(u: Account, module: string, aksi: string, nomor: string | number = '', ket = '') { setStore((s) => withLogs(s, mkLog(u, module, aksi, nomor, ket))) }
 const currentAccount = () => store.accounts.find((a) => a.id === session?.accountId) ?? store.accounts[0]
@@ -79,7 +90,7 @@ export function useApp() {
 
 // ---- Seed + baca/tambah lintas modul ----
 function ensure<T extends BaseRec>(m: ModuleId, seed: (t: string) => T[]): T[] {
-  if (!store.modules[m]) { store.modules[m] = seed(todayStr()); persist() } // seed idempoten: sengaja tanpa emit saat render
+  if (!store.modules[m]) { store.modules[m] = seed(todayStr()).map(stamp); persist() } // seed idempoten: sengaja tanpa emit saat render
   return store.modules[m] as T[]
 }
 export const readModule = <T extends BaseRec>(m: ModuleId, seed: (t: string) => T[]): T[] => ensure(m, seed)
@@ -88,7 +99,7 @@ function insert<T extends BaseRec>(m: ModuleId, title: string, r: NewRec<T>, u: 
   let rec = { ...r, id: `${m}-${uid()}`, no: list.reduce((a, x) => Math.max(a, x.no), 0) + 1, createdAt: nowStr(), createdBy: u.name } as unknown as T
   if (beforeSave) rec = beforeSave(rec)
   const n = rec
-  setStore((s) => { const next = { ...s, modules: { ...s.modules, [m]: [...((s.modules[m] ?? []) as T[]), n] } }; return silent ? next : withLogs(next, mkLog(u, title, 'Tambah', n.no)) })
+  setStore((s) => { const next = { ...s, modules: { ...s.modules, [m]: [...((s.modules[m] ?? []) as T[]), n] } }; return silent ? next : withLogs(next, mkLog(u, title, 'Tambah', n.no, '', { recordId: n.id, kind: 'create' })) })
   return n
 }
 export function addRecord<T extends BaseRec>(m: ModuleId, r: NewRec<T>, seed: (t: string) => T[]): T {
@@ -119,7 +130,7 @@ export function useModule<T extends BaseRec>(cfg: PageConfig<T>): ModuleApi<T> {
     }
     return [{ ...s, seq: { ...s.seq, approval: no }, approvals: [req, ...s.approvals] }, req]
   }
-  const reqLog = (req: ApprovalReq, alasan: string) => mkLog(u, cfg.title, 'Ajukan approval', req.recordNo, `${req.jenis} (${req.approver}): ${req.changes.map((c) => `${c.label} ${c.lama || '-'} -> ${c.baru || '-'}`).join('; ')}${alasan ? `. Alasan: ${alasan}` : ''}`)
+  const reqLog = (req: ApprovalReq, alasan: string) => mkLog(u, cfg.title, 'Ajukan approval', req.recordNo, `${req.jenis} (${req.approver}): ${req.changes.map((c) => `${c.label} ${c.lama || '-'} -> ${c.baru || '-'}`).join('; ')}${alasan ? `. Alasan: ${alasan}` : ''}`, { recordId: req.recordId, kind: 'request', approver: req.approver, alasan })
 
   return {
     rows,
@@ -143,7 +154,11 @@ export function useModule<T extends BaseRec>(cfg: PageConfig<T>): ModuleApi<T> {
       if (rule && askKeys.length) Object.assign(row, rule.pendingPatch?.(old))
       setStore((s) => {
         let n = put(s, id, row)
-        const logs = direct.map((k) => mkLog(u, cfg.title, 'Ubah', old.no, `${label(k)}: ${show(k, (old as R)[k]) || '-'} -> ${show(k, (next as R)[k]) || '-'}${alasan ? `. Alasan: ${alasan}` : ''}`))
+        const logs: LogEntry[] = []
+        if (direct.length) { // satu entri terstruktur per simpan: dipakai Log Perubahan; keterangan tetap teks untuk halaman Log
+          const changes = direct.map((k) => ({ label: label(k), before: show(k, (old as R)[k]) || '-', after: show(k, (next as R)[k]) || '-' }))
+          logs.push(mkLog(u, cfg.title, 'Ubah', old.no, `${changes.map((c) => `${c.label}: ${c.before} -> ${c.after}`).join('; ')}${alasan ? `. Alasan: ${alasan}` : ''}`, { recordId: old.id, kind: 'edit', changes, alasan }))
+        }
         if (rule && askKeys.length) { const [s2, req] = mkReq(n, old, rule.jenis, rule.approver, askKeys, next as R, alasan, rule.rejectPatch?.(old) as R | undefined, extra); n = s2; logs.push(reqLog(req, alasan)) }
         return withLogs(n, ...logs)
       })
@@ -152,13 +167,13 @@ export function useModule<T extends BaseRec>(cfg: PageConfig<T>): ModuleApi<T> {
       const old = cur(id)
       if (!old) return
       const status = cfg.cancelStatus ?? 'Dibatalkan'
-      setStore((s) => withLogs(put(s, id, { status, cancelled: { prev: old.status, reason, by: u.name, at: nowStr() } }), mkLog(u, cfg.title, 'Cancel', old.no, `${old.status} -> ${status}. Alasan: ${reason}`)))
+      setStore((s) => withLogs(put(s, id, { status, cancelled: { prev: old.status, reason, by: u.name, at: nowStr() } }), mkLog(u, cfg.title, 'Cancel', old.no, `${old.status} -> ${status}. Alasan: ${reason}`, { recordId: old.id, kind: 'cancel', changes: [{ label: 'Status', before: old.status, after: status }], alasan: reason })))
     },
     restore(id, reason = '') {
       const old = cur(id)
       if (!old?.cancelled) return
       const prev = old.cancelled.prev
-      setStore((s) => withLogs(put(s, id, { status: prev, cancelled: undefined }), mkLog(u, cfg.title, 'Kembalikan', old.no, `${old.status} -> ${prev}${reason ? `. Alasan: ${reason}` : ''}`)))
+      setStore((s) => withLogs(put(s, id, { status: prev, cancelled: undefined }), mkLog(u, cfg.title, 'Kembalikan', old.no, `${old.status} -> ${prev}${reason ? `. Alasan: ${reason}` : ''}`, { recordId: old.id, kind: 'restore', changes: [{ label: 'Status', before: old.status, after: prev }], alasan: reason })))
     },
     requestApproval(id, jenis, approver, changes, alasan, rejectPatch) {
       const old = cur(id)
@@ -178,6 +193,6 @@ export function decideApproval(reqId: string, approve: boolean, catatan: string,
     const list = s.modules[req.module]
     const modules = patch && list ? { ...s.modules, [req.module]: list.map((r) => (r.id === req.recordId ? { ...r, ...patch } : r)) } : s.modules
     const approvals = s.approvals.map((a) => (a.id === reqId ? { ...a, status: approve ? ('Disetujui' as const) : ('Ditolak' as const), decidedBy: by.name, decidedAt: nowStr(), catatan } : a))
-    return withLogs({ ...s, modules, approvals }, mkLog(by, MODULE_LABEL[req.module], approve ? 'Approve' : 'Reject', req.recordNo, `${req.jenis}${catatan ? `. Catatan: ${catatan}` : ''}`))
+    return withLogs({ ...s, modules, approvals }, mkLog(by, MODULE_LABEL[req.module], approve ? 'Approve' : 'Reject', req.recordNo, `${req.jenis}${catatan ? `. Catatan: ${catatan}` : ''}`, { recordId: req.recordId, kind: 'decision', approver: by.name, alasan: catatan }))
   })
 }

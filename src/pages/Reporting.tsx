@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { withLainnya } from '../kit/Lainnya'
-import { useDashPaged } from '../shared/Pager'
 import { addDays, diffDays, fmtDate, fmtTime } from '../lib'
 import PageShell from '../kit/PageShell'
 import { BarCard, CalendarCard, LineCard, MiniTable } from '../kit/charts'
@@ -36,7 +35,7 @@ const dur = (ms: number) => { const m = Math.round(Math.abs(ms) / 60000); return
 const full = (c: Ctx) => c.role === 'Super Admin'
 const fields: Field<Laporan>[] = [
   { key: 'nama', label: 'Nama Laporan', type: 'select', options: (c) => withLainnya(c.master.laporan), required: true, editableBy: full },
-  { key: 'regulator', label: 'Regulator', type: 'select', options: (c) => c.master.regulator, required: true, editableBy: full },
+  { key: 'regulator', label: 'Regulator', type: 'select', options: (c) => withLainnya(c.master.regulator), required: true, editableBy: full },
   { key: 'jenis', label: 'Jenis Periode', type: 'select', options: JENIS, required: true, editableBy: full },
   { key: 'siber', label: 'Laporan Insiden Siber?', type: 'yesno', showIf: (r) => r.jenis === 'Insidental', help: 'Jam berjalan insiden siber dihitung dari waktu kejadian.', editableBy: full },
   { key: 'waktuKejadian', label: 'Waktu Kejadian', type: 'datetime', required: (r) => r.jenis === 'Insidental', showIf: (r) => r.jenis === 'Insidental', editableBy: full },
@@ -133,8 +132,10 @@ function seed(today: string): Laporan[] {
   const push = (it: Item, o: Partial<Laporan>) => {
     const i = out.length
     const [nama, regulator, jenis, dasar] = it
+    const batas = o.batas ?? `${today}T17:00`
+    const dibuat = addDays(dOf(batas), -14) // dibuat 2 minggu sebelum batas (maks hari ini); jam diberi store.stamp
     out.push({
-      id: `reporting-${i + 1}`, no: i + 1, status: 'Terkirim', createdAt: today, createdBy: 'Rina Kartika', nama, regulator, jenis, periode: PERIODE[jenis](i), batas: `${today}T17:00`,
+      id: `reporting-${i + 1}`, no: i + 1, status: 'Terkirim', createdAt: dibuat > today ? today : dibuat, createdBy: 'Rina Kartika', nama, regulator, jenis, periode: PERIODE[jenis](i), batas: `${today}T17:00`,
       siber: '', waktuKejadian: '', waktuNotif: '', tglSubmit: '', picPenyusun: PEN[i % 4], picReviewer: REV[i % 4], bukti: null, noTerima: '', dasar, alasan: '', ...o,
     })
   }
@@ -189,13 +190,10 @@ function TrenTerlambat({ rows, today }: { rows: Laporan[]; today: string }) {
   return <LineCard title="Tren laporan terlambat per bulan" data={tren} keys={['Terlambat']} colors={{ Terlambat: '#ef4444' }} toolbar={toolbar} />
 }
 function SoonTable({ rows, open }: { rows: Laporan[]; open: (id: string) => void }) {
-  const { slice, pager } = useDashPaged(rows)
+  // MiniTable sudah punya pager sendiri (5 baris); jangan paging dua kali dan jangan beri warna khusus
   return (
-    <div className="rounded-lg border border-amber-300 bg-amber-50">
-      <MiniTable title="Jatuh tempo 7 hari ke depan" className="border-0 bg-transparent" rows={slice} onRow={(r) => open(r.id)}
-        cols={[{ label: 'Nama Laporan', get: (r) => r.nama }, { label: 'Batas', get: (r) => fmtDate(dOf(r.batas)) }, { label: 'PIC', get: (r) => r.picPenyusun }, { label: 'Status', get: (r) => <StatusPill s={r.status} /> }]} />
-      {pager}
-    </div>
+    <MiniTable title="Jatuh tempo 7 hari ke depan" rows={rows} onRow={(r) => open(r.id)}
+      cols={[{ label: 'Nama Laporan', get: (r) => r.nama }, { label: 'Batas', get: (r) => fmtDate(dOf(r.batas)) }, { label: 'PIC', get: (r) => r.picPenyusun }, { label: 'Status', get: (r) => <StatusPill s={r.status} /> }]} />
   )
 }
 

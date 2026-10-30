@@ -1,4 +1,5 @@
 import { addDays, diffDays, fmtDate, todayStr } from '../lib'
+import { withLainnya } from '../kit/Lainnya'
 import PageShell from '../kit/PageShell'
 import { BarCard, DonutCard, MiniTable, StatCards } from '../kit/charts'
 import { StatusPill } from '../kit/fmt'
@@ -29,7 +30,7 @@ const fields: Field<SopRec>[] = [
   { key: 'noDok', label: 'No Dokumen', type: 'text', required: true, help: 'Unik, contoh SOP-077-PAY.' },
   { key: 'judul', label: 'Judul', type: 'text', required: true, wide: true },
   { key: 'ringkasan', label: 'Ringkasan (Key Point)', type: 'textarea', required: true, wide: true },
-  { key: 'pemilik', label: 'Pemilik Dokumen', type: 'select', options: (c) => c.master.unitKerja, required: true },
+  { key: 'pemilik', label: 'Pemilik Dokumen', type: 'select', options: (c) => withLainnya(c.master.unitKerja), required: true },
   { key: 'tglBerlaku', label: 'Tanggal Berlaku', type: 'date', required: true },
   { key: 'revisiBaru', label: 'Revisi dokumen', type: 'yesno', inForm: 'edit', noExport: true, noImport: true, help: 'Pilih Ya bila dokumen direvisi: No Revisi dan Tanggal Perubahan wajib baru, revisi lama tersimpan di daftar revisi.' },
   { key: 'tglUbah', label: 'Tanggal Perubahan Terakhir', type: 'date', required: true },

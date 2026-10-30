@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { addDays, fmtDate } from '../lib'
+import { withLainnya } from '../kit/Lainnya'
 import PageShell from '../kit/PageShell'
 import { BarCard, Card, MiniTable, StatCards, TONE_HEX } from '../kit/charts'
 import { StatusPill } from '../kit/fmt'
@@ -41,9 +42,9 @@ const fields: Field<Risk>[] = [
   { key: 'level', label: 'Level Risiko Awal (Inherent)', type: 'text', auto: (r) => level(r) },
   { key: 'respon', label: 'Respon', type: 'select', options: RESPON, required: true },
   { key: 'kontrol', label: 'Kontrol / Mitigasi', type: 'textarea', required: true, wide: true },
-  { key: 'dept', label: 'Unit Pemilik Risiko (Unit Kerja)', type: 'select', options: (c) => c.master.unitKerja, required: true },
+  { key: 'dept', label: 'Unit Pemilik Risiko (Unit Kerja)', type: 'select', options: (c) => withLainnya(c.master.unitKerja), required: true },
   { key: 'tglRegister', label: 'Tanggal Register', type: 'date', required: true },
-  { key: 'produk', label: 'Produk', type: 'select', options: (c) => c.master.produk },
+  { key: 'produk', label: 'Produk', type: 'select', options: (c) => withLainnya(c.master.produk) },
   { key: 'vendor', label: 'Vendor / Mitra', type: 'text' },
   { key: 'rasrt', label: 'Posisi terhadap Batas Risiko (RAS-RT, logika sementara)', type: 'text', auto: (r) => rasrt(r) },
 ]

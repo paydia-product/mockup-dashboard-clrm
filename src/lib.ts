@@ -5,8 +5,8 @@ export const WAIT_VALIDATION_DAYS = 7 // usulan: Menunggu Validasi > 7 hari memi
 export const NEAR_DUE_DAYS = 7
 export const DIRECTOR_DAYS = 7
 
-export const REGULATORS = ['BI', 'PPATK', 'Komdigi', 'BSSN', 'Lainnya']
-export const AREAS = ['APU PPT', 'QRIS', 'SNAP', 'Pelindungan Konsumen', 'Ketahanan Siber', 'Lainnya']
+export const REGULATORS = ['BI', 'PPATK', 'Komdigi', 'BSSN'] // 'Lainnya' tidak lagi ada di master; ditambahkan otomatis oleh withLainnya di dropdown
+export const AREAS = ['APU PPT', 'QRIS', 'SNAP', 'Pelindungan Konsumen', 'Ketahanan Siber']
 export const ROOT_TYPES = ['Orang', 'Proses', 'Sistem', 'Kebijakan', 'Pihak Ketiga']
 export const STATUSES = ['Open', 'Proses', 'Menunggu Validasi', 'Selesai', 'Dibatalkan'] as const
 export const RISKS = ['High', 'Medium', 'Low'] as const
@@ -42,6 +42,7 @@ export const userName = (id: string) => USERS.find((u) => u.id === id)?.name ?? 
 export interface FileMeta { name: string; size: number; type: string } // hanya metadata, isi file tidak disimpan
 export interface Finding {
   id: string
+  createdAt: string // waktu data masuk sistem (ISO). Data lama tanpa field ini: lihat createdOf()
   no: number // 1 Nomor Temuan (urutan 1, 2, 3 ...)
   regulator: string // 2
   tglTemuan: string // 3
@@ -82,6 +83,7 @@ export const addDays = (s: string, n: number) => {
 export const diffDays = (a: string, b: string) => Math.round((Date.parse(a.slice(0, 10) + 'T00:00:00Z') - Date.parse(b.slice(0, 10) + 'T00:00:00Z')) / 864e5) // a - b
 export const fmtDate = (s: string) => (s ? `${s.slice(8, 10)}/${s.slice(5, 7)}/${s.slice(0, 4)}` : '-')
 export const fmtTime = (s: string) => `${fmtDate(s.slice(0, 10))} ${s.slice(11, 16)}`
+export const fmtTimeSec = (s: string) => (s ? `${fmtDate(s.slice(0, 10))} ${(s.slice(11, 19) || '00:00:00').padEnd(8, ':00').slice(0, 8)}` : '-') // dd/mm/yyyy HH:mm:ss
 export const nowStr = () => {
   const d = new Date()
   return `${iso(d)}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
@@ -119,6 +121,7 @@ export function alertsFor(f: Finding, audit: Audit[], today = todayStr()): Alert
   }
   return out
 }
+export const createdOf = (f: Pick<Finding, 'createdAt' | 'tglTemuan'>) => f.createdAt || `${f.tglTemuan}T00:00:00` // data lama: jatuh ke Tanggal Temuan
 export const lateDays = (f: Finding, today = todayStr()) => (isOpenish(f) ? Math.max(0, diffDays(today, f.dueDate)) : 0)
 
 // ---- Seed ----
@@ -170,15 +173,16 @@ export function makeSeed(): DB {
     const pic = PIC_USERS[i < 12 ? (i % 4 === 0 ? 0 : i % 4) : i % 4].name
     const tindak = pick(TODO_TEXT)
     const tindakFile: FileMeta = { name: `bukti_temuan-${no}.pdf`, size: ri(80, 900) * 1024, type: 'application/pdf' }
-    const regulator = i < 8 ? REGULATORS[i % 5] : pick(REGULATORS)
+    const regulator = i < 8 ? REGULATORS[i % REGULATORS.length] : pick(REGULATORS)
     const suratFile: FileMeta = { name: `surat-${regulator}-${String(i + 1).padStart(3, '0')}.pdf`, size: ri(100, 1500) * 1024, type: 'application/pdf' }
     const f: Finding = {
-      id: `f${i + 1}`, no, regulator, tglTemuan: tgl, area: i < 6 ? AREAS[i % 6] : pick(AREAS),
+      id: `f${i + 1}`, createdAt: '', no, regulator, tglTemuan: tgl, area: i < 6 ? AREAS[i % AREAS.length] : pick(AREAS),
       rootCause: pick(ROOT_TEXT), rootType: pick(ROOT_TYPES), pic, dueDate: due, status: s.status,
       validasi: 'Belum', validasiOleh: '', validasiTgl: '', persetujuan: 'Menunggu', persetujuanOleh: '', persetujuanTgl: '',
       unit: i < 6 ? UNITS[i] : pick(UNITS), risiko: pick(RISKS), tindak, tindakFile, suratFile,
     }
     log(f, tgl, 'Rina Kartika', 'Tambah temuan', 'Nomor Temuan', '', String(no))
+    f.createdAt = audit[audit.length - 1].time // sama dengan waktu audit 'Tambah temuan'
     const start = addDays(tgl, 3)
     if (s.status === 'Proses' || s.status === 'Dibatalkan') {
       log(f, start, pic, 'Ubah temuan', 'Status', 'Open', 'Proses')
@@ -203,8 +207,8 @@ export function makeSeed(): DB {
 }
 
 // ---- Penyimpanan ----
-// ponytail: v3 supaya data v2 (no 'TR-...', pic berupa id, ada progress) tidak dimuat dan merusak tampilan
-export const KEY = 'clrm.db.v4'
+// ponytail: v5 = seed punya createdAt dan tanpa 'Lainnya' di daftar; data v4 lama tetap aman dibaca (createdOf) tetapi direset agar seed baru dipakai
+export const KEY = 'clrm.db.v5'
 const ROLE_KEY = 'clrm.role'
 function load(): DB {
   try {

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { FileText } from 'lucide-react'
-import { Audit, ChangeReq, FileMeta, Finding, Role, ROLE_USER, alertsFor, fmtDate, lastDueReason, fmtSize, fmtTime } from './lib'
+import { Audit, ChangeReq, DB, FileMeta, Finding, Role, alertsFor, createdOf, fmtDate, fmtTimeSec, lastDueReason, fmtSize } from './lib'
+import { LogPerubahan, trackerHistory } from './kit/history'
 import { AlertBadges, Badge, Modal, RiskBadge, StatusBadge } from './ui'
 
 export interface Acts {
@@ -33,7 +34,7 @@ const Row = ({ l, children }: { l: string; children: React.ReactNode }) => (
   <div><div className="text-xs text-slate-400">{l}</div><div className="mt-0.5 text-slate-800">{children}</div></div>
 )
 
-export default function Drawer({ f, audit, req, role, acts, onClose }: { f: Finding; audit: Audit[]; req?: ChangeReq; role: Role; acts: Acts; onClose: () => void }) {
+export default function Drawer({ f, audit, db, req, role, acts, onClose }: { f: Finding; audit: Audit[]; db: DB; req?: ChangeReq; role: Role; acts: Acts; onClose: () => void }) {
   const [dlg, setDlg] = useState<'validasi' | null>(null)
   const isCO = role === 'Compliance Officer'
   const isHead = role === 'Head CLRM'
@@ -50,7 +51,7 @@ export default function Drawer({ f, audit, req, role, acts, onClose }: { f: Find
             </div>
           )}
           <div className="grid grid-cols-2 gap-x-6 gap-y-3">
-            <Row l="Nomor">{f.no}</Row>
+            <Row l="Tanggal Dibuat">{fmtTimeSec(createdOf(f))}</Row>
             <Row l="Regulator">{f.regulator}</Row>
             <Row l="Tanggal Temuan">{fmtDate(f.tglTemuan)}</Row>
             <Row l="Area Temuan">{f.area}</Row>
@@ -81,6 +82,7 @@ export default function Drawer({ f, audit, req, role, acts, onClose }: { f: Find
             <div className="text-xs text-slate-400">Bukti Surat Regulator</div>
             <div className="mt-0.5 rounded border border-slate-200 p-2.5 text-xs"><Dl m={f.suratFile} empty="Belum ada file" /></div>
           </div>
+          <LogPerubahan items={trackerHistory(f, db)} />
         </div>
         <div className="mt-5 flex flex-wrap justify-end gap-2 border-t pt-3">
           {role === 'Viewer' && <span className="mr-auto self-center text-xs text-slate-400">Viewer: hanya dapat melihat.</span>}

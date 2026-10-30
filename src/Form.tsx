@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { Finding, RISKS, ROOT_TYPES, fmtDate } from './lib'
+import { Finding, RISKS, ROOT_TYPES, createdOf, fmtDate, fmtTime } from './lib'
 import { useApp } from './kit/store'
-import { OTHER_ERR, SelectOther } from './kit/Lainnya'
+import { OTHER_ERR, SelectOther, withLainnya } from './kit/Lainnya'
 import { FileField, Modal } from './ui'
 
 type Errs = Partial<Record<string, string>>
@@ -80,7 +80,7 @@ export default function Form({ init, mode, prevReason = null, onSave, onClose }:
       {edit ? (
         <>
           <div className="grid grid-cols-2 gap-3 rounded bg-slate-50 p-3 text-xs sm:grid-cols-5">
-            <Sum l="Nomor">{init.no}</Sum><Sum l="Regulator">{init.regulator}</Sum><Sum l="Area">{init.area}</Sum><Sum l="PIC">{init.pic}</Sum><Sum l="Status">{init.status}</Sum>
+            <Sum l="Tanggal Dibuat">{fmtTime(createdOf(init))}</Sum><Sum l="Regulator">{init.regulator}</Sum><Sum l="Area">{init.area}</Sum><Sum l="PIC">{init.pic}</Sum><Sum l="Status">{init.status}</Sum>
           </div>
           <p className="mt-2 text-xs text-slate-500">Perubahan lain tersimpan langsung. Mengubah status ke Selesai mengajukan penutupan temuan yang menunggu persetujuan Head CLRM.</p>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -113,9 +113,9 @@ export default function Form({ init, mode, prevReason = null, onSave, onClose }:
       ) : (
         <>
           <div className="grid gap-3 sm:grid-cols-2">
-            {sel('regulator', 'Regulator', regulator)}
+            {sel('regulator', 'Regulator', withLainnya(regulator))}
             {date('tglTemuan', 'Tanggal Temuan')}
-            {sel('area', 'Area Temuan', kategoriRegulasi)}
+            {sel('area', 'Area Temuan', withLainnya(kategoriRegulasi))}
             <div className="sm:col-span-2 grid gap-3 sm:grid-cols-[1fr_180px]">
               <div><label className="lbl">Penyebab Utama (Root Cause) *</label><input className="inp" value={f.rootCause} onChange={(e) => set('rootCause', e.target.value)} />{errs.rootCause && <p className="err">{errs.rootCause}</p>}</div>
               {sel('rootType', 'Jenis Penyebab', ROOT_TYPES)}
@@ -127,7 +127,7 @@ export default function Form({ init, mode, prevReason = null, onSave, onClose }:
             </div>
             {date('dueDate', 'Batas Waktu (Due Date)')}
             {statusField(ADD_STATUS)}
-            {sel('unit', 'Unit Kerja', unitKerja)}
+            {sel('unit', 'Unit Kerja', withLainnya(unitKerja))}
             {sel('risiko', 'Tingkat Risiko', [...RISKS])}
           </div>
           {files}

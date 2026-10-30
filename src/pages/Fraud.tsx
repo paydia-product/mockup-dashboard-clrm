@@ -1,4 +1,5 @@
 import { addDays, diffDays, fmtDate } from '../lib'
+import { withLainnya } from '../kit/Lainnya'
 import PageShell from '../kit/PageShell'
 import { BarCard, ComboCard, DonutCard, LineCard, StatCards } from '../kit/charts'
 import { addWorkDays, ageBucket, ageBuckets, monthKey, workDaysBetween } from '../kit/dates'
@@ -48,8 +49,8 @@ const blokirClosed = (r: Fraud) => r.tindakan === 'Blokir' && isClosed(r)
 
 const fields: Field<Fraud>[] = [
   { key: 'tglTerima', label: 'Tanggal Terima Tugas', type: 'date', required: true, reasonOnChange: true },
-  { key: 'kategori', label: 'Kategori Pelapor', type: 'select', options: (c) => c.master.kategoriPelapor, required: true },
-  { key: 'media', label: 'Media', type: 'select', options: (c) => c.master.mediaPelapor, required: true },
+  { key: 'kategori', label: 'Kategori Pelapor', type: 'select', options: (c) => withLainnya(c.master.kategoriPelapor), required: true },
+  { key: 'media', label: 'Media', type: 'select', options: (c) => withLainnya(c.master.mediaPelapor), required: true },
   { key: 'terlapor', label: 'Nama Terlapor', type: 'text', required: true, mask: isMasked },
   { key: 'jenisPengguna', label: 'Jenis Pengguna', type: 'select', options: PENGGUNA, required: true },
   { key: 'jenis', label: 'Jenis Dugaan', type: 'select', options: JENIS, required: true },

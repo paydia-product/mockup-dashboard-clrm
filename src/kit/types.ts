@@ -7,6 +7,7 @@ export type PermKey = ModuleId | 'approval' | 'master' | 'admin' | 'log' // kunc
 export type Role = 'Super Admin' | 'Head CLRM' | 'Compliance Officer' | 'Risk Officer' | 'Legal Officer' | 'Fraud Investigator' | 'Ketua SMKI' | 'PIC' | 'Viewer'
 export type Action = 'Lihat' | 'Tambah' | 'Ubah' | 'Cancel' | 'Approve' | 'Export' | 'Import'
 export interface Cancelled { prev: string; reason: string; by: string; at: string }
+// createdAt = ISO datetime lengkap (YYYY-MM-DDTHH:mm:ss); no = nomor internal untuk log/approval/email, bukan kolom tabel
 export interface BaseRec { id: string; no: number; status: string; createdAt: string; createdBy: string; cancelled?: Cancelled }
 // Data baru = semua kolom kecuali id/no/createdAt/createdBy/cancelled (status ikut, karena status adalah isian form)
 export type NewRec<T> = Omit<T, Exclude<keyof BaseRec, 'status'>>
@@ -79,7 +80,12 @@ export interface ApprovalReq {
   extra?: Record<string, unknown> // kolom turunan beforeSave (mis. levelAt) yang ikut diterapkan saat disetujui
   status: 'Menunggu' | 'Disetujui' | 'Ditolak'; decidedBy?: string; decidedAt?: string; catatan?: string
 }
-export interface LogEntry { id: string; time: string; user: string; role: Role; module: string; aksi: string; nomor: string; keterangan: string }
+// Field terstruktur (recordId..alasan) opsional: entri lama hanya punya teks. Dipakai Log Perubahan di modal Detail.
+export interface LogEntry {
+  id: string; time: string; user: string; role: Role; module: string; aksi: string; nomor: string; keterangan: string
+  recordId?: string; kind?: 'create' | 'edit' | 'cancel' | 'restore' | 'request' | 'decision'
+  changes?: { label: string; before: string; after: string }[]; approver?: string; alasan?: string
+}
 export interface SavedFilter { name: string; filter: Record<string, unknown> }
 export type PermMatrix = Record<Role, Partial<Record<PermKey, Action[]>>>
 export interface Store {
