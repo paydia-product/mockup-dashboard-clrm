@@ -84,9 +84,14 @@ const alerts: AlertDef<Risk>[] = [
     sample: (c) => mk(c, {}),
   },
   {
-    key: 'rasrt', label: 'Breach / Dalam Toleransi (RAS-RT)', rule: 'Posisi RAS-RT Breach (merah, level inherent High, wajib eskalasi) atau Dalam Toleransi (kuning, level inherent Medium).',
-    check: (r) => { const p = rasrt(r); return p === BREACH ? { color: 'red', detail: 'Breach RAS-RT, wajib eskalasi', to: ['Head CLRM', 'Direksi'] } : p === TOLERANSI ? { color: 'yellow', detail: 'Dalam Toleransi RAS-RT', to: ['Head CLRM', 'Direksi'] } : null },
+    key: 'breach', label: 'Breach RAS-RT', rule: 'Posisi RAS-RT Breach (merah, level inherent High, wajib eskalasi).',
+    check: (r) => (rasrt(r) === BREACH ? { color: 'red', detail: 'Breach RAS-RT, wajib eskalasi', to: ['Head CLRM', 'Direksi'] } : null),
     sample: (c) => mk(c, { domain: 'Ketahanan dan Keamanan Siber', dampak: 2, kemungkinan: 3, event: 'Akses tidak sah ke sistem pembayaran' }),
+  },
+  {
+    key: 'toleransi', label: 'Dalam Toleransi RAS-RT', rule: 'Posisi RAS-RT Dalam Toleransi (kuning, level inherent Medium).',
+    check: (r) => (rasrt(r) === TOLERANSI ? { color: 'yellow', detail: 'Dalam Toleransi RAS-RT', to: ['Head CLRM', 'Direksi'] } : null),
+    sample: (c) => mk(c, { domain: 'Operasional', dampak: 2, kemungkinan: 2, event: 'Rekonsiliasi harian terlambat' }),
   },
 ]
 

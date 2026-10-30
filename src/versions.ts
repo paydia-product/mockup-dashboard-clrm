@@ -11,9 +11,26 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
-    v: '2.12.0',
+    v: '2.12.1',
     date: '2026-10-30',
     deployed: true,
+    title: 'Perbaikan tampilan mobile, popover info, alert Risk Register, label SOP, dan hitungan Lainnya di grafik',
+    prompt: 'Popover info tidak meluap layar, layout mobile (sidebar overlay, header ringkas), Profile per rute, alert RAS-RT dipisah, label File Dokumen, teks Lainnya dihitung di grafik',
+    tokens: 150000,
+    changes: [
+      'Popover info (ⓘ) dijepit di dalam layar: lebar maksimal layar dikurangi 32px, bergeser ke kiri bila meluap kanan',
+      'Mobile (< 768px): sidebar tertutup bawaan dan terbuka sebagai overlay lewat tombol menu, menutup saat pindah halaman; header ringkas (nama versi dan nama akun disembunyikan); kartu angka 2 kolom; tabel dashboard bisa digeser; tanpa scroll horizontal halaman di 390px',
+      'Ganti Password dan Ganti PIN memakai state Panduan terpisah (key per rute)',
+      'Risk Register: alert "Breach / Dalam Toleransi (RAS-RT)" dipisah menjadi "Breach RAS-RT" (merah) dan "Dalam Toleransi RAS-RT" (kuning), masing-masing dengan contoh sendiri; panduan disesuaikan',
+      'Teks info kalender Reporting: hari ini berwarna biru di tampilan Minggu dan Bulan, bukan di tampilan Hari',
+      'Label upload SOP "File PDF" menjadi "File Dokumen" (PDF, JPG, JPEG, PNG) di form, Detail, dan header export',
+      'Grafik dan filter yang mengelompokkan field ber-Lainnya (Kontrak Jenis Dokumen, APH Pengirim dan Kasus, Layanan Jenis, Fraud Media, Regulatory Change Kategori, Tracker Area) menghitung teks bebas sebagai Lainnya; total grafik sama dengan jumlah data; teks info dan panduan diperbarui',
+    ],
+  },
+  {
+    v: '2.12.0',
+    date: '2026-10-30',
+    deployed: false,
     title: 'Panduan Halaman di semua halaman dan info (ⓘ) di semua grafik dashboard',
     prompt: 'Tombol Panduan Halaman (alur penggunaan dan penjelasan fitur) di setiap halaman, ikon info hover/klik di setiap grafik dan kartu dashboard',
     tokens: 250000,

@@ -97,7 +97,7 @@ export function Permission() {
         <select className="inp !w-56" value={role} onChange={(e) => setRole(e.target.value as Role)}>{ROLES.map((r) => <option key={r}>{r}</option>)}</select>
         {!edit && <span className="text-xs text-slate-400">{role === 'Super Admin' ? 'Super Admin selalu punya semua izin.' : 'Hanya baca.'}</span>}
       </div>
-      <table className="w-full text-left">
+      <div className="overflow-x-auto"><table className="w-full text-left">
         <thead className="bg-slate-100 text-xs text-slate-600"><tr><th className="px-3 py-2.5 font-semibold">Menu</th>{ACTIONS.map((a) => <th key={a} className="px-3 py-2.5 text-center font-semibold">{a}</th>)}</tr></thead>
         <tbody>
           {PERM_KEYS.map(({ key, label }) => (
@@ -107,7 +107,7 @@ export function Permission() {
             </tr>
           ))}
         </tbody>
-      </table>
+      </table></div>
     </div>
   )
 }

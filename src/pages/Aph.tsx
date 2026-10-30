@@ -1,4 +1,5 @@
 import { addDays, diffDays, fmtDate } from '../lib'
+import { showLainnya } from '../kit/Lainnya'
 import PageShell from '../kit/PageShell'
 import { AphGuide } from '../guides/aph'
 import { sameName } from '../kit/perms'
@@ -63,9 +64,9 @@ const uniq = (rows: Aph[], g: (r: Aph) => string) => [...new Set(rows.map(g).fil
 const filters: FilterDef<Aph>[] = [
   { key: 'periode', label: 'Periode (Tanggal Terima)', type: 'daterange', match: (r, v) => { const [a, b] = v as [string, string]; return (!a || r.tglTerima >= a) && (!b || r.tglTerima <= b) } },
   { key: 'status', label: 'Status', type: 'select', options: ['Active', 'Done', 'Dibatalkan'], match: (r, v) => r.status === v },
-  { key: 'pengirim', label: 'Pengirim', type: 'select', options: PENGIRIM, match: (r, v) => r.pengirim === v },
-  { key: 'kasus', label: 'Kasus', type: 'select', options: KASUS, match: (r, v) => r.kasus === v },
-  { key: 'unit', label: 'Unit Penyidik', type: 'select', options: UNIT, match: (r, v) => r.unit === v },
+  { key: 'pengirim', label: 'Pengirim', type: 'select', options: PENGIRIM, match: (r, v) => showLainnya(r.pengirim, PENGIRIM) === v },
+  { key: 'kasus', label: 'Kasus', type: 'select', options: KASUS, match: (r, v) => showLainnya(r.kasus, KASUS) === v },
+  { key: 'unit', label: 'Unit Penyidik', type: 'select', options: UNIT, match: (r, v) => showLainnya(r.unit, UNIT) === v },
   { key: 'groupMerchant', label: 'Group Merchant', type: 'select', options: (rows) => uniq(rows, (r) => r.groupMerchant), match: (r, v) => r.groupMerchant === v },
   { key: 'pic', label: 'PIC', type: 'select', options: (rows) => uniq(rows, (r) => r.pic), match: (r, v) => r.pic === v },
 ]
@@ -181,13 +182,13 @@ const cfg: PageConfig<Aph> = {
             tip={(d) => <Breakdown title={`${d.name}: ${d.Surat} surat`} sub="Per instansi pengirim" items={countBy(allRows.filter((r) => monthKey(r.tglTerima) === d.name), (r) => r.pengirim)} />} />
           <BarCard title="Instansi pengirim terbanyak" info={{
             apa: 'Jumlah permintaan menurut instansi pengirim (Active dan Done, tanpa Dibatalkan), dalam Periode Tanggal Terima yang dipilih.',
-            baca: ['Sumbu vertikal: instansi pengirim, urut terbanyak di atas. Sumbu horizontal: jumlah permintaan.', 'Isian teks bebas pada Lainnya belum dihitung.', 'Klik batang untuk membuka tab Table terfilter Pengirim.'],
-          }} horizontal data={count((r) => r.pengirim, PENGIRIM).sort((a, b) => b.Jumlah - a.Jumlah)} keys={['Jumlah']} onClick={(row) => drill({ pengirim: row.name })} />
+            baca: ['Sumbu vertikal: instansi pengirim, urut terbanyak di atas. Sumbu horizontal: jumlah permintaan.', 'Isian teks bebas di luar daftar dihitung di batang Lainnya.', 'Klik batang untuk membuka tab Table terfilter Pengirim.'],
+          }} horizontal data={count((r) => showLainnya(r.pengirim, PENGIRIM), PENGIRIM).sort((a, b) => b.Jumlah - a.Jumlah)} keys={['Jumlah']} onClick={(row) => drill({ pengirim: row.name })} />
           <DonutCard title="Permintaan per kasus" info={{
             apa: 'Proporsi permintaan menurut Kasus (Active dan Done, tanpa Dibatalkan), dalam Periode Tanggal Terima yang dipilih.',
-            baca: ['Tiap irisan adalah satu Kasus. Makin besar irisan, makin banyak permintaan. Kasus tanpa data tidak tampil.', 'Arahkan kursor ke irisan untuk melihat jumlah dan rinciannya per instansi pengirim.', 'Isian teks bebas pada Lainnya belum dihitung.', 'Klik irisan untuk membuka tab Table terfilter Kasus.'],
-          }} data={KASUS.map((k) => ({ name: k, value: rows.filter((r) => r.kasus === k).length }))} onClick={(name) => drill({ kasus: name })}
-            tip={(name, value) => <Breakdown title={`${name}: ${value} permintaan`} sub="Per instansi pengirim" items={countBy(rows.filter((r) => r.kasus === name), (r) => r.pengirim)} />} />
+            baca: ['Tiap irisan adalah satu Kasus. Makin besar irisan, makin banyak permintaan. Kasus tanpa data tidak tampil.', 'Arahkan kursor ke irisan untuk melihat jumlah dan rinciannya per instansi pengirim.', 'Isian teks bebas di luar daftar dihitung di irisan Lainnya.', 'Klik irisan untuk membuka tab Table terfilter Kasus.'],
+          }} data={KASUS.map((k) => ({ name: k, value: rows.filter((r) => showLainnya(r.kasus, KASUS) === k).length }))} onClick={(name) => drill({ kasus: name })}
+            tip={(name, value) => <Breakdown title={`${name}: ${value} permintaan`} sub="Per instansi pengirim" items={countBy(rows.filter((r) => showLainnya(r.kasus, KASUS) === name), (r) => r.pengirim)} />} />
           <BarCard title="Group merchant paling banyak disebut" info={{
             apa: 'Enam Group Merchant yang paling sering muncul pada permintaan (Active dan Done, tanpa Dibatalkan), dalam Periode Tanggal Terima yang dipilih.',
             baca: ['Sumbu horizontal: Group Merchant, urut terbanyak di kiri. Sumbu vertikal: jumlah permintaan.', 'Klik batang untuk membuka tab Table terfilter Group Merchant.'],

@@ -36,7 +36,7 @@ export const KontrakGuide: GuideItem[] = [
 <li><b>Dokumen Induk</b> wajib bila Jenis Dokumen = Amandemen. Pilihannya nomor kontrak lain yang bukan Amandemen dan tidak dibatalkan. Tidak boleh dirinya sendiri.</li>
 <li><b>Nomor PKS / NDA</b> harus unik (huruf besar atau kecil dianggap sama, kontrak dibatalkan diabaikan).</li>
 <li><b>Tanggal Berakhir</b> boleh kosong, tetapi muncul di kartu dan alert "Tanggal berakhir kosong". Tidak boleh sebelum Tanggal Mulai.</li>
-<li><b>Lainnya</b>: pada Jenis Hubungan, Jenis Dokumen, dan Bidang Usaha, memilih Lainnya memunculkan isian teks bebas yang wajib diisi. Tabel menampilkan "Lainnya", Detail dan Export menampilkan teks aslinya.</li>
+<li><b>Lainnya</b>: pada Jenis Hubungan, Jenis Dokumen, dan Bidang Usaha, memilih Lainnya memunculkan isian teks bebas yang wajib diisi. Tabel menampilkan "Lainnya", Detail dan Export menampilkan teks aslinya. Grafik per Jenis Dokumen menghitung teks bebas sebagai Lainnya.</li>
 <li><b>File Perjanjian</b>: PDF, JPG, JPEG, atau PNG. Maksimal 25 MB, satu file.</li>
 <li><b>Sisa Hari</b> terisi otomatis dari Tanggal Berakhir. <b>Status</b> Aktif atau Akan Berakhir berubah otomatis: lewat tanggal menjadi Expired, sisa 90 hari atau kurang menjadi Akan Berakhir, selebihnya Aktif. Status lain (Draft, Review, Diperpanjang, Berakhir, Expired) tidak diubah otomatis.</li>
 <li><b>Alasan perubahan</b> di form Edit bersifat opsional pada halaman ini.</li>

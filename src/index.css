@@ -11,3 +11,5 @@ body { @apply bg-page text-slate-700 antialiased text-[13px]; }
 .guide-body ol { @apply list-decimal space-y-0.5 pl-5; }
 .guide-body ul { @apply list-disc space-y-0.5 pl-5; }
 .guide-body p, .guide-body ol, .guide-body ul { @apply mb-2 last:mb-0; }
+/* mobile: anak grid/flex boleh menyusut, supaya grafik dan tabel tidak memaksa scroll horizontal halaman */
+@media (max-width: 767px) { main .grid > *, main .flex > * { min-width: 0; } }

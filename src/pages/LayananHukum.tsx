@@ -1,4 +1,5 @@
 import { addDays, diffDays, fmtDate } from '../lib'
+import { showLainnya } from '../kit/Lainnya'
 import PageShell from '../kit/PageShell'
 import { LayananGuide } from '../guides/layanan'
 import { BarCard, Breakdown, DonutCard, StatCards, countBy } from '../kit/charts'
@@ -46,7 +47,7 @@ const filters: FilterDef<Layanan>[] = [
   { key: 'status', label: 'Status', type: 'select', options: ['Baru', 'Proses', 'Selesai', 'Batal', 'Dibatalkan'], match: (r, v) => r.status === v },
   { key: 'pic', label: 'PIC', type: 'select', options: (rows) => uniq(rows, (r) => r.pic), match: (r, v) => r.pic === v },
   { key: 'dept', label: 'Unit Kerja', type: 'select', options: (_, c) => c.master.unitKerja, match: (r, v) => r.dept === v },
-  { key: 'jenis', label: 'Jenis', type: 'select', options: JENIS, match: (r, v) => r.jenis === v },
+  { key: 'jenis', label: 'Jenis', type: 'select', options: JENIS, match: (r, v) => showLainnya(r.jenis, JENIS) === v },
   { key: 'prioritas', label: 'Prioritas', type: 'select', options: PRIO, match: (r, v) => r.prioritas === v },
 ]
 
@@ -134,9 +135,9 @@ const cfg: PageConfig<Layanan> = {
         <div className="grid gap-3 lg:grid-cols-2">
           <DonutCard title="Permintaan per jenis" info={{
             apa: 'Proporsi semua permintaan (semua status kecuali Dibatalkan) menurut Jenis, dalam Periode Tanggal Masuk yang dipilih.',
-            baca: ['Tiap irisan adalah satu Jenis. Jenis tanpa data tidak tampil.', 'Arahkan kursor ke irisan untuk melihat jumlah dan rinciannya per unit kerja.', 'Isian teks bebas pada Lainnya belum dihitung.', 'Klik irisan untuk membuka tab Table terfilter Jenis.'],
-          }} data={JENIS.map((j) => ({ name: j, value: rows.filter((r) => r.jenis === j).length }))} onClick={(name) => drill({ jenis: name })}
-            tip={(name, value) => <Breakdown title={`${name}: ${value} permintaan`} sub="Per unit kerja" items={countBy(rows.filter((r) => r.jenis === name), (r) => r.dept)} />} />
+            baca: ['Tiap irisan adalah satu Jenis. Jenis tanpa data tidak tampil.', 'Arahkan kursor ke irisan untuk melihat jumlah dan rinciannya per unit kerja.', 'Isian teks bebas di luar daftar dihitung di irisan Lainnya.', 'Klik irisan untuk membuka tab Table terfilter Jenis.'],
+          }} data={JENIS.map((j) => ({ name: j, value: rows.filter((r) => showLainnya(r.jenis, JENIS) === j).length }))} onClick={(name) => drill({ jenis: name })}
+            tip={(name, value) => <Breakdown title={`${name}: ${value} permintaan`} sub="Per unit kerja" items={countBy(rows.filter((r) => showLainnya(r.jenis, JENIS) === name), (r) => r.dept)} />} />
           <BarCard title="Belum selesai menurut umur (hari)" info={{
             apa: 'Permintaan berstatus Baru atau Proses dikelompokkan menurut umur sejak Tanggal Masuk.',
             baca: ['Sumbu horizontal: rentang umur dalam hari (0-7, 8-14, lebih dari 14). Sumbu vertikal: jumlah permintaan.', 'Warna batang tetap: kuning untuk dua rentang pertama, merah untuk lebih dari 14 hari.', 'Batang tidak bisa diklik.'],
@@ -148,7 +149,7 @@ const cfg: PageConfig<Layanan> = {
           <BarCard title="Rata-rata lama selesai per jenis (hari)" info={{
             apa: 'Rata-rata hari dari Tanggal Masuk sampai Tanggal Selesai, dihitung dari permintaan berstatus Selesai yang punya Tanggal Selesai. Hasil dibulatkan.',
             baca: ['Sumbu horizontal: Jenis. Sumbu vertikal: rata-rata dalam hari.', 'Jenis tanpa permintaan Selesai tampil sebagai nol.', 'Arahkan kursor ke batang untuk melihat nilai dalam hari. Batang tidak bisa diklik.'],
-          }} data={JENIS.map((j) => { const x = done.filter((r) => r.jenis === j); return { name: j, Hari: x.length ? Math.round(x.reduce((a, r) => a + diffDays(r.tglSelesai, r.tglMasuk), 0) / x.length) : 0 } })} keys={['Hari']} unit="Hari" />
+          }} data={JENIS.map((j) => { const x = done.filter((r) => showLainnya(r.jenis, JENIS) === j); return { name: j, Hari: x.length ? Math.round(x.reduce((a, r) => a + diffDays(r.tglSelesai, r.tglMasuk), 0) / x.length) : 0 } })} keys={['Hari']} unit="Hari" />
         </div>
       </div>
     )

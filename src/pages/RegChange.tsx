@@ -1,5 +1,5 @@
 import { addDays, diffDays, fmtDate, todayStr } from '../lib'
-import { withLainnya } from '../kit/Lainnya'
+import { showLainnya, withLainnya } from '../kit/Lainnya'
 import PageShell from '../kit/PageShell'
 import { REGCHANGE_GUIDE } from '../guides/regchange'
 import { BarCard, DonutCard, LineCard, MiniTable, useMonthRange } from '../kit/charts'
@@ -48,7 +48,7 @@ const INFO: Record<string, ChartInfo> = {
     ],
   },
   pemenuhan: {
-    apa: 'Rata-rata Pemenuhan (%) per Kategori, dihitung hanya dari peraturan yang sudah punya nilai Pemenuhan. Kategori tanpa peraturan yang dinilai tampil 0.',
+    apa: 'Rata-rata Pemenuhan (%) per Kategori, dihitung hanya dari peraturan yang sudah punya nilai Pemenuhan. Kategori yang diketik bebas di luar Master Data dihitung sebagai Lainnya. Kategori tanpa peraturan yang dinilai tampil 0.',
     baca: [
       'Sumbu X: Kategori (dari Master Data). Sumbu Y: rata-rata Pemenuhan dalam persen, dibulatkan.',
       'Makin tinggi batang, makin patuh kategori itu. Angka 0 bisa berarti belum ada yang dinilai.',
@@ -294,7 +294,7 @@ const cfg: PageConfig<Reg> = {
           <BarCard title="Peraturan per regulator dan jenis perubahan" info={INFO.regulator} stacked data={REGULATOR.map((g) => ({ name: g, ...Object.fromEntries(JP.map((j) => [j, rows.filter((r) => regB(r) === g && r.jp === j).length])) }))} keys={JP} colors={['#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6']} onClick={(row) => drill({ regulator: row.name })} />
           <LineCard title="Tren peraturan baru dan perubahan per bulan" info={INFO.tren} toolbar={rg.toolbar} data={mons.map((m) => ({ name: m, Baru: allRows.filter((r) => r.tglDicatat.startsWith(m) && r.jp === 'Baru').length, Perubahan: allRows.filter((r) => r.tglDicatat.startsWith(m) && r.jp === 'Perubahan').length }))} keys={['Baru', 'Perubahan']} colors={['#3b82f6', '#f59e0b']} />
           <DonutCard title="Status kepatuhan" info={INFO.kepatuhan} data={KEP.map((k) => ({ name: k, value: n(k), color: KEP_COLOR[k] }))} onClick={(name) => drill({ kepatuhan: name })} />
-          <BarCard title="Rata-rata pemenuhan per kategori (%)" info={INFO.pemenuhan} data={c.master.kategoriRegulasi.map((k) => { const x = rated.filter((r) => r.kategori === k); const sum = x.reduce((a, r) => a + Number(r.pemenuhan), 0); return { name: k, Pemenuhan: x.length ? Math.round(sum / x.length) : 0 } })} keys={['Pemenuhan']}
+          <BarCard title="Rata-rata pemenuhan per kategori (%)" info={INFO.pemenuhan} data={withLainnya(c.master.kategoriRegulasi).map((k) => { const x = rated.filter((r) => showLainnya(r.kategori, c.master.kategoriRegulasi) === k); const sum = x.reduce((a, r) => a + Number(r.pemenuhan), 0); return { name: k, Pemenuhan: x.length ? Math.round(sum / x.length) : 0 } })} keys={['Pemenuhan']}
             tip={(d) => <><div className="mb-1 font-semibold text-slate-800">{String(d.name)}</div><div>Rata-rata pemenuhan: {d.Pemenuhan}%</div></>} />
           <div className="space-y-3">
             <BarCard title="Belum dinilai menurut lama sejak dicatat (hari)" info={INFO.umur} data={ageBuckets(edges).map((b) => ({ name: b, Jumlah: un.filter((r) => ageBucket(age(r), edges) === b).length }))} keys={['Jumlah']} colors={['#f59e0b']} catLabel="Hari" />

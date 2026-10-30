@@ -33,7 +33,7 @@ export const LayananGuide: GuideItem[] = [
 <li><b>Tanggal Selesai</b> dan <b>Nomor Memo / Pendapat Hukum</b> hanya tampil dan wajib bila Status = Selesai. Tanggal Selesai tidak boleh sebelum Tanggal Masuk.</li>
 <li>SLA minimal 1 hari.</li>
 <li><b>Alasan wajib</b>: bila <b>Tanggal Masuk</b> atau <b>SLA</b> yang sudah terisi diubah di form Edit, kolom Alasan perubahan wajib diisi.</li>
-<li><b>Lainnya</b>: pada Jenis, memilih Lainnya memunculkan isian teks bebas yang wajib diisi. Tabel menampilkan "Lainnya", Detail dan Export menampilkan teks aslinya. Teks bebas pada Jenis belum dihitung di grafik per jenis.</li>
+<li><b>Lainnya</b>: pada Jenis, memilih Lainnya memunculkan isian teks bebas yang wajib diisi. Tabel menampilkan "Lainnya", Detail dan Export menampilkan teks aslinya. Teks bebas pada Jenis dihitung di irisan Lainnya pada grafik per jenis.</li>
 <li>Permintaan berstatus <b>Selesai</b> atau <b>Batal</b> tidak bisa diedit lagi.</li>
 <li>Halaman ini tidak memakai approval. Perubahan langsung tersimpan.</li>
 <li><b>Siapa boleh</b>: Tambah oleh Legal Officer dan PIC. Edit oleh Legal Officer saja.</li>

@@ -21,7 +21,7 @@ const INFO: Record<string, ChartInfo> = {
   kalender: {
     apa: 'Kalender laporan menurut Batas Waktu. Tiap titik adalah satu laporan pada tanggal Batas Waktunya (laporan Dibatalkan tidak ditampilkan).',
     baca: [
-      'Ganti tampilan Hari, Minggu, atau Bulan dengan tombol di kanan atas, dan geser dengan tanda panah. Hari ini diberi warna biru.',
+      'Ganti tampilan Hari, Minggu, atau Bulan dengan tombol di kanan atas, dan geser dengan tanda panah. Pada tampilan Minggu dan Bulan, tanggal hari ini diberi warna biru. Tampilan Hari tidak memakai warna itu.',
       'Warna titik mengikuti Status: hijau Terkirim; kuning Belum Disiapkan, Disusun, atau Review; merah Terlambat.',
       'Arahkan kursor ke titik untuk melihat nama laporan. Klik titik untuk membuka Detail laporan.',
       'Tampilan Bulan menampilkan 3 titik per hari, sisanya tertulis "+N lagi".',

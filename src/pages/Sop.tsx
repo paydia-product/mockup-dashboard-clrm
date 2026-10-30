@@ -42,7 +42,7 @@ const fields: Field<SopRec>[] = [
   { key: 'noRevisi', label: 'No Revisi', type: 'text', required: true, help: 'Contoh Rev.1, 2.1.' },
   { key: 'retensi', label: 'Retensi', type: 'select', options: ['5 Tahun', '10 Tahun', 'Permanen'], required: true },
   { key: 'klasifikasi', label: 'Klasifikasi', type: 'select', options: ['Publik', 'Internal', 'Rahasia'], required: true },
-  { key: 'file', label: 'File PDF', type: 'file', required: true, wide: true },
+  { key: 'file', label: 'File Dokumen', type: 'file', required: true, wide: true },
   { key: 'tglReview', label: 'Tanggal Review Berikutnya', type: 'date', required: notImport },
   { key: 'status', label: 'Status', type: 'select', options: STATUS, required: notImport },
   { key: 'pic', label: 'PIC Dokumen', type: 'select', options: (c) => c.master.pic, required: true },

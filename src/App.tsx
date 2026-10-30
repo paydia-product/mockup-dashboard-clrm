@@ -66,11 +66,11 @@ function VersionPicker() {
   const [open, setOpen] = useState(false)
   return (
     <div className="relative">
-      <button onClick={() => setOpen(!open)} className="flex items-center gap-1 rounded bg-white/10 px-2 py-1 text-xs hover:bg-white/20"><Tag size={13} />v{versions[0].v}<ChevronDown size={12} /></button>
+      <button onClick={() => setOpen(!open)} className="flex items-center gap-1 rounded bg-white/10 px-2 py-1 text-xs hover:bg-white/20"><Tag size={13} /><span className="hidden sm:inline">v{versions[0].v}</span><ChevronDown size={12} /></button>
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-9 z-50 max-h-[70vh] w-[380px] overflow-auto rounded-lg border bg-white p-2 text-slate-700 shadow-xl">
+          <div className="fixed right-2 top-12 z-50 max-h-[70vh] w-[380px] max-w-[calc(100vw-16px)] overflow-auto sm:absolute sm:right-0 sm:top-9 rounded-lg border bg-white p-2 text-slate-700 shadow-xl">
             {versions.map((v, i) => (
               <div key={v.v} className="rounded border-b p-3 last:border-0">
                 <div className="flex flex-wrap items-center gap-2">
@@ -106,13 +106,13 @@ function Shell() {
   const { ctx, store, can, logout } = useApp()
   const [route, setRoute] = useState(hashRoute)
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
-  const [side, setSide] = useState(true)
+  const [side, setSide] = useState(() => innerWidth >= 768) // mobile: sidebar tertutup, dibuka sebagai overlay
   const [menu, setMenu] = useState(false)
   const [btnEl, setBtnEl] = useState<HTMLElement | null>(null)
   const [panelEl, setPanelEl] = useState<HTMLElement | null>(null)
   const slots = useMemo(() => ({ btn: btnEl, panel: panelEl }), [btnEl, panelEl])
   useEffect(() => {
-    const h = () => setRoute(hashRoute())
+    const h = () => { setRoute(hashRoute()); if (innerWidth < 768) setSide(false) }
     addEventListener('hashchange', h)
     return () => removeEventListener('hashchange', h)
   }, [])
@@ -160,25 +160,25 @@ function Shell() {
     : route.startsWith('master/') ? <MasterData key={route} kind={MASTER_LISTS.find((m) => `master/${m.slug}` === route)!.kind} />
     : route === 'admin/akun' ? <Akun />
     : route === 'admin/permission' ? <Permission />
-    : route === 'profil/password' ? <Profile kind="password" />
-    : route === 'profil/pin' ? <Profile kind="pin" />
+    : route === 'profil/password' ? <Profile key="password" kind="password" />
+    : route === 'profil/pin' ? <Profile key="pin" kind="pin" />
     : Page ? <Page key={route} /> : null
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-30 flex h-14 items-center justify-between bg-[#1f2ab5] px-4 text-white">
-        <div className="flex items-center gap-4">
+      <header className="sticky top-0 z-50 flex h-14 items-center justify-between bg-[#1f2ab5] px-3 text-white md:px-4">
+        <div className="flex items-center gap-3 md:gap-4">
           <span className="text-xl font-bold tracking-tight">paydia</span>
           <button onClick={() => setSide(!side)} aria-label="Menu"><Menu size={20} /></button>
         </div>
-        <div className="flex items-center gap-3">
-          <select aria-label="Akun demo" className="rounded border border-white/30 bg-white/10 px-2 py-1 text-xs text-white" value={user.id} onChange={(e) => switchTo(e.target.value)}>
+        <div className="flex items-center gap-2 md:gap-3">
+          <select aria-label="Akun demo" className="w-24 rounded md:w-auto border border-white/30 bg-white/10 px-2 py-1 text-xs text-white" value={user.id} onChange={(e) => switchTo(e.target.value)}>
             {demo.map((a) => <option key={a.id} value={a.id} className="text-slate-800">Akun demo: {a.name} ({a.role})</option>)}
           </select>
           <VersionPicker />
           <button title="Reset data contoh" onClick={reset} className="rounded bg-white/10 p-1.5 hover:bg-white/20"><RotateCcw size={14} /></button>
           <a href="#/approval" title="Approval" className="relative"><Bell size={18} />{pending > 0 && <span className="absolute -right-2 -top-2 rounded-full bg-red-500 px-1 text-[10px] font-semibold">{pending}</span>}</a>
           <div className="relative">
-            <button className="flex items-center gap-2" onClick={() => setMenu(!menu)}><div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-xs font-semibold">{user.name[0]}</div><span className="text-sm">{user.name}</span><ChevronDown size={12} /></button>
+            <button className="flex items-center gap-2" onClick={() => setMenu(!menu)}><div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-xs font-semibold">{user.name[0]}</div><span className="hidden text-sm md:inline">{user.name}</span><ChevronDown size={12} /></button>
             {menu && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setMenu(false)} />
@@ -193,8 +193,9 @@ function Shell() {
         </div>
       </header>
       <div className="flex flex-1">
+        {side && <div className="fixed inset-0 top-14 z-30 bg-black/30 md:hidden" onClick={() => setSide(false)} />}
         {side && (
-          <aside className="w-[216px] shrink-0 border-r bg-white">
+          <aside className="fixed bottom-0 left-0 top-14 z-40 w-[216px] shrink-0 overflow-y-auto border-r bg-white shadow-xl md:static md:z-auto md:overflow-visible md:shadow-none">
             <div className="flex items-center gap-2.5 border-b p-4">
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-brand">{user.name[0]}</div>
               <div className="min-w-0"><div className="truncate text-sm font-semibold text-slate-800">{user.name}</div><div className="truncate text-[11px] text-slate-400">{user.email}</div></div>
@@ -209,7 +210,7 @@ function Shell() {
             </nav>
           </aside>
         )}
-        <main className="min-w-0 flex-1 bg-page p-6">
+        <main className="min-w-0 flex-1 bg-page p-3 md:p-6">
           <div className="mb-1 text-xs text-slate-400">home / {groupOf(route) ? `${groupOf(route)} / ` : ''}{labelOf(route)}</div>
           <div className="mb-4 flex flex-wrap items-center gap-3"><h1 className="text-xl font-semibold text-slate-800">{labelOf(route)}</h1><div ref={setBtnEl} /></div>
           <div ref={setPanelEl} />

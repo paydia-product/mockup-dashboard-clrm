@@ -61,8 +61,8 @@ export const RiskGuide: GuideItem[] = [
   { h: 'Simulasi notifikasi email', b: `<p>Angka di tombol <b>Simulasi notifikasi</b> = jumlah alert aktif. Maksimal 3 email per jenis alert. Bila tidak ada data cocok, tampil <b>contoh statis</b>.</p>
 <ul>
 <li><b>Risiko High baru / naik ke High</b> (merah): Level High dan tanggal register atau kenaikan level dalam 7 hari terakhir. Penerima: Risk Officer, Head CLRM, Risk Owner (Unit Kerja risiko).</li>
-<li><b>Breach</b> (merah): Posisi RAS-RT Breach (Level High), wajib eskalasi. Penerima: Head CLRM, Direksi.</li>
-<li><b>Dalam Toleransi</b> (kuning): Posisi RAS-RT Dalam Toleransi (Level Medium). Penerima: Head CLRM, Direksi.</li>
+<li><b>Breach RAS-RT</b> (merah): Posisi RAS-RT Breach (Level High), wajib eskalasi. Penerima: Head CLRM, Direksi.</li>
+<li><b>Dalam Toleransi RAS-RT</b> (kuning): Posisi RAS-RT Dalam Toleransi (Level Medium). Penerima: Head CLRM, Direksi.</li>
 </ul>
 <p>Risiko Low (Dalam Appetite) tidak memicu alert.</p>` },
   { h: 'Export Excel', b: `<ul>

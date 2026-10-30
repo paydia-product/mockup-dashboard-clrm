@@ -34,7 +34,7 @@ export const AphGuide: GuideItem[] = [
 <li>Field opsional: Nama Penyidik, No. Telepon Penyidik, Tanggal BAP, Tanggal Jadwal Ulang BAP, Tempat BAP, Nominal Hold Settlement, dan Dana Taktis. Nama dan nomor telepon yang kosong memicu alert "Data penting kosong".</li>
 <li>Aturan tanggal: Batas Waktu Jawaban dan Tanggal Jawaban tidak boleh sebelum Tanggal Terima. Jadwal Ulang BAP tidak boleh sebelum Tanggal BAP.</li>
 <li>Bila Jadwal Ulang BAP diisi, alert dan kalender memakai tanggal itu. Perubahan jadwal BAP tercatat di Log.</li>
-<li><b>Lainnya</b>: pada Pengirim, Perihal (Jenis), Kasus, dan Unit Penyidik, memilih Lainnya memunculkan isian teks bebas yang wajib diisi. Tabel menampilkan "Lainnya", Detail dan Export menampilkan teks aslinya. Teks bebas itu belum dihitung di grafik per Pengirim dan per Kasus.</li>
+<li><b>Lainnya</b>: pada Pengirim, Perihal (Jenis), Kasus, dan Unit Penyidik, memilih Lainnya memunculkan isian teks bebas yang wajib diisi. Tabel menampilkan "Lainnya", Detail dan Export menampilkan teks aslinya. Teks bebas itu dihitung sebagai Lainnya di grafik per Pengirim dan per Kasus.</li>
 <li><b>Nama Penyidik</b> dan <b>No. Telepon Penyidik</b> disamarkan untuk peran Viewer, dan tidak ikut Export.</li>
 <li>Halaman ini tidak memakai approval dan tidak ada field yang wajib alasan. Alasan perubahan bersifat opsional.</li>
 <li><b>Siapa boleh</b>: Tambah oleh Legal Officer. Edit oleh Legal Officer dan PIC. PIC hanya boleh mengedit permintaan yang PIC-nya namanya sendiri.</li>

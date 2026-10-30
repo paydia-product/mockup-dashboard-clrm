@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 2.12.1 | 2026-10-30 | ~150k |
 | 2.12.0 | 2026-10-30 | ~250k |
 | 2.11.1 | 2026-10-30 | ~60k |
 | 2.11.0 | 2026-10-30 | ~200k |
@@ -43,6 +44,17 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [2.12.1] - 2026-10-30
+
+### Diperbaiki
+- Popover info (ⓘ) tidak lagi meluap layar: dijepit dalam viewport, lebar maksimal layar dikurangi 32px
+- Mobile (< 768px): sidebar tertutup bawaan dan terbuka sebagai overlay; header ringkas; kartu angka 2 kolom; tabel dashboard bisa digeser; tidak ada scroll horizontal halaman di 390px pada semua rute
+- Ganti Password dan Ganti PIN tidak lagi berbagi state Panduan
+- Risk Register: alert RAS-RT dipisah menjadi "Breach RAS-RT" (merah) dan "Dalam Toleransi RAS-RT" (kuning)
+- Teks info kalender Reporting: warna biru hari ini hanya di tampilan Minggu dan Bulan
+- Label upload SOP menjadi "File Dokumen"
+- Teks bebas pada pilihan Lainnya dihitung di grafik dan filter (Kontrak, APH, Layanan, Fraud Media, Regulatory Change Kategori, Tracker Area); teks info dan panduan diperbarui
 
 ## [2.12.0] - 2026-10-30
 

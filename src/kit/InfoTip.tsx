@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { Info } from 'lucide-react'
 
 // Isi popover info grafik. apa = apa yang ditampilkan; baca = cara membaca (string atau daftar poin).
@@ -11,6 +11,22 @@ export default function InfoTip({ info, label }: { info: ChartInfo; label: strin
   const ref = useRef<HTMLSpanElement>(null)
   const id = useId()
   const open = hover || pinned
+  // Jepit popover di dalam viewport: lebar maks 288px / (lebar layar - 32px), geser kiri bila meluap kanan.
+  const [pos, setPos] = useState<{ left: number; width: number }>({ left: 0, width: 288 })
+  useLayoutEffect(() => {
+    if (!open) return
+    const place = () => {
+      const r = ref.current?.getBoundingClientRect()
+      if (!r) return
+      const vw = document.documentElement.clientWidth
+      const width = Math.min(288, vw - 32)
+      const x = Math.min(Math.max(r.left, 16), vw - 16 - width)
+      setPos({ left: x - r.left, width })
+    }
+    place()
+    addEventListener('resize', place)
+    return () => removeEventListener('resize', place)
+  }, [open])
   useEffect(() => {
     if (!open) return
     const key = (e: KeyboardEvent) => { if (e.key === 'Escape') { setPinned(false); setHover(false) } }
@@ -25,7 +41,7 @@ export default function InfoTip({ info, label }: { info: ChartInfo; label: strin
         className={`rounded-full p-0.5 hover:text-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand ${pinned ? 'text-brand' : 'text-slate-400'}`}
         onClick={(e) => { e.stopPropagation(); setPinned(!pinned) }}><Info size={14} /></button>
       {open && (
-        <span id={id} role="tooltip" className="absolute left-0 top-full z-40 block w-72 max-w-[80vw] pt-1.5 text-left">
+        <span id={id} role="tooltip" className="absolute top-full z-40 block pt-1.5 text-left" style={{ left: pos.left, width: pos.width }}>
           <span className="block rounded-lg border border-slate-200 bg-white p-3 text-xs leading-relaxed text-slate-600 shadow-xl">
             <span className="block font-semibold text-slate-800">Apa yang ditampilkan</span>
             <span className="block">{info.apa}</span>

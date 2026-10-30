@@ -1,4 +1,5 @@
 import { addDays, diffDays, fmtDate, todayStr } from '../lib'
+import { showLainnya } from '../kit/Lainnya'
 import { monthKey } from '../kit/dates'
 import { sameName } from '../kit/perms'
 import PageShell from '../kit/PageShell'
@@ -76,11 +77,11 @@ const uniq = (rows: Kontrak[], g: (r: Kontrak) => string) => [...new Set(rows.ma
 const picOf = (r: Kontrak) => r.pic || r.dept
 const filters: FilterDef<Kontrak>[] = [
   { key: 'periode', label: 'Periode (Tanggal Mulai)', type: 'daterange', match: (r, v) => { const [a, b] = v as [string, string]; return (!a || r.mulai >= a) && (!b || r.mulai <= b) } },
-  { key: 'jenisHubungan', label: 'Jenis Hubungan', type: 'select', options: HUBUNGAN, match: (r, v) => r.jenisHubungan === v },
-  { key: 'jenisDok', label: 'Jenis Dokumen', type: 'select', options: JENIS_DOK, match: (r, v) => r.jenisDok === v },
+  { key: 'jenisHubungan', label: 'Jenis Hubungan', type: 'select', options: HUBUNGAN, match: (r, v) => showLainnya(r.jenisHubungan, HUBUNGAN) === v },
+  { key: 'jenisDok', label: 'Jenis Dokumen', type: 'select', options: JENIS_DOK, match: (r, v) => showLainnya(r.jenisDok, JENIS_DOK) === v },
   { key: 'status', label: 'Status', type: 'select', options: [...STATUS, 'Dibatalkan'], match: (r, v) => r.status === v },
   { key: 'pic', label: 'PIC / Unit', type: 'select', options: (rows) => uniq(rows, picOf), match: (r, v) => picOf(r) === v },
-  { key: 'bidang', label: 'Bidang Usaha', type: 'select', options: BIDANG, match: (r, v) => r.bidang === v },
+  { key: 'bidang', label: 'Bidang Usaha', type: 'select', options: BIDANG, match: (r, v) => showLainnya(r.bidang, BIDANG) === v },
   { key: 'kelompok', label: 'Kelompok masa berlaku', type: 'select', options: GROUPS, match: (r, v) => grup(r, todayStr()) === v },
 ]
 
@@ -206,8 +207,8 @@ const cfg: PageConfig<Kontrak> = {
         <div className="grid gap-3 lg:grid-cols-2">
           <BarCard title="Kontrak per jenis dokumen" info={{
             apa: 'Jumlah kontrak menurut Jenis Dokumen, semua status kecuali Dibatalkan, dalam Periode Tanggal Mulai yang dipilih.',
-            baca: ['Sumbu vertikal: Jenis Dokumen. Sumbu horizontal: jumlah kontrak.', 'Arahkan kursor ke batang untuk melihat jumlahnya.', 'Klik batang untuk membuka tab Table terfilter Jenis Dokumen.', 'Isian teks bebas pada Lainnya belum dihitung.'],
-          }} horizontal data={JENIS_DOK.map((j) => ({ name: j, Jumlah: rows.filter((r) => r.jenisDok === j).length }))} keys={['Jumlah']} onClick={(row) => drill({ jenisDok: row.name })} />
+            baca: ['Sumbu vertikal: Jenis Dokumen. Sumbu horizontal: jumlah kontrak.', 'Arahkan kursor ke batang untuk melihat jumlahnya.', 'Klik batang untuk membuka tab Table terfilter Jenis Dokumen.', 'Isian teks bebas di luar daftar dihitung di batang Lainnya, sehingga jumlah semua batang sama dengan jumlah kontrak.'],
+          }} horizontal data={JENIS_DOK.map((j) => ({ name: j, Jumlah: rows.filter((r) => showLainnya(r.jenisDok, JENIS_DOK) === j).length }))} keys={['Jumlah']} onClick={(row) => drill({ jenisDok: row.name })} />
           <LineCard title="Kontrak baru per bulan" info={{
             apa: 'Jumlah kontrak baru menurut bulan Tanggal Mulai, semua status kecuali Dibatalkan. Tidak ikut filter Periode halaman.',
             baca: ['Sumbu horizontal: bulan (tahun-bulan). Sumbu vertikal: jumlah kontrak.', 'Filter Periode di atas grafik mengatur rentang bulan: 3, 6, 9, 12 bulan terakhir, Seluruh Waktu, atau Custom. Bawaan 12 bulan terakhir.', 'Bulan tanpa kontrak tampil sebagai nol.', 'Arahkan kursor ke titik untuk melihat bulan dan jumlahnya.'],

@@ -31,7 +31,7 @@ export const SopGuide: GuideItem[] = [
 <li><b>Tanggal Perubahan Terakhir</b> tidak boleh sebelum Tanggal Berlaku.</li>
 <li><b>Pemilik Dokumen</b> dan <b>PIC Dokumen</b> dipilih dari Master Data (Unit Kerja dan PIC).</li>
 <li><b>Retensi</b>: 5 Tahun, 10 Tahun, atau Permanen. <b>Klasifikasi</b>: Publik, Internal, atau Rahasia. <b>Status</b>: Aktif, Dalam Review, atau Dicabut.</li>
-<li><b>Upload file</b>: format PDF, JPG, JPEG, atau PNG. Maksimal 25 MB, 1 file.</li>
+<li><b>Upload file</b> (kolom <b>File Dokumen</b>): format PDF, JPG, JPEG, atau PNG. Maksimal 25 MB, 1 file.</li>
 <li>Saat Edit ada kolom <b>Alasan perubahan</b>. Kolom ini tidak wajib di halaman ini.</li>
 <li>Tidak ada field otomatis dan tidak ada pilihan Lainnya di halaman ini.</li>
 <li>Yang boleh <b>Tambah</b>: Compliance Officer, PIC, Super Admin. Yang boleh <b>Edit</b>: Compliance Officer, PIC, Super Admin. PIC hanya dapat mengedit SOP yang PIC Dokumen-nya adalah dirinya.</li>

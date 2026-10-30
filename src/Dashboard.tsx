@@ -6,6 +6,7 @@ import { RiskBadge, StatusBadge } from './ui'
 import { useDashPaged } from './shared/Pager'
 import { useMonthRange } from './kit/charts'
 import InfoTip from './kit/InfoTip'
+import { useApp } from './kit/store'
 import type { ChartInfo } from './kit/InfoTip'
 
 // Teks info (i) tiap kartu dashboard
@@ -37,7 +38,7 @@ const INFO: Record<string, ChartInfo> = {
     ],
   },
   area: {
-    apa: 'Pembagian temuan menurut Area Temuan (kategori peraturan).',
+    apa: 'Pembagian temuan menurut Area Temuan (kategori peraturan). Area yang diketik bebas di luar daftar dihitung sebagai Lainnya.',
     baca: [
       'Tiap irisan adalah satu Area Temuan. Angka di irisan adalah jumlah temuannya.',
       'Makin besar irisan, makin banyak temuan di area itu. Warna hanya pembeda, nama area ada di legenda.',
@@ -101,6 +102,7 @@ const UnitTip = ({ active, payload }: { active?: boolean; payload?: { payload: {
 }
 
 export default function Dashboard({ findings, audit, filter, setFilter, onOpen }: { findings: Finding[]; audit: Audit[]; filter: Filter; setFilter: (f: Filter) => void; onOpen: (id: string) => void }) {
+  const areas = useApp().store.master.kategoriRegulasi
   const data = useMemo(() => findings.filter((f) => f.status !== 'Dibatalkan' && (!filter.from || f.tglTemuan >= filter.from) && (!filter.to || f.tglTemuan <= filter.to)), [findings, filter.from, filter.to])
   const open = data.filter((f) => f.status !== 'Selesai')
   const done = data.filter((f) => f.status === 'Selesai')
@@ -113,7 +115,7 @@ export default function Dashboard({ findings, audit, filter, setFilter, onOpen }
   const byReg = [...REGULATORS, 'Lainnya'].map((r) => ({ name: r, Open: open.filter((f) => regOf(f) === r).length, Selesai: done.filter((f) => regOf(f) === r).length }))
   const unitM = count(data, (f) => f.unit)
   const byUnit = [...unitM].map(([name, v]) => { const selesai = data.filter((f) => f.unit === name && f.status === 'Selesai').length; return { name, v, selesai, open: v - selesai } }).sort((a, b) => b.v - a.v)
-  const byArea = [...count(data, (f) => f.area)].map(([name, value]) => ({ name, value }))
+  const byArea = [...count(data, (f) => (areas.includes(f.area) ? f.area : 'Lainnya'))].map(([name, value]) => ({ name, value }))
   const byBucket = BUCKETS.map((b) => ({ name: b.name, v: overdue.filter((f) => lateDays(f) >= b.min && lateDays(f) <= b.max).length }))
   const bucketOf = (f: Finding) => BUCKETS.find((b) => lateDays(f) >= b.min && lateDays(f) <= b.max)?.name
   const byRisk = RISKS.map((r) => {
@@ -203,7 +205,7 @@ export default function Dashboard({ findings, audit, filter, setFilter, onOpen }
               <Bar dataKey="v" name="Temuan" fill="#dc2626" />
             </BarChart>
           </ResponsiveContainer>
-          <div className="lg:col-span-2">
+          <div className="overflow-x-auto lg:col-span-2">
             <table className="w-full text-left">
               <thead className="sticky top-0 bg-slate-50 text-xs text-slate-500"><tr>{['No', 'PIC', 'Batas Waktu', 'Terlambat', 'Kelompok', 'Status', 'Risiko'].map((h) => <th key={h} className="px-2 py-2 font-medium">{h}</th>)}</tr></thead>
               <tbody>

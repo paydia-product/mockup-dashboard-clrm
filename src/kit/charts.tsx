@@ -67,7 +67,7 @@ const hasData = (data: Row[], keys: string[], monthly?: boolean) => (monthly ? d
 
 export function StatCards({ items, info, title = 'Ringkasan' }: { items: { label: string; value: string | number; tone?: Tone; onClick?: () => void }[]; info?: ChartInfo; title?: string }) {
   const grid = (
-    <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${Math.min(items.length, 6)}, minmax(0, 1fr))` }}>
+    <div className="grid grid-cols-2 gap-3 sm:[grid-template-columns:repeat(var(--n),minmax(0,1fr))]" style={{ '--n': Math.min(items.length, 6) } as React.CSSProperties}>
       {items.map((it) => (
         <div key={it.label} onClick={it.onClick} className={`rounded-lg border border-l-4 border-slate-200 bg-white p-4 ${TILE[it.tone ?? 'gray']} ${it.onClick ? 'cursor-pointer hover:bg-slate-50' : ''}`}>
           <div className="text-xs text-slate-500">{it.label}</div>
