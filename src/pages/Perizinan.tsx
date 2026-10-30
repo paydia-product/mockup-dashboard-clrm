@@ -59,7 +59,7 @@ const columns: Column<Izin>[] = [
   { label: 'No', get: (r) => r.no },
   { label: 'Kategori', get: (r) => r.kategori },
   { label: 'Nama Dokumen', get: (r) => r.nama },
-  { label: 'Nomor', get: (r) => r.nomor },
+  { label: 'Nomor Dokumen', get: (r) => r.nomor },
   { label: 'Penerbit', get: (r) => r.penerbit },
   { label: 'Kedaluwarsa', get: (r) => r.tglKedaluwarsa, render: (r) => fmtDate(r.tglKedaluwarsa) || '-' },
   { label: 'Sisa Hari', get: (r, c) => sisa(r, c.today) ?? '', render: (r, c) => <SisaBadge r={r} today={c.today} /> },

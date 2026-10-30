@@ -44,7 +44,7 @@ const isPic = (c: Ctx) => c.role === 'PIC'
 
 const fields: Field<Reg>[] = [
   { key: 'jenis', label: 'Jenis Peraturan / Surat', type: 'select', options: JENIS, required: true, editableBy: (c) => !isPic(c) },
-  { key: 'nomor', label: 'Nomor', type: 'text', required: true, editableBy: (c) => !isPic(c) },
+  { key: 'nomor', label: 'Nomor Peraturan', type: 'text', required: true, editableBy: (c) => !isPic(c) },
   { key: 'tahun', label: 'Tahun', type: 'text', required: true, editableBy: (c) => !isPic(c) },
   { key: 'regulator', label: 'Regulator / Penerbit', type: 'select', options: (c) => withLainnya(c.master.regulator), required: true, editableBy: (c) => !isPic(c) },
   { key: 'tentang', label: 'Tentang', type: 'textarea', required: true, editableBy: (c) => !isPic(c) },

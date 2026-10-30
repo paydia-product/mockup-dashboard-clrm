@@ -59,7 +59,7 @@ const columns: Column<Kontrak>[] = [
   { label: 'No', get: (r) => r.no },
   { label: 'Jenis Hubungan', get: (r) => r.jenisHubungan },
   { label: 'Mitra', get: (r) => r.mitra },
-  { label: 'Nomor', get: (r) => r.nomor },
+  { label: 'Nomor PKS / NDA', get: (r) => r.nomor },
   { label: 'Jenis Dokumen', get: (r) => r.jenisDok },
   { label: 'Mulai', get: (r) => r.mulai, render: (r) => fmtDate(r.mulai) },
   { label: 'Berakhir', get: (r) => r.berakhir, render: (r) => (r.berakhir ? fmtDate(r.berakhir) : '-') },
@@ -190,7 +190,7 @@ const cfg: PageConfig<Kontrak> = {
         <MiniTable
           title="Kontrak berakhir dalam 90 hari (terdekat dulu)" rows={dekat} onRow={(r) => open(r.id)}
           cols={[
-            { label: 'Mitra', get: (r) => r.mitra }, { label: 'Nomor', get: (r) => r.nomor }, { label: 'Jenis Dokumen', get: (r) => r.jenisDok },
+            { label: 'Mitra', get: (r) => r.mitra }, { label: 'Nomor PKS / NDA', get: (r) => r.nomor }, { label: 'Jenis Dokumen', get: (r) => r.jenisDok },
             { label: 'Berakhir', get: (r) => fmtDate(r.berakhir) }, { label: 'Sisa hari', get: (r) => sisa(r, c.today) },
             { label: 'PIC / Unit', get: (r) => picOf(r) },
           ]}

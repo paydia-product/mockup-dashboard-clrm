@@ -1,11 +1,11 @@
 import { ReactNode, useMemo, useSyncExternalStore } from 'react'
-import { AREAS, UNITS, nowStr, todayStr } from '../lib'
+import { AREAS, UNITS, addDays, nowStr, todayStr } from '../lib'
 import { fmtValue } from './fmt'
 import { DEFAULT_PERMS, MODULE_LABEL, can as canPerm } from './perms'
 import type { Account, Action, ApprovalReq, ApprovalRule, BaseRec, Ctx, LogEntry, ModuleApi, ModuleId, NewRec, PageConfig, PermKey, Role, Session, Store } from './types'
 
 export type { ModuleApi }
-export const APP_KEY = 'clrm.app.v3' // ponytail: v3 = seed tanpa 'Lainnya' + createdAt datetime; data v2 direset (load() tetap aman membaca data lama)
+export const APP_KEY = 'clrm.app.v4' // ponytail: v4 = createdBy nama orang + createdAt seed masa lalu + seed Fraud valid; v3 = seed tanpa 'Lainnya' + createdAt datetime; data v2 direset (load() tetap aman membaca data lama)
 export const SESSION_KEY = 'clrm.session'
 export const DEFAULT_PASSWORD = 'Paydia123!'
 export const DEFAULT_PIN = '123456'
@@ -34,7 +34,7 @@ const stamp = <T extends BaseRec>(r: T): T => {
   if (!r || typeof r.createdAt !== 'string' || r.createdAt.length !== 10) return r
   const t = `${r.createdAt}T${new Date((8 * 3600 + ((r.no || 0) * 300) % 43200) * 1000).toISOString().slice(11, 19)}`
   const now = nowStr()
-  return { ...r, createdAt: t > now ? now : t } // jangan di masa depan (seed tanggal hari ini)
+  return { ...r, createdAt: t > now ? `${addDays(now.slice(0, 10), -1)}${t.slice(10)}` : t } // jangan di masa depan/saat load: mundur 1 hari
 }
 
 // ---- Singleton + subscribe (readModule/addRecord dipanggil di luar komponen) ----

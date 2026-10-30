@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 2.7.1 | 2026-10-30 | ~330k |
 | 2.7.0 | 2026-10-30 | ~250k |
 | 2.6.1 | 2026-10-30 | ~200k |
 | 2.6.0 | 2026-10-30 | ~200k |
@@ -28,6 +29,17 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [2.7.1] - 2026-10-30
+
+Estimasi token: ~330k (QA penuh oleh agent terpisah dan perbaikan)
+
+### Diperbaiki
+- Export Excel di semua halaman kit: kolom Nomor urut (terbaru di atas) dan Tanggal Dibuat. Nomor internal tidak ikut diekspor.
+- Tanggal di Log Perubahan tracker dan export tracker memakai format dd/mm/yyyy.
+- Kolom nomor dokumen di Kontrak, Perizinan, dan Regulatory Change tidak lagi bernama "Nomor".
+- Data contoh: "Data dibuat" menampilkan nama orang. Tanggal Dibuat tidak lagi sama dengan waktu buka halaman. Kasus Fraud contoh bisa diedit tanpa mengisi field yang hanya wajib saat Closed.
+- Data demo direset (key `clrm.app.v4`).
 
 ## [2.7.0] - 2026-10-30
 

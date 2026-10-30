@@ -1,4 +1,4 @@
-import { DB, Finding, createdOf, fmtTimeSec } from '../lib'
+import { DB, Finding, createdOf, fmtDate, fmtTimeSec } from '../lib'
 import { Badge, Tone } from '../ui'
 import type { BaseRec, ModuleId, Store } from './types'
 
@@ -9,6 +9,8 @@ import type { BaseRec, ModuleId, Store } from './types'
 export interface HItem { key: string; time: string; title: string; tone: Tone; by: string; requester?: string; approver?: string; lines?: { label: string; before: string; after: string }[]; note?: string; noteLabel?: string; text?: string }
 
 const dash = (s: string | undefined) => (s && s.trim() ? s : '-')
+// ponytail: tanggal ISO murni (entri lama tersimpan ISO) diformat saat tampil
+const dmy = (s: string | undefined) => (s && /^\d{4}-\d{2}-\d{2}$/.test(s.trim()) ? fmtDate(s.trim()) : dash(s))
 const LEGACY_SKIP = ['Tambah', 'Ajukan approval', 'Approve', 'Reject', 'Import', 'Export'] // Tambah = Data dibuat (dari record); approval dari store.approvals
 
 export function kitHistory(r: BaseRec, moduleId: ModuleId, title: string, store: Store): HItem[] {
@@ -55,7 +57,7 @@ export function trackerHistory(f: Finding, db: DB): HItem[] {
       out.push(g)
     }
     if (!g.note && a.alasan) g.note = a.alasan
-    if (a.kolom) g.lines!.push({ label: a.kolom, before: dash(a.lama), after: dash(a.baru) })
+    if (a.kolom) g.lines!.push({ label: a.kolom, before: dmy(a.lama), after: dmy(a.baru) })
   }
   for (const h of out) { // approval seed tanpa request: pengaju = pengajuan terakhir sebelum keputusan
     if (h.title.startsWith('Approval') && !h.requester) h.requester = out.filter((x) => x.title.startsWith('Pengajuan') && x.time <= h.time).sort((a, b) => b.time.localeCompare(a.time))[0]?.by

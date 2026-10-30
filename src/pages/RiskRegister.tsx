@@ -102,7 +102,7 @@ function seed(today: string): Risk[] {
       const ago = hi && i % 3 === 0 ? 1 + (i % 6) : 12 + ((i * 7) % 80)
       const tgl = addDays(today, -ago)
       out.push({
-        id: `risk-${i + 1}`, no: i + 1, status: 'Aktif', createdAt: tgl, createdBy: 'Risk Officer',
+        id: `risk-${i + 1}`, no: i + 1, status: 'Aktif', createdAt: tgl, createdBy: 'Rudi Hartono',
         konteks: KON[i % 8], event: `${EV[(i + j) % 10]} (${i + 1})`, domain: DOMAINS[(i + j) % 10], dampak: d, kemungkinan: k,
         respon: RESPON[i % 4], kontrol: `Kontrol berkala dan review ${DEPT[i % 6]}`, dept: DEPT[(i * 5) % 6], tglRegister: tgl,
         produk: PRD[i % 4], vendor: VEN[i % 5], levelAt: tgl,

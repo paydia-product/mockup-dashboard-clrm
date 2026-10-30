@@ -1,4 +1,5 @@
 import * as XLSX from 'xlsx'
+import { fmtTimeSec } from '../lib'
 import { fmtValue, isMasked, maskStr } from './fmt'
 import type { BaseRec, Ctx, PageConfig } from './types'
 
@@ -11,8 +12,10 @@ export function downloadXlsx(file: string, sheet: string, data: R[], extra?: { s
 }
 // Semua kolom Detail (kecuali noExport), nilai tersamar mengikuti mask, file = nama file, angka tetap angka
 export function exportRows<T extends BaseRec>(cfg: PageConfig<T>, rows: T[], c: Ctx, today: string) {
-  const data = rows.map((r) => {
-    const o: R = { No: r.no }
+  // ponytail: urutan sama dengan DataTable (Tanggal Dibuat terbaru dulu); Nomor = posisi baris, bukan r.no
+  const sorted = [...rows].sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || '') || b.no - a.no)
+  const data = sorted.map((r, i) => {
+    const o: R = { Nomor: i + 1, 'Tanggal Dibuat': fmtTimeSec(r.createdAt) }
     for (const f of cfg.fields) {
       if (f.key === 'no' || f.noExport || (f.showIf && !f.showIf(r))) continue
       const v = f.auto ? f.auto(r, c) : (r as R)[f.key]

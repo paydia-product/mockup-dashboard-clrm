@@ -135,7 +135,7 @@ function seed(today: string): Laporan[] {
     const batas = o.batas ?? `${today}T17:00`
     const dibuat = addDays(dOf(batas), -14) // dibuat 2 minggu sebelum batas (maks hari ini); jam diberi store.stamp
     out.push({
-      id: `reporting-${i + 1}`, no: i + 1, status: 'Terkirim', createdAt: dibuat > today ? today : dibuat, createdBy: 'Rina Kartika', nama, regulator, jenis, periode: PERIODE[jenis](i), batas: `${today}T17:00`,
+      id: `reporting-${i + 1}`, no: i + 1, status: 'Terkirim', createdAt: dibuat >= today ? addDays(today, -1) : dibuat, createdBy: 'Rina Kartika', nama, regulator, jenis, periode: PERIODE[jenis](i), batas: `${today}T17:00`,
       siber: '', waktuKejadian: '', waktuNotif: '', tglSubmit: '', picPenyusun: PEN[i % 4], picReviewer: REV[i % 4], bukti: null, noTerima: '', dasar, alasan: '', ...o,
     })
   }

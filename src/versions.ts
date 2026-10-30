@@ -11,9 +11,23 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
-    v: '2.7.0',
+    v: '2.7.1',
     date: '2026-10-30',
     deployed: true,
+    title: 'Perbaikan hasil QA v2.7.0',
+    prompt: 'Lanjutan QA penuh',
+    tokens: 330000,
+    changes: [
+      'Export Excel semua halaman: kolom Nomor urut dan Tanggal Dibuat, tanpa nomor internal',
+      'Tanggal di Log Perubahan dan export tracker memakai format dd/mm/yyyy',
+      'Kolom nomor dokumen tidak lagi bernama sama dengan kolom Nomor',
+      'Data contoh: pembuat berupa nama orang, Tanggal Dibuat tidak sama dengan waktu buka halaman, data Fraud bisa diedit',
+    ],
+  },
+  {
+    v: '2.7.0',
+    date: '2026-10-30',
+    deployed: false,
     title: 'Tanggal Dibuat, nomor urut, Log Perubahan',
     prompt: 'Pager ganda di Reporting; Tanggal Dibuat; nomor urut tanpa sort; Log Perubahan di detail; master izinkan ` \' - &, hapus Lainnya dari master',
     tokens: 250000,

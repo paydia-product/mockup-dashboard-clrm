@@ -121,8 +121,8 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
 
   const doExport = () => {
     const data = rows.map((f, i) => ({
-      Nomor: i + 1, Regulator: f.regulator, 'Tanggal Temuan': f.tglTemuan, 'Area Temuan': f.area, 'Penyebab Utama (Root Cause)': `${f.rootCause} (${f.rootType})`,
-      PIC: f.pic, 'Batas Waktu': f.dueDate, Status: f.status,
+      Nomor: i + 1, Regulator: f.regulator, 'Tanggal Temuan': fmtDate(f.tglTemuan), 'Area Temuan': f.area, 'Penyebab Utama (Root Cause)': `${f.rootCause} (${f.rootType})`,
+      PIC: f.pic, 'Batas Waktu': fmtDate(f.dueDate), Status: f.status,
       'Validasi Ulang': f.validasi === 'Belum' ? 'Belum' : `${f.validasi} - ${f.validasiOleh} - ${f.validasiTgl}`,
       'Persetujuan Penutupan': f.persetujuanOleh ? `${f.persetujuan} - ${f.persetujuanOleh} - ${f.persetujuanTgl}` : f.persetujuan,
       'Unit Kerja': f.unit, 'Tingkat Risiko': f.risiko, 'Rencana Tindak Lanjut': f.tindak, 'File Bukti Tindak Lanjut': f.tindakFile?.name ?? '', 'Bukti Surat Regulator': f.suratFile?.name ?? '', 'Tanggal Dibuat': fmtTime(createdOf(f)),
