@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 2.10.0 | 2026-10-30 | ~250k |
 | 2.9.2 | 2026-10-30 | ~130k |
 | 2.9.1 | 2026-10-30 | ~300k |
 | 2.9.0 | 2026-10-30 | ~400k |
@@ -38,6 +39,24 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [2.10.0] - 2026-10-30
+
+Estimasi token: ~250k
+
+### Ditambah
+- Fraud: field Jenis Data (Fraud/EDD) tepat setelah Tanggal Terima Tugas; field EDD (EDD 1, EDD 2, Batas Waktu EDD, Hasil EDD) hanya tampil dan berlaku untuk EDD. Alert EDD dan grafik terima ke EDD 1 hanya memakai baris EDD.
+- Fraud: hover grafik Jenis dugaan menampilkan rincian per Kategori Pelapor; hover Top 10 merchant menampilkan rincian per Jenis Dugaan.
+
+### Diubah
+- Master Mitra menjadi Mitra Vendor (rute `master/mitra-vendor`; tautan lama dialihkan; key data tetap `mitra`). Semua field Mitra/Vendor (Kajian Nama Mitra, Kontrak Nama Mitra, Risk Register Vendor / Mitra) menjadi dropdown master tanpa Lainnya. Seed master ditambah PT Jaringan Nusa dan PT Data Aman.
+- Unit Kerja tanpa Lainnya di Kajian, Kontrak, Layanan Hukum, Regulatory Change, dan Form tracker.
+- Kajian Risiko: kartu mitra dipisah menjadi dua kartu berdampingan; modal Selesai tanpa teks keterangan.
+- Fraud: Kategori Pelapor dan Produk dari master tanpa Lainnya; seed Produk UE/QRIS/Biller. Saldo Tertahan wajib bila Tindakan Blokir.
+- `APP_KEY` naik ke v11.
+
+### Dihapus
+- Fraud: field No. Rekening (data tersimpan lama diabaikan).
 
 ## [2.9.2] - 2026-10-30
 

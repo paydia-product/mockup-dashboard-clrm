@@ -6,7 +6,7 @@ import { DEFAULT_PERMS, MODULE_LABEL, can as canPerm } from './perms'
 import type { Account, Action, ApprovalReq, ApprovalRule, BaseRec, Ctx, LogEntry, ModuleApi, ModuleId, NewRec, PageConfig, PermKey, Role, Session, Store } from './types'
 
 export type { ModuleApi }
-export const APP_KEY = 'clrm.app.v10' // ponytail: v10 = seed Regulatory Change (dampak Tinggi baru, sosialisasi terisi) dan PIC seed APH terisi; v9 = master Unit Kerja/Kategori Pelapor/Laporan dari Request Product.xlsx, Regulatory Change tindak lanjut teks + SOP daftar nama, filter tersimpan dihapus (load() membuang `saved` dan mengubah bentuk lama bila ada); v8 = seed tanpa nomor internal di teks, approval simpan nama data; v7 = master PIC (Regie/Fakhri/Osama) menggantikan master Regulator, seed PIC/regulator disesuaikan, akun demo PIC = Regie; v6 = tanggal batal seed Fraud tetap; v5 = pembatal seed Fraud nama orang; v4 = createdBy nama orang + createdAt seed masa lalu + seed Fraud valid; v3 = seed tanpa 'Lainnya' + createdAt datetime; data v2 direset (load() tetap aman membaca data lama)
+export const APP_KEY = 'clrm.app.v11' // ponytail: v11 = master Mitra Vendor (seed + PT Jaringan Nusa/PT Data Aman), seed Fraud dengan Jenis Data dan Produk master, tanpa No. Rekening; v10 = seed Regulatory Change (dampak Tinggi baru, sosialisasi terisi) dan PIC seed APH terisi; v9 = master Unit Kerja/Kategori Pelapor/Laporan dari Request Product.xlsx, Regulatory Change tindak lanjut teks + SOP daftar nama, filter tersimpan dihapus (load() membuang `saved` dan mengubah bentuk lama bila ada); v8 = seed tanpa nomor internal di teks, approval simpan nama data; v7 = master PIC (Regie/Fakhri/Osama) menggantikan master Regulator, seed PIC/regulator disesuaikan, akun demo PIC = Regie; v6 = tanggal batal seed Fraud tetap; v5 = pembatal seed Fraud nama orang; v4 = createdBy nama orang + createdAt seed masa lalu + seed Fraud valid; v3 = seed tanpa 'Lainnya' + createdAt datetime; data v2 direset (load() tetap aman membaca data lama)
 export const SESSION_KEY = 'clrm.session'
 export const DEFAULT_PASSWORD = 'Paydia123!'
 export const DEFAULT_PIN = '123456'
@@ -25,7 +25,7 @@ const defaults = (): Store => ({
     laporan: [...LAPORAN_NAMES],
     pic: ['Regie', 'Fakhri', 'Osama'],
     kategoriRegulasi: [...AREAS], unitKerja: [...UNITS], produk: ['UE', 'QRIS', 'Biller'],
-    mitra: ['Kopi Senja', 'Toko Maju Jaya', 'Bimbel Cerdas', 'PT Telkom Biller', 'Warung Nusantara', 'Apotek Sehat', 'Bank Mitra Utama', 'CV Digital Kreasi', 'Resto Padang Raya', 'Laundry Kilat', 'Sekolah Harapan', 'Minimarket 24', 'PT Logistik Cepat', 'Salon Cantika', 'PT Nusa Cloud', 'PT Data Prima', 'PT Aman Jaya Logistik', 'PT Mitra Bayar', 'PT Sentra Verifikasi', 'PT Cipta Layanan', 'PT Biller Nusantara', 'PT Arta Teknologi', 'PT Kirim Cepat', 'PT Sigma Analitik'],
+    mitra: ['Kopi Senja', 'Toko Maju Jaya', 'Bimbel Cerdas', 'PT Telkom Biller', 'Warung Nusantara', 'Apotek Sehat', 'Bank Mitra Utama', 'CV Digital Kreasi', 'Resto Padang Raya', 'Laundry Kilat', 'Sekolah Harapan', 'Minimarket 24', 'PT Logistik Cepat', 'Salon Cantika', 'PT Nusa Cloud', 'PT Data Prima', 'PT Aman Jaya Logistik', 'PT Mitra Bayar', 'PT Sentra Verifikasi', 'PT Cipta Layanan', 'PT Biller Nusantara', 'PT Arta Teknologi', 'PT Kirim Cepat', 'PT Sigma Analitik', 'PT Jaringan Nusa', 'PT Data Aman'],
     kategoriPelapor: ['Departemen Internal', 'Konsumen', 'Switching', 'PJP/Bank', 'Institusi Berwenang Lainnya', 'Kepolisian', 'Bank Indonesia', 'Asosiasi'], mediaPelapor: ['Email', 'IASC', 'GO AML', 'WhatsApp'],
   },
 })

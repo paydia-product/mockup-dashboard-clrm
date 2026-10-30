@@ -38,7 +38,7 @@ export default function Form({ init, mode, prevReason = null, onSave, onClose }:
   const sel = (k: keyof Finding, label: string, opts: string[]) => (
     <div>
       <label className="lbl">{label} *</label>
-      <SelectOther value={f[k]} options={opts} set={(v) => set(k, v as never)} onPending={pend(k)} />
+      <SelectOther extra value={f[k]} options={opts} set={(v) => set(k, v as never)} onPending={pend(k)} />
       {errs[k] && <p className="err">{errs[k]}</p>}
     </div>
   )
@@ -127,7 +127,7 @@ export default function Form({ init, mode, prevReason = null, onSave, onClose }:
             </div>
             {date('dueDate', 'Batas Waktu (Due Date)')}
             {statusField(ADD_STATUS)}
-            {sel('unit', 'Unit Kerja', withLainnya(unitKerja))}
+            {sel('unit', 'Unit Kerja', unitKerja)}
             {sel('risiko', 'Tingkat Risiko', [...RISKS])}
           </div>
           {files}

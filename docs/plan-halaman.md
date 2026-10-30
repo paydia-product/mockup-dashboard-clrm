@@ -180,13 +180,13 @@ Sumber kebenaran: `src/kit/types.ts`. Perbedaan dari draf di atas:
 
 **Approval**: list + pagination + filter status (Menunggu/Disetujui/Ditolak) + filter modul + cari; kolom Nomor request, Modul, Jenis request, Nomor data, Pengaju, Tanggal ajuan, Status. Detail: ringkasan data, tabel kolom/nilai lama/nilai baru, alasan, keputusan. Approve/Reject hanya untuk `approver === role` (atau Super Admin) yang punya `can(module,'Approve')`; Reject wajib catatan. Tracker tampil lewat adapter.
 
-**Master Data**: delapan list (cari, Tambah/Edit lewat modal "Tambah/Edit <Nama Master>" dengan field Nama, Hapus dengan konfirmasi). Urutan menu: Laporan, Regulator, Kategori Regulasi, Unit Kerja, Produk, Mitra, Kategori Pelapor, Media Pelapor. Validasi Nama: wajib, 2 sampai 255 karakter, hanya huruf/angka/spasi dan karakter `' - & / , . ( ), unik tanpa beda huruf besar. Seed:
+**Master Data**: delapan list (cari, Tambah/Edit lewat modal "Tambah/Edit <Nama Master>" dengan field Nama, Hapus dengan konfirmasi). Urutan menu: Laporan, PIC, Kategori Regulasi, Unit Kerja, Produk, Mitra Vendor, Kategori Pelapor, Media Pelapor. Validasi Nama: wajib, 2 sampai 255 karakter, hanya huruf/angka/spasi dan karakter `' - & / , . ( ), unik tanpa beda huruf besar. Seed:
 - Unit Kerja (sheet "4. Daftar Departemen Paydia"): Internal Audit, Business, Operation, Information Technology, Compliance Legal & Risk Management, Support, Finance, Accounting, Tax & Treasury.
 - Produk: UE, QRIS, Biller.
 - (Master Regulator dihapus v2.8.0; daftar regulator tetap per halaman.) PIC: Regie, Fakhri, Osama.
 - Kategori Regulasi: APU PPT, QRIS, SNAP, Pelindungan Konsumen, Ketahanan Siber, Lainnya.
 - Kategori Pelapor (sheet "2. Daftar Pihak Pelapor EDD"): Departemen Internal, Konsumen, Switching, PJP/Bank, Institusi Berwenang Lainnya, Kepolisian, Bank Indonesia, Asosiasi. Media Pelapor: Email, IASC, GO AML, WhatsApp, Lainnya.
-- Laporan: nama dari sheet "1. Daftar Pelaporan Paydia" (tanpa sufiks batas waktu; jenis periode Harian/Mingguan/Bulanan/Triwulanan/Tahunan/3 Tahun Sekali), disimpan di `src/pages/laporan.shared.ts`. Mitra: dari nama di seed Kontrak dan Kajian. Dropdown Nama Mitra menambah "Lainnya"; Nama Laporan di Reporting tetap input teks. Dropdown Unit Kerja di SOP (Pemilik), Risk Register, dan Produk di Risk Register tanpa "Lainnya".
+- Laporan: nama dari sheet "1. Daftar Pelaporan Paydia" (tanpa sufiks batas waktu; jenis periode Harian/Mingguan/Bulanan/Triwulanan/Tahunan/3 Tahun Sekali), disimpan di `src/pages/laporan.shared.ts`. Mitra Vendor (v2.10.0, ganti nama dari Mitra, rute `master/mitra-vendor`, key data tetap `mitra`): nama dari seed Kontrak, Kajian, Risk Register. Semua field Mitra/Vendor (Kajian Nama Mitra, Kontrak Nama Mitra, Risk Register Vendor / Mitra) berupa dropdown master ini tanpa "Lainnya" dan tanpa teks bebas; nama baru harus ditambah dulu di master. Dropdown Unit Kerja di semua halaman (termasuk tracker) tanpa "Lainnya" (v2.10.0); Nama Laporan di Reporting tetap input teks. Dropdown Unit Kerja di SOP (Pemilik), Risk Register, dan Produk di Risk Register tanpa "Lainnya".
 
 Pihak Pelapor diganti Kategori Pelapor dan Media Pelapor (field Pihak Pelapor di Fraud dihapus). Rename dan hapus tidak mengubah data lama. Semua perubahan dicatat di Log.
 
@@ -350,7 +350,7 @@ Kolom:
   9. Tanggal Selesai dan 10. Hasil/Opini (Tidak Direkomendasikan/Direkomendasikan Dengan Syarat/Direkomendasikan/Risk Acceptance): tidak ada di form tambah; diisi lewat aksi baris **"Selesai"** (modal: tanggal bebas dipilih, hasil wajib) yang membuat status Selesai.
   11. Klasifikasi Regulasi: Izin/Lapor/Tidak Perlu, D.
   12–16 (hanya tampil bila Jenis = Vendor, K):
-     - Nama Mitra (teks) + Konteks kerja sama.
+     - Nama Mitra (dropdown master Mitra Vendor) + Konteks kerja sama.
      - Status Mitra Eksisting/Rencana.
      - Ada PKS? + tanggal.
      - Tiga Ya/Tidak akses (sistem, data pengguna/karyawan, data keuangan).
@@ -366,7 +366,7 @@ Kolom:
   4. Bar mendatar per departemen.
   5. Bar rata-rata hari masuk→selesai per jenis.
   6. Donut hasil.
-  7. Tabel mitra yang jadwalnya ≤30 hari atau lewat + bar Eksisting vs Rencana.
+  7. Dua kartu berdampingan (desktop 2 kolom, mobile bertumpuk): tabel mitra yang jadwalnya ≤30 hari atau lewat, dan bar Eksisting vs Rencana. Modal aksi "Selesai" tanpa teks keterangan di bawah judul.
 - Alert (4):
   1. Lewat batas dan belum Selesai, merah → PIC; Head CLRM.
   2. ≤2 hari kerja sebelum batas, kuning → PIC.
@@ -377,14 +377,14 @@ Kolom:
 ### C6. Fraud Case Monitoring — Fraud — `Fraud.tsx` — export `Kasus_Fraud_EDD`
 - Kolom (26):
   1. No: A (format EDD/.. tidak dipakai, lihat E).
-  2. Tanggal Terima Tugas: W.
+  2. Tanggal Terima Tugas: W. Jenis Data (v2.10.0) tepat setelahnya: Fraud/EDD, W. Field EDD (EDD 1/2, Batas Waktu EDD, Hasil EDD) hanya tampil dan berlaku saat Jenis Data = EDD.
   3. Pihak Pelapor: Master Pihak Pelapor, W.
-  4. Kategori Pelapor (Departemen Internal/Konsumen/Switching/PJP/Bank/Institusi Berwenang Lainnya/Kepolisian/Bank Indonesia/Asosiasi/Lainnya), W; Media (Email/IASC/GO AML/WhatsApp/Lainnya), W.
+  4. Kategori Pelapor (hanya dari master Kategori Pelapor, tanpa Lainnya), W; Media (Email/IASC/GO AML/WhatsApp/Lainnya), W.
   5. Nama Terlapor (teks, `mask`) + Jenis Pengguna Merchant/User, W.
   6. Jenis Dugaan Fraud/Judi Online/Transaksi Anomali + rincian, W.
   7. Uraian (W) + Bukti file (W).
   8. Nominal Korban: money W.
-  9. RRN (`mask`, dianggap data rekening/transaksi) + Tanggal Transaksi, opsional. Tambah field "No. Rekening" D (`mask`).
+  9. RRN (`mask`, dianggap data rekening/transaksi) + Tanggal Transaksi, opsional. Field "No. Rekening" dihapus di v2.10.0.
   10. Hasil Asesmen Awal Dilanjutkan/Tidak + alasan, W.
   11. Hold Settlement: tanggal + nominal, opsional.
   12. Tanggal Email PPATK, opsional.
@@ -394,13 +394,13 @@ Kolom:
   16. Tindakan: Blokir/Watchlist/Hold Settlement/Released/Terminasi/Blokir IP/Tidak Ada Tindak Lanjut/Redundant, W.
   17. Tanggal Blokir, opsional.
   18. Released Settlement: tanggal + nominal, opsional.
-  19. Saldo Tertahan: K bila Blokir.
+  19. Saldo Tertahan: W bila Tindakan = Blokir (Tambah dan Edit, apa pun statusnya).
   20. Tanggal Hapus QRIS + Tanggal Email Tutup Akun, opsional.
   21. Tanggal Lapor Komdigi/BI/PPATK, K bila Blokir.
   22. Tanggal Email Resolved: K saat Closed.
   23. Status Open/Closed/Dibatalkan, W.
   24. PIC Investigator: teks W.
-  25. Group Merchant/Produk/Channel: teks D.
+  25. Group Merchant/Channel: teks D. Produk: dropdown master Produk (UE/QRIS/Biller) tanpa Lainnya, D.
   26. Kerugian Paydia: money D.
 - Ubah nominal atau tanggal yang sudah terisi wajib alasan (`reasonOnChange` di semua field money/date).
 - Kolom tabel: No, Tgl Terima, Pihak Pelapor, Terlapor (masked), Jenis Dugaan, Nominal, Tindakan, Status, PIC.
@@ -412,10 +412,10 @@ Kolom:
 - Dashboard (10):
   1. StatCards: total, Open, Closed, dana ditahan (Σ hold), dana dikembalikan (Σ released); merah kalau ada Open >90 hari.
   2. Garis kasus per bulan (12 bulan).
-  3. Donut jenis dugaan.
+  3. Donut jenis dugaan (hover: rincian per Kategori Pelapor).
   4. Bar bertumpuk kategori × media.
   5. Bar per tindakan + saldo tertahan.
-  6. Bar mendatar top 10 merchant/group.
+  6. Bar mendatar top 10 merchant/group (hover: rincian per Jenis Dugaan).
   7. Combo nilai uang per bulan (bar korban/hold/released, garis saldo tertahan).
   8. Bar rata-rata dan terlama terima→EDD1, →blokir, →lapor.
   9. Bar umur Open 0–30/31–60/61–90/>90 (merah).
@@ -432,7 +432,7 @@ Kolom:
 ### C7. Kontrak — Legal — `Kontrak.tsx` — export `Kontrak`
 - Kolom:
   1. Jenis Hubungan: Merchant/Partner-Vendor/Paybuddy/NDA/Lainnya, W.
-  2. Nama Mitra: teks W.
+  2. Nama Mitra: dropdown master Mitra Vendor, W.
   3. Nomor PKS/NDA: W, unik.
   4. Jenis Dokumen: PKS QRIS/Biller Gateway/Account Linkage/Payout/Program Peningkatan Transaksi/NDA/Amandemen/Lainnya, W.
   5. Tanggal Mulai: W.

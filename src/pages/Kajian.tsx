@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { withLainnya } from '../kit/Lainnya'
 import { CheckCircle2 } from 'lucide-react'
 import { addDays, diffDays, fmtDate } from '../lib'
 import PageShell from '../kit/PageShell'
@@ -30,7 +29,7 @@ const lamaSelesai = (r: Kajian) => diffDays(r.tglSelesai, r.tglMasuk)
 const fields: Field<Kajian>[] = [
   { key: 'jenis', label: 'Jenis', type: 'select', options: JENIS, required: true },
   { key: 'judul', label: 'Judul / Objek', type: 'text', required: true, wide: true },
-  { key: 'dept', label: 'Unit Kerja Pengusul', type: 'select', options: (c) => withLainnya(c.master.unitKerja), required: true },
+  { key: 'dept', label: 'Unit Kerja Pengusul', type: 'select', options: (c) => c.master.unitKerja, required: true },
   { key: 'tglMasuk', label: 'Tanggal Masuk', type: 'date', required: true, reasonOnChange: true, help: 'Mengubah Tanggal Masuk menggeser batas waktu; wajib disertai alasan.' },
   { key: 'sla', label: 'SLA (hari kalender)', type: 'number', required: true, reasonOnChange: true, help: 'Mengubah SLA (batas waktu) wajib disertai alasan.' },
   { key: 'batas', label: 'Tanggal Batas', type: 'date', auto: (r) => batas(r) },
@@ -39,7 +38,7 @@ const fields: Field<Kajian>[] = [
   { key: 'tglSelesai', label: 'Tanggal Selesai', type: 'date', inForm: 'none' },
   { key: 'hasil', label: 'Hasil / Opini Risk Management', type: 'select', options: HASIL, inForm: 'none' },
   { key: 'klasifikasi', label: 'Klasifikasi Regulasi', type: 'select', options: KLAS },
-  { key: 'namaMitra', label: 'Nama Mitra', type: 'select', options: (c) => withLainnya(c.master.mitra), required: isV, showIf: isV },
+  { key: 'namaMitra', label: 'Nama Mitra', type: 'select', options: (c) => c.master.mitra, required: isV, showIf: isV },
   { key: 'konteks', label: 'Konteks Kerja Sama', type: 'textarea', wide: true, showIf: isV },
   { key: 'statusMitra', label: 'Status Mitra', type: 'select', options: ['Eksisting', 'Rencana'], required: isV, showIf: isV },
   { key: 'adaPks', label: 'Ada PKS?', type: 'yesno', required: isV, showIf: isV },
@@ -125,7 +124,6 @@ function SelesaiModal({ r, api, close }: { r: Kajian; api: ModuleApi<Kajian>; cl
   return (
     <Modal title={`Selesaikan Kajian ${r.judul}`} onClose={close}>
       <div className="space-y-3">
-        <div className="text-xs text-slate-500">{r.judul}</div>
         <div><label className="lbl">Tanggal Selesai *</label><input type="date" className="inp" value={tgl} onChange={(e) => setTgl(e.target.value)} />{err.tgl && <p className="err">{err.tgl}</p>}</div>
         <div><label className="lbl">Hasil / Opini Risk Management *</label>
           <select className="inp" value={hasil} onChange={(e) => setHasil(e.target.value)}><option value="">Pilih hasil</option>{HASIL.map((h) => <option key={h}>{h}</option>)}</select>
@@ -209,14 +207,13 @@ const cfg: PageConfig<Kajian> = {
           <BarCard title="Kajian per unit kerja" horizontal data={c.master.unitKerja.map((d) => ({ name: d, Jumlah: rows.filter((r) => r.dept === d).length }))} keys={['Jumlah']} onClick={(row) => drill({ dept: row.name })} />
           <BarCard title="Rata-rata lama masuk sampai selesai per jenis (hari)" data={JENIS.map((j) => { const x = done.filter((r) => r.jenis === j); return { name: j, Hari: x.length ? Math.round(x.reduce((a, r) => a + lamaSelesai(r), 0) / x.length) : 0 } })} keys={['Hari']} />
           <DonutCard title="Kajian per hasil / opini" data={HASIL.map((h) => ({ name: h, value: rows.filter((r) => r.hasil === h).length }))} onClick={(name) => drill({ hasil: name })} />
-          <Card title="Mitra: jadwal due diligence / evaluasi ≤30 hari atau lewat, dan Eksisting vs Rencana">
+          <Card title="Mitra: jadwal due diligence / evaluasi ≤30 hari atau lewat">
             <MiniTable cols={[
               { label: 'Mitra', get: (r: Kajian) => r.namaMitra }, { label: 'Status', get: (r) => r.statusMitra }, { label: 'Jadwal', get: (r) => fmtDate(r.tglDD) },
               { label: 'Sisa', get: (r) => { const d = ddDays(r, c.today)!; return d < 0 ? <span className="font-semibold text-red-600">Lewat {-d} hari</span> : <span className="text-amber-600">{d} hari lagi</span> } },
             ]} rows={jadwal} onRow={(r) => open(r.id)} empty="Tidak ada jadwal dekat" />
-            <div className="mt-3 text-xs font-semibold text-slate-600">Mitra Eksisting vs Rencana</div>
-            <BarCard title="" className="!border-0 !p-0" data={[{ name: 'Eksisting', Jumlah: ex('Eksisting') }, { name: 'Rencana', Jumlah: ex('Rencana') }]} keys={['Jumlah']} />
           </Card>
+          <BarCard title="Mitra Eksisting vs Rencana" data={[{ name: 'Eksisting', Jumlah: ex('Eksisting') }, { name: 'Rencana', Jumlah: ex('Rencana') }]} keys={['Jumlah']} />
         </div>
       </div>
     )

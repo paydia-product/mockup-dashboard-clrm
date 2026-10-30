@@ -11,9 +11,27 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
-    v: '2.9.2',
+    v: '2.10.0',
     date: '2026-10-30',
     deployed: true,
+    title: 'Mitra Vendor master, revisi Kajian Risiko dan Fraud',
+    prompt: 'Revisi Kajian Risiko (kartu mitra, Unit Kerja tanpa Lainnya, modal Selesai), master Mitra Vendor, dan Fraud Case Monitoring',
+    tokens: 250000,
+    changes: [
+      'Kajian Risiko: kartu mitra dipisah jadi tabel jadwal dan bar Eksisting vs Rencana, berdampingan di desktop; modal Selesai tanpa teks keterangan',
+      'Unit Kerja tanpa Lainnya di semua halaman dan tracker (Kajian, Kontrak, Layanan Hukum, Regulatory Change, Form tracker)',
+      'Master Mitra diganti nama Mitra Vendor (rute master/mitra-vendor, tautan lama dialihkan); semua field Mitra/Vendor (Kajian, Kontrak, Risk Register) jadi dropdown master tanpa Lainnya; seed master dilengkapi',
+      'Fraud: hover Jenis dugaan (per Kategori Pelapor) dan Top 10 merchant (per Jenis Dugaan)',
+      'Fraud: Kategori Pelapor dan Produk dari master tanpa Lainnya, Produk seed UE/QRIS/Biller; No. Rekening dihapus',
+      'Fraud: field Jenis Data (Fraud/EDD) setelah Tanggal Terima Tugas; field, alert, dan grafik EDD hanya untuk Jenis Data EDD',
+      'Fraud: Saldo Tertahan wajib bila Tindakan Blokir, apa pun statusnya',
+      'APP_KEY naik ke v11 (data lokal direset ke seed baru)',
+    ],
+  },
+  {
+    v: '2.9.2',
+    date: '2026-10-30',
+    deployed: false,
     title: 'Contoh statis email hanya saat tidak ada data',
     prompt: 'Lanjutan QA penuh',
     tokens: 130000,

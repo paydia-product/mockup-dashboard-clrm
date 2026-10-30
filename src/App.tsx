@@ -58,7 +58,8 @@ const groupOf = (id: string) => [...GROUPS, ...LOWER].find((g) => g.items.some((
 // peran sesi -> peran tracker (dipakai Drawer tracker)
 const trackerRole = (r: Role): TrackerRole => (r === 'Head CLRM' || r === 'Super Admin' ? 'Head CLRM' : r === 'Compliance Officer' ? 'Compliance Officer' : r === 'PIC' ? 'PIC' : 'Viewer')
 
-const hashRoute = () => location.hash.replace(/^#\/?/, '').split('?')[0] || TRACKER
+// ponytail: slug master 'mitra' berganti 'mitra-vendor' (v2.10.0); tautan lama dialihkan agar tidak crash
+const hashRoute = () => (location.hash.replace(/^#\/?/, '').split('?')[0] || TRACKER).replace(/^master\/mitra$/, 'master/mitra-vendor')
 
 function VersionPicker() {
   const [open, setOpen] = useState(false)

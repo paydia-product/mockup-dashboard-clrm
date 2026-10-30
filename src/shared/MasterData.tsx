@@ -12,7 +12,7 @@ export const MASTER_LISTS: { kind: keyof Master; slug: string; label: string }[]
   { kind: 'kategoriRegulasi', slug: 'kategori-regulasi', label: 'Kategori Regulasi' },
   { kind: 'unitKerja', slug: 'unit-kerja', label: 'Unit Kerja' },
   { kind: 'produk', slug: 'produk', label: 'Produk' },
-  { kind: 'mitra', slug: 'mitra', label: 'Mitra' },
+  { kind: 'mitra', slug: 'mitra-vendor', label: 'Mitra Vendor' },
   { kind: 'kategoriPelapor', slug: 'kategori-pelapor', label: 'Kategori Pelapor' },
   { kind: 'mediaPelapor', slug: 'media-pelapor', label: 'Media Pelapor' },
 ]
@@ -26,7 +26,7 @@ export function validateMasterName(name: string, existing: string[], currentName
   if (v.length > 255) return 'Maksimal 255 karakter'
   if (v !== currentName?.trim() && !/^[\p{L}\p{N} `'&-]+$/u.test(v)) return "Hanya huruf, angka, spasi, dan karakter ` ' - &"
   const low = v.toLowerCase()
-  if (low === LAINNYA.toLowerCase()) return 'Lainnya sudah tersedia otomatis di setiap dropdown'
+  if (low === LAINNYA.toLowerCase()) return 'Lainnya tidak dipakai sebagai nama master'
   if (existing.some((x) => x.toLowerCase() === low && x !== currentName)) return 'Nama sudah ada'
   return ''
 }

@@ -44,7 +44,7 @@ const fields: Field<Risk>[] = [
   { key: 'dept', label: 'Unit Pemilik Risiko (Unit Kerja)', type: 'select', options: (c) => c.master.unitKerja, required: true },
   { key: 'tglRegister', label: 'Tanggal Register', type: 'date', required: true },
   { key: 'produk', label: 'Produk', type: 'select', options: (c) => c.master.produk },
-  { key: 'vendor', label: 'Vendor / Mitra', type: 'text' },
+  { key: 'vendor', label: 'Vendor / Mitra', type: 'select', options: (c) => c.master.mitra },
   { key: 'rasrt', label: 'Posisi RAS-RT (otomatis dari Level Inherent)', type: 'text', auto: (r) => rasrt(r) },
   // Rujukan baca-saja dari tabel RAS-RT domain terpilih (tidak diekspor)
   { key: 'rasAppetite', label: 'Risk Appetite (Low - target ideal)', type: 'textarea', wide: true, noExport: true, auto: (r) => rasOf(r.domain)?.appetite ?? '' },

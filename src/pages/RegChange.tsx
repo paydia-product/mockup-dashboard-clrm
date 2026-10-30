@@ -54,7 +54,7 @@ const fields: Field<Reg>[] = [
   },
   { key: 'dampak', label: 'Tingkat Dampak bagi Paydia', type: 'select', options: DAMPAK, required: true, help: 'Wajib dinilai; Tanggal Sosialisasi hanya boleh diisi setelah dampak dinilai.' },
   { key: 'dampakUraian', label: 'Uraian Dampak', type: 'textarea', required: true },
-  { key: 'dept', label: 'Unit Kerja Terdampak', type: 'multiselect', options: (c) => withLainnya(c.master.unitKerja), required: true },
+  { key: 'dept', label: 'Unit Kerja Terdampak', type: 'multiselect', options: (c) => c.master.unitKerja, required: true },
   { key: 'pemenuhan', label: 'Pemenuhan (%)', type: 'percent', help: 'Kosong = belum dinilai.' },
   { key: 'kepatuhan', label: 'Status Kepatuhan', type: 'text', auto: (r) => kep(r) },
   { key: 'tindak', label: 'Tindak Lanjut', type: 'textarea', required: (r) => kep(r) === 'Partial' || kep(r) === 'Gap', wide: true, help: 'Wajib bila Status Kepatuhan Partial atau Gap.' },
