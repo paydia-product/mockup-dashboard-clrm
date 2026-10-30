@@ -103,7 +103,7 @@ function seed(today: string): Risk[] {
       const tgl = addDays(today, -ago)
       out.push({
         id: `risk-${i + 1}`, no: i + 1, status: 'Aktif', createdAt: tgl, createdBy: 'Rudi Hartono',
-        konteks: KON[i % 8], event: `${EV[(i + j) % 10]} (${i + 1})`, domain: DOMAINS[(i + j) % 10], dampak: d, kemungkinan: k,
+        konteks: KON[i % 8], event: EV[(i + j) % 10], domain: DOMAINS[(i + j) % 10], dampak: d, kemungkinan: k,
         respon: RESPON[i % 4], kontrol: `Kontrol berkala dan review ${DEPT[i % 6]}`, dept: DEPT[(i * 5) % 6], tglRegister: tgl,
         produk: PRD[i % 4], vendor: VEN[i % 5], levelAt: tgl,
       })
@@ -153,6 +153,7 @@ function Heatmap({ rows, open }: { rows: Risk[]; open: (id: string) => void }) {
 
 const cfg: PageConfig<Risk> = {
   module: 'risk', title: 'Risk Register', noun: 'Risiko', exportPrefix: 'Risk_Register',
+  name: (r) => r.event,
   seed, fields, columns, filters, alerts, cancelStatus: 'Dibatalkan',
   blank: () => ({ konteks: '', event: '', domain: '', dampak: '', kemungkinan: '', respon: '', kontrol: '', dept: '', tglRegister: '', produk: '', vendor: '', levelAt: '', status: 'Aktif' }),
   search: (r) => `${r.no} ${r.event} ${r.kontrol}`, searchPlaceholder: 'Cari nomor, risk event, kontrol',

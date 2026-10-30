@@ -136,15 +136,15 @@ export default function Dashboard({ findings, audit, filter, setFilter, onOpen }
           </ResponsiveContainer>
           <div className="lg:col-span-2">
             <table className="w-full text-left">
-              <thead className="sticky top-0 bg-slate-50 text-xs text-slate-500"><tr>{['PIC', 'Batas Waktu', 'Terlambat', 'Kelompok', 'Status', 'Risiko'].map((h) => <th key={h} className="px-2 py-2 font-medium">{h}</th>)}</tr></thead>
+              <thead className="sticky top-0 bg-slate-50 text-xs text-slate-500"><tr>{['No', 'PIC', 'Batas Waktu', 'Terlambat', 'Kelompok', 'Status', 'Risiko'].map((h) => <th key={h} className="px-2 py-2 font-medium">{h}</th>)}</tr></thead>
               <tbody>
-                {overduePage.slice.map((f) => (
+                {overduePage.slice.map((f, i) => (
                   <tr key={f.id} onClick={() => onOpen(f.id)} className="cursor-pointer border-t hover:bg-red-50">
-                    <td className="px-2 py-1.5">{f.pic}</td><td className="px-2">{fmtDate(f.dueDate)}</td>
+                    <td className="px-2 py-1.5">{overduePage.offset + i + 1}</td><td className="px-2">{f.pic}</td><td className="px-2">{fmtDate(f.dueDate)}</td>
                     <td className="px-2 font-medium text-red-600">{lateDays(f)} hari</td><td className="px-2">{bucketOf(f)}</td><td className="px-2"><StatusBadge s={f.status} /></td><td className="px-2"><RiskBadge r={f.risiko} /></td>
                   </tr>
                 ))}
-                {!overdue.length && <tr><td colSpan={6} className="p-4 text-center text-slate-400">Tidak ada temuan lewat batas waktu</td></tr>}
+                {!overdue.length && <tr><td colSpan={7} className="p-4 text-center text-slate-400">Tidak ada temuan lewat batas waktu</td></tr>}
               </tbody>
             </table>
             {overduePage.pager}

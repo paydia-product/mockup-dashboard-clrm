@@ -26,7 +26,7 @@ export default function EmailSim<T extends BaseRec>({ cfg, rows, c, onClose }: {
             </div>
             <div><b>From:</b> noreply-clrm@paydia.co.id</div>
             <div><b>To:</b> {m.hit.to.join('; ') || '-'}</div>
-            <div className="mb-2"><b>Subject:</b> [CLRM] {m.a.label}: {cfg.noun} {m.r.no}</div>
+            <div className="mb-2"><b>Subject:</b> [CLRM] {m.a.label}: {cfg.noun} {cfg.name?.(m.r)}</div>
             <div className="space-y-0.5 border-t pt-2">
               {cfg.columns.slice(0, 6).map((col) => <div key={col.label}>{col.label}: {col.get(m.r, c) || '-'}</div>)}
               {m.hit.detail && <div>Keterangan: {m.hit.detail}</div>}

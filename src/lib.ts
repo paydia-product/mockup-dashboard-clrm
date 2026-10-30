@@ -67,6 +67,7 @@ export interface Audit { id: string; fid: string; time: string; user: string; ak
 export interface Filter { q: string; from: string; to: string; status: string; pic: string; unit: string; regulator: string; risiko: string }
 export const EMPTY_FILTER: Filter = { q: '', from: '', to: '', status: '', pic: '', unit: '', regulator: '', risiko: '' }
 export interface ChangeReq { id: string; no?: number; status?: 'Menunggu' | 'Disetujui' | 'Ditolak'; decidedBy?: string; decidedAt?: string; catatan?: string; fid: string; by: string; time: string; alasan: string; changes: { key: keyof Finding; label: string; lama: string; baru: string; value: unknown }[] }
+export const findingLabel = (f: Pick<Finding, 'regulator' | 'area'>) => `${f.regulator} - ${f.area}` // pengganti nomor internal di teks
 export const isPendingReq = (r: ChangeReq) => (r.status ?? 'Menunggu') === 'Menunggu' // data lama tanpa status = Menunggu
 export interface DB { requests: ChangeReq[]; findings: Finding[]; audit: Audit[]; saved: { name: string; filter: Filter }[] }
 
@@ -180,7 +181,7 @@ export function makeSeed(): DB {
       validasi: 'Belum', validasiOleh: '', validasiTgl: '', persetujuan: 'Menunggu', persetujuanOleh: '', persetujuanTgl: '',
       unit: i < 6 ? UNITS[i] : pick(UNITS), risiko: pick(RISKS), tindak, tindakFile, suratFile,
     }
-    log(f, tgl, 'Rina Kartika', 'Tambah temuan', 'Nomor Temuan', '', String(no))
+    log(f, tgl, 'Rina Kartika', 'Tambah temuan', 'Temuan', '', findingLabel(f))
     f.createdAt = audit[audit.length - 1].time // sama dengan waktu audit 'Tambah temuan'
     const start = addDays(tgl, 3)
     if (s.status === 'Proses' || s.status === 'Dibatalkan') {
@@ -207,7 +208,7 @@ export function makeSeed(): DB {
 
 // ---- Penyimpanan ----
 // ponytail: v5 = seed punya createdAt dan tanpa 'Lainnya' di daftar; data v4 lama tetap aman dibaca (createdOf) tetapi direset agar seed baru dipakai
-export const KEY = 'clrm.db.v6' // ponytail: v6 = PIC seed Regie/Fakhri/Osama; v5 seed lama tidak dibaca lagi (key beda), load() tetap aman membaca bentuk lama
+export const KEY = 'clrm.db.v7' // ponytail: v7 = teks audit tanpa nomor internal; v6 = PIC seed Regie/Fakhri/Osama; v5 seed lama tidak dibaca lagi (key beda), load() tetap aman membaca bentuk lama
 const ROLE_KEY = 'clrm.role'
 function load(): DB {
   try {

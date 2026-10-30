@@ -178,6 +178,7 @@ function SoonTable({ rows, open }: { rows: Laporan[]; open: (id: string) => void
 
 const cfg: PageConfig<Laporan> = {
   module: 'reporting', title: 'Regulatory Reporting', noun: 'Laporan', exportPrefix: 'Pelaporan_Regulator',
+  name: (r) => `${r.nama} ${r.periode}`,
   seed, fields, columns, filters,
   blank: () => ({ nama: '', regulator: '', jenis: '', periode: '', batas: '', siber: '', waktuKejadian: '', waktuNotif: '', tglSubmit: '', status: 'Belum Disiapkan', picPenyusun: '', picReviewer: '', bukti: null, noTerima: '', dasar: '', alasan: '' }),
   search: (r) => `${r.no} ${r.nama} ${r.regulator} ${r.picPenyusun} ${r.picReviewer}`, searchPlaceholder: 'Cari nama laporan, regulator, PIC',

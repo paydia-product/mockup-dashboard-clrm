@@ -151,6 +151,7 @@ function seed(today: string): Kontrak[] {
 
 const cfg: PageConfig<Kontrak> = {
   module: 'kontrak', title: 'Kontrak', noun: 'Kontrak', exportPrefix: 'Kontrak',
+  name: (r) => `${r.mitra} - ${r.nomor}`,
   seed, fields, columns, filters,
   blank: () => ({ jenisHubungan: '', mitra: '', nomor: '', jenisDok: '', mulai: '', berakhir: '', perpanjangan: '', lamaBulan: '', status: 'Draft', bidang: '', pic: '', dept: '', induk: '', kelengkapan: {}, file: null }),
   search: (r) => `${r.mitra} ${r.nomor} ${r.jenisDok}`, searchPlaceholder: 'Cari mitra, nomor, jenis dokumen',

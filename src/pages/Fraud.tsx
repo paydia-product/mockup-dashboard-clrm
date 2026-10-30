@@ -246,6 +246,7 @@ const juta = (n: number) => Math.round(n / 1_000_000)
 
 const cfg: PageConfig<Fraud> = {
   module: 'fraud', title: 'Fraud Case Monitoring', noun: 'Kasus', exportPrefix: 'Kasus_Fraud_EDD',
+  name: (r) => `${r.kategori}, ${fmtDate(r.tglTerima)}`,
   seed, fields, columns, filters,
   blank: () => ({
     tglTerima: '', pelapor: '', kategori: '', media: '', terlapor: '', jenisPengguna: '', jenis: '', rincian: '', uraian: '', bukti: null, korban: '', rrn: '', tglTrx: '', noRek: '',

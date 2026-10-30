@@ -1,5 +1,6 @@
 import { addDays, diffDays, fmtDate, todayStr } from '../lib'
 import PageShell from '../kit/PageShell'
+import { sameName } from '../kit/perms'
 import { DonutCard, MiniTable, StatCards } from '../kit/charts'
 import { StatusPill } from '../kit/fmt'
 import { Badge } from '../ui'
@@ -146,11 +147,12 @@ function seed(today: string): Izin[] {
 
 const cfg: PageConfig<Izin> = {
   module: 'perizinan', title: 'Perizinan & Dokumen Legalitas', noun: 'Dokumen', exportPrefix: 'Perizinan_Legalitas',
+  name: (r) => r.nama,
   seed, fields, columns, filters,
   blank: () => ({ kategori: '', nama: '', nomor: '', penerbit: '', tglTerbit: '', tglBerlaku: '', tglKedaluwarsa: '', tglReview: '', kewajiban: '', pic: '', status: 'Aktif', versi: 1, file: null, perpanjang: '', versiLama: [] }),
   search: (r) => `${r.nama} ${r.nomor} ${r.penerbit}`, searchPlaceholder: 'Cari nama dokumen, nomor, penerbit',
   alerts, cancelStatus: 'Tidak Berlaku',
-  canEditRow: (r) => r.status !== 'Tidak Berlaku',
+  canEditRow: (r, c) => r.status !== 'Tidak Berlaku' && (c.role !== 'PIC' || sameName(r.pic, c.user.name)),
   normalize: (r, c) => (LIVE(r) && r.status === 'Aktif' && r.tglKedaluwarsa && r.tglKedaluwarsa < c.today ? { ...r, status: 'Kedaluwarsa' } : r),
   beforeSave: (old, next) => {
     if (!old || next.perpanjang !== 'Ya') return { ...next, perpanjang: '' }

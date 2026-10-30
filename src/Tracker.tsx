@@ -3,7 +3,7 @@ import * as XLSX from 'xlsx'
 import { Bell, ChevronDown, ChevronUp, Download, Eye, History, Pencil, Plus, RotateCcw, Save, Search, SlidersHorizontal, Trash2, Upload, XCircle } from 'lucide-react'
 import {
   Audit, DB, EMPTY_FILTER, Filter, Finding, AlertInfo, REGULATORS, RISKS, ROLE_USER, Role, STATUSES, alertsFor, applyFilter,
-  addDays, createdOf, diffDays, fmtDate, fmtTime, fmtTimeSec, isPendingReq, lastDueReason, nowStr, todayStr,
+  addDays, createdOf, diffDays, fmtDate, fmtTime, fmtTimeSec, findingLabel, isPendingReq, lastDueReason, nowStr, todayStr,
 } from './lib'
 import { getStore, setStore, useApp } from './kit/store'
 import { showLainnya } from './kit/Lainnya'
@@ -67,7 +67,7 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
     if (mode === 'add') {
       const n = db.findings.reduce((m, x) => Math.max(m, x.no), 0) + 1
       const nf = { ...f, no: n, id: `f${Date.now()}`, createdAt: nowStr() }
-      commit(nf, [{ aksi: 'Tambah temuan', kolom: 'Nomor Temuan', baru: String(n) }])
+      commit(nf, [{ aksi: 'Tambah temuan', kolom: 'Temuan', baru: findingLabel(nf) }])
       setPending(null)
       return
     }
@@ -99,7 +99,7 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
     let n = db.findings.reduce((m, x) => Math.max(m, x.no), 0)
     const stamp = Date.now()
     const nfs = list.map((f, i) => ({ ...f, no: ++n, id: `f${stamp}-${i}`, createdAt: nowStr() }))
-    setDb((d) => ({ ...d, findings: [...nfs.slice().reverse(), ...d.findings], audit: [...d.audit, ...nfs.flatMap((nf) => mkAudit(nf.id, [{ aksi: 'Import Excel', kolom: 'Nomor Temuan', baru: String(nf.no) }]))] }))
+    setDb((d) => ({ ...d, findings: [...nfs.slice().reverse(), ...d.findings], audit: [...d.audit, ...nfs.flatMap((nf) => mkAudit(nf.id, [{ aksi: 'Import Excel', kolom: 'Temuan', baru: findingLabel(nf) }]))] }))
   }
 
   const actsFor = (f: Finding): Acts => ({
@@ -109,11 +109,11 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
       if (v === 'Tidak Valid') { next.status = 'Proses'; ents.push(statusEnt('Validasi ulang', f.status, 'Proses', alasan)) }
       commit(next, ents)
     },
-    cancel: () => setPending({ kind: 'reason', title: `Batalkan temuan ${f.no}`, danger: true, run: (r) => { commit({ ...f, status: 'Dibatalkan' }, [statusEnt('Batalkan temuan', f.status, 'Dibatalkan', r)]); setPending(null) } }),
+    cancel: () => setPending({ kind: 'reason', title: `Batalkan temuan ${findingLabel(f)}`, danger: true, run: (r) => { commit({ ...f, status: 'Dibatalkan' }, [statusEnt('Batalkan temuan', f.status, 'Dibatalkan', r)]); setPending(null) } }),
     restore: () => {
       const last = db.audit.filter((a) => a.fid === f.id && a.kolom === 'Status' && a.baru === 'Dibatalkan').sort((a, b) => b.time.localeCompare(a.time))[0]
       const to = (last?.lama as Finding['status']) || 'Open'
-      setPending({ kind: 'reason', title: `Kembalikan temuan ${f.no}`, run: (r) => { commit({ ...f, status: to }, [statusEnt('Kembalikan temuan', 'Dibatalkan', to, r)]); setPending(null) } })
+      setPending({ kind: 'reason', title: `Kembalikan temuan ${findingLabel(f)}`, run: (r) => { commit({ ...f, status: to }, [statusEnt('Kembalikan temuan', 'Dibatalkan', to, r)]); setPending(null) } })
     },
   })
 
@@ -298,9 +298,9 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
                 </div>
                 <div><b>From:</b> noreply-clrm@paydia.co.id</div>
                 <div><b>To:</b> {m.to.map((r) => (r === 'PIC' ? `PIC (${m.f.pic})` : r)).join('; ')}</div>
-                <div className="mb-2"><b>Subject:</b> [CLRM] {m.label}: Temuan {m.f.no}</div>
+                <div className="mb-2"><b>Subject:</b> [CLRM] {m.label}: Temuan {findingLabel(m.f)}</div>
                 <div className="space-y-0.5 border-t pt-2">
-                  <div>Nomor Temuan: {m.f.no}</div><div>Regulator: {m.f.regulator}</div><div>Area Temuan: {m.f.area}</div><div>PIC: {m.f.pic}</div>
+                  <div>Regulator: {m.f.regulator}</div><div>Area Temuan: {m.f.area}</div><div>PIC: {m.f.pic}</div>
                   <div>Batas Waktu: {fmtDate(m.f.dueDate)} ({m.detail.toLowerCase()})</div><div>Status: {m.f.status}</div>
                   <div className="pt-1 text-slate-500">Alasan notifikasi: {m.rule}</div>
                 </div>

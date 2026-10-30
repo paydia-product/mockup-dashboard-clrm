@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Eye, Search } from 'lucide-react'
-import { ChangeReq, DB, applyTrackerRequest, fmtTime } from '../lib'
+import { ChangeReq, DB, applyTrackerRequest, findingLabel, fmtTime } from '../lib'
 import { MODULE_LABEL } from '../kit/perms'
 import { decideApproval, useApp } from '../kit/store'
 import type { Action, ApprovalReq, ModuleId, PermKey, Role, Store } from '../kit/types'
@@ -10,7 +10,7 @@ import { usePaged } from './Pager'
 // Adapter: request perubahan tracker tampil sebagai ApprovalReq
 const adapt = (r: ChangeReq, db: DB, store: Store): ApprovalReq => {
   const f = db.findings.find((x) => x.id === r.fid)
-  return { id: `t-${r.id}`, no: r.no ?? 0, module: 'tracker', jenis: 'Perubahan Temuan', recordId: r.fid, recordNo: f?.no ?? 0, by: r.by, byRole: store.accounts.find((a) => a.name === r.by)?.role ?? 'PIC', time: r.time, alasan: r.alasan, approver: 'Head CLRM', changes: r.changes.map((c) => ({ key: c.key, label: c.label, lama: c.lama, baru: c.baru, value: c.value })), status: r.status ?? 'Menunggu', decidedBy: r.decidedBy, decidedAt: r.decidedAt, catatan: r.catatan }
+  return { id: `t-${r.id}`, no: r.no ?? 0, module: 'tracker', jenis: 'Penutupan Temuan', recordId: r.fid, recordNo: f?.no ?? 0, recordLabel: f ? findingLabel(f) : '-', by: r.by, byRole: store.accounts.find((a) => a.name === r.by)?.role ?? 'PIC', time: r.time, alasan: r.alasan, approver: 'Head CLRM', changes: r.changes.map((c) => ({ key: c.key, label: c.label, lama: c.lama, baru: c.baru, value: c.value })), status: r.status ?? 'Menunggu', decidedBy: r.decidedBy, decidedAt: r.decidedAt, catatan: r.catatan }
 }
 export const allApprovals = (store: Store, db: DB): ApprovalReq[] => [...db.requests.map((r) => adapt(r, db, store)), ...store.approvals]
 export const canDecide = (a: ApprovalReq, role: Role, can: (m: PermKey, x: Action) => boolean) => a.status === 'Menunggu' && (a.approver === role || role === 'Super Admin') && can(a.module as ModuleId, 'Approve')
@@ -25,8 +25,8 @@ export default function Approval({ tdb, setTdb }: { tdb: DB; setTdb: React.Dispa
   const [note, setNote] = useState('')
   const [err, setErr] = useState('')
   useEffect(() => { const h = () => setOpenId(new URLSearchParams(location.hash.split('?')[1] ?? '').get('id')); addEventListener('hashchange', h); return () => removeEventListener('hashchange', h) }, [])
-  const list = all.filter((a) => (!f.status || a.status === f.status) && (!f.module || a.module === f.module) && `${a.jenis} ${a.recordNo} ${a.by} ${MODULE_LABEL[a.module]}`.toLowerCase().includes(f.q.toLowerCase())).sort((a, b) => b.time.localeCompare(a.time))
-  const { slice, pager, reset } = usePaged(list)
+  const list = all.filter((a) => (!f.status || a.status === f.status) && (!f.module || a.module === f.module) && `${a.jenis} ${a.recordLabel ?? ''} ${a.by} ${MODULE_LABEL[a.module]}`.toLowerCase().includes(f.q.toLowerCase())).sort((a, b) => b.time.localeCompare(a.time))
+  const { slice, pager, reset, offset } = usePaged(list)
   const open = all.find((a) => a.id === openId)
   const tone = (s: string) => (s === 'Disetujui' ? 'green' : s === 'Ditolak' ? 'red' : 'yellow')
   const upd = (p: Partial<typeof f>) => { setF({ ...f, ...p }); reset() }
@@ -42,17 +42,17 @@ export default function Approval({ tdb, setTdb }: { tdb: DB; setTdb: React.Dispa
   return (
     <div className="rounded-lg border border-slate-200 bg-white">
       <div className="flex flex-wrap items-center gap-2 border-b p-3">
-        <div className="relative w-64"><Search size={14} className="absolute left-2.5 top-2.5 text-slate-400" /><input className="inp !pl-8" placeholder="Cari jenis, nomor data, pengaju" value={f.q} onChange={(e) => upd({ q: e.target.value })} /></div>
+        <div className="relative w-64"><Search size={14} className="absolute left-2.5 top-2.5 text-slate-400" /><input className="inp !pl-8" placeholder="Cari jenis, data, pengaju" value={f.q} onChange={(e) => upd({ q: e.target.value })} /></div>
         <select className="inp !w-auto" value={f.status} onChange={(e) => upd({ status: e.target.value })}><option value="">Semua status</option>{['Menunggu', 'Disetujui', 'Ditolak'].map((s) => <option key={s}>{s}</option>)}</select>
         <select className="inp !w-auto" value={f.module} onChange={(e) => upd({ module: e.target.value })}><option value="">Semua modul</option>{[...new Set(all.map((a) => a.module))].map((m) => <option key={m} value={m}>{MODULE_LABEL[m]}</option>)}</select>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-left">
-          <thead className="bg-slate-100 text-xs text-slate-600"><tr>{['Nomor Request', 'Modul', 'Jenis Request', 'Nomor Data', 'Pengaju', 'Tanggal Ajuan', 'Status', 'Aksi'].map((h) => <th key={h} className="whitespace-nowrap px-3 py-2.5 font-semibold">{h}</th>)}</tr></thead>
+          <thead className="bg-slate-100 text-xs text-slate-600"><tr>{['Nomor Request', 'Modul', 'Jenis Request', 'Data', 'Pengaju', 'Tanggal Ajuan', 'Status', 'Aksi'].map((h) => <th key={h} className="whitespace-nowrap px-3 py-2.5 font-semibold">{h}</th>)}</tr></thead>
           <tbody>
-            {slice.map((a) => (
+            {slice.map((a, i) => (
               <tr key={a.id} className="border-t">
-                <td className="px-3 py-2.5">{a.no || '-'}</td><td className="px-3 py-2.5">{MODULE_LABEL[a.module]}</td><td className="px-3 py-2.5">{a.jenis}</td><td className="px-3 py-2.5">{a.recordNo}</td>
+                <td className="px-3 py-2.5">{offset + i + 1}</td><td className="px-3 py-2.5">{MODULE_LABEL[a.module]}</td><td className="px-3 py-2.5">{a.jenis}</td><td className="px-3 py-2.5">{a.recordLabel || '-'}</td>
                 <td className="px-3 py-2.5">{a.by}</td><td className="whitespace-nowrap px-3 py-2.5">{fmtTime(a.time)}</td><td className="px-3 py-2.5"><Badge tone={tone(a.status)}>{a.status}</Badge></td>
                 <td className="px-3 py-2.5"><button className="btn !px-2 !py-1" onClick={() => setOpenId(a.id)}><Eye size={13} />Lihat Detail</button></td>
               </tr>
@@ -65,7 +65,7 @@ export default function Approval({ tdb, setTdb }: { tdb: DB; setTdb: React.Dispa
       {open && (
         <Modal wide title="Detail" onClose={() => setOpenId(null)}>
           <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
-            {([['Modul', MODULE_LABEL[open.module]], ['Jenis request', open.jenis], ['Nomor data', open.recordNo], ['Pengaju', `${open.by} (${open.byRole})`], ['Tanggal ajuan', fmtTime(open.time)], ['Approver', open.approver], ['Alasan', open.alasan || '-']] as [string, string | number][]).map(([l, v]) => (
+            {([['Modul', MODULE_LABEL[open.module]], ['Jenis request', open.jenis], ['Data', open.recordLabel || '-'], ['Pengaju', `${open.by} (${open.byRole})`], ['Tanggal ajuan', fmtTime(open.time)], ['Approver', open.approver], ['Alasan', open.alasan || '-']] as [string, string | number][]).map(([l, v]) => (
               <div key={l}><div className="text-xs text-slate-400">{l}</div><div className="text-slate-800">{v}</div></div>
             ))}
           </div>

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Finding, REGULATORS, RISKS, ROOT_TYPES, createdOf, fmtDate, fmtTime } from './lib'
+import { Finding, REGULATORS, RISKS, ROOT_TYPES, createdOf, findingLabel, fmtDate, fmtTime } from './lib'
 import { useApp } from './kit/store'
 import { OTHER_ERR, SelectOther, withLainnya } from './kit/Lainnya'
 import { FileField, Modal } from './ui'
@@ -76,7 +76,7 @@ export default function Form({ init, mode, prevReason = null, onSave, onClose }:
     </div>
   )
   return (
-    <Modal wide title={mode === 'add' ? 'Tambah Temuan Regulator' : `Ubah Temuan ${f.no}`} onClose={onClose}>
+    <Modal wide title={mode === 'add' ? 'Tambah Temuan Regulator' : `Ubah Temuan ${findingLabel(f)}`} onClose={onClose}>
       {edit ? (
         <>
           <div className="grid grid-cols-2 gap-3 rounded bg-slate-50 p-3 text-xs sm:grid-cols-5">

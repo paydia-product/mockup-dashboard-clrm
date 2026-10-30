@@ -99,6 +99,7 @@ function seed(today: string): Layanan[] {
 
 const cfg: PageConfig<Layanan> = {
   module: 'layanan', title: 'Permintaan Layanan Hukum', noun: 'Permintaan', exportPrefix: 'Permintaan_Layanan_Hukum',
+  name: (r) => `${r.jenis} - ${r.dept}`,
   seed, fields, columns, filters,
   blank: () => ({ dept: '', jenis: '', tglMasuk: '', sla: '', status: 'Baru', pic: '', prioritas: '', tglSelesai: '', memo: '' }),
   search: (r) => `${r.no} ${r.dept} ${r.jenis}`, searchPlaceholder: 'Cari nomor, unit kerja, jenis',

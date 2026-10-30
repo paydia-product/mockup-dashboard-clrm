@@ -5,7 +5,7 @@ import { DEFAULT_PERMS, MODULE_LABEL, can as canPerm } from './perms'
 import type { Account, Action, ApprovalReq, ApprovalRule, BaseRec, Ctx, LogEntry, ModuleApi, ModuleId, NewRec, PageConfig, PermKey, Role, Session, Store } from './types'
 
 export type { ModuleApi }
-export const APP_KEY = 'clrm.app.v7' // ponytail: v7 = master PIC (Regie/Fakhri/Osama) menggantikan master Regulator, seed PIC/regulator disesuaikan, akun demo PIC = Regie; v6 = tanggal batal seed Fraud tetap; v5 = pembatal seed Fraud nama orang; v4 = createdBy nama orang + createdAt seed masa lalu + seed Fraud valid; v3 = seed tanpa 'Lainnya' + createdAt datetime; data v2 direset (load() tetap aman membaca data lama)
+export const APP_KEY = 'clrm.app.v8' // ponytail: v8 = seed tanpa nomor internal di teks, approval simpan nama data; v7 = master PIC (Regie/Fakhri/Osama) menggantikan master Regulator, seed PIC/regulator disesuaikan, akun demo PIC = Regie; v6 = tanggal batal seed Fraud tetap; v5 = pembatal seed Fraud nama orang; v4 = createdBy nama orang + createdAt seed masa lalu + seed Fraud valid; v3 = seed tanpa 'Lainnya' + createdAt datetime; data v2 direset (load() tetap aman membaca data lama)
 export const SESSION_KEY = 'clrm.session'
 export const DEFAULT_PASSWORD = 'Paydia123!'
 export const DEFAULT_PIN = '123456'
@@ -94,17 +94,17 @@ function ensure<T extends BaseRec>(m: ModuleId, seed: (t: string) => T[]): T[] {
   return store.modules[m] as T[]
 }
 export const readModule = <T extends BaseRec>(m: ModuleId, seed: (t: string) => T[]): T[] => ensure(m, seed)
-function insert<T extends BaseRec>(m: ModuleId, title: string, r: NewRec<T>, u: Account, beforeSave?: (n: T) => T, silent?: boolean): T {
+function insert<T extends BaseRec>(m: ModuleId, title: string, r: NewRec<T>, u: Account, beforeSave?: (n: T) => T, silent?: boolean, name?: (r: T) => string): T {
   const list = (store.modules[m] ?? []) as T[]
   let rec = { ...r, id: `${m}-${uid()}`, no: list.reduce((a, x) => Math.max(a, x.no), 0) + 1, createdAt: nowStr(), createdBy: u.name } as unknown as T
   if (beforeSave) rec = beforeSave(rec)
   const n = rec
-  setStore((s) => { const next = { ...s, modules: { ...s.modules, [m]: [...((s.modules[m] ?? []) as T[]), n] } }; return silent ? next : withLogs(next, mkLog(u, title, 'Tambah', n.no, '', { recordId: n.id, kind: 'create' })) })
+  setStore((s) => { const next = { ...s, modules: { ...s.modules, [m]: [...((s.modules[m] ?? []) as T[]), n] } }; return silent ? next : withLogs(next, mkLog(u, title, 'Tambah', name?.(n) ?? '', '', { recordId: n.id, kind: 'create' })) })
   return n
 }
-export function addRecord<T extends BaseRec>(m: ModuleId, r: NewRec<T>, seed: (t: string) => T[]): T {
+export function addRecord<T extends BaseRec>(m: ModuleId, r: NewRec<T>, seed: (t: string) => T[], name?: (r: T) => string): T {
   ensure(m, seed)
-  return insert<T>(m, MODULE_LABEL[m], r, currentAccount())
+  return insert<T>(m, MODULE_LABEL[m], r, currentAccount(), undefined, undefined, name)
 }
 
 // ---- useModule ----
@@ -116,6 +116,7 @@ export function useModule<T extends BaseRec>(cfg: PageConfig<T>): ModuleApi<T> {
   const raw = ensure(cfg.module, cfg.seed)
   const rows = useMemo(() => (cfg.normalize ? raw.map((r) => cfg.normalize!(r, ctx)) : raw), [raw, ctx]) // eslint-disable-line react-hooks/exhaustive-deps
   const u = ctx.user
+  const nm = (r: T) => cfg.name?.(r) ?? ''
   const fld = (k: string) => cfg.fields.find((f) => f.key === k)
   const label = (k: string) => fld(k)?.label ?? k
   const show = (k: string, v: unknown) => { const f = fld(k); return f ? fmtValue(f, v, ctx) : String(v ?? '') }
@@ -125,17 +126,17 @@ export function useModule<T extends BaseRec>(cfg: PageConfig<T>): ModuleApi<T> {
   const mkReq = (s: Store, old: T, jenis: string, approver: Role, keys: string[], next: R, alasan: string, rejectPatch?: R, extra?: R): [Store, ApprovalReq] => {
     const no = (s.seq.approval ?? 0) + 1
     const req: ApprovalReq = {
-      id: `ap${uid()}`, no, module: cfg.module, jenis, recordId: old.id, recordNo: old.no, by: u.name, byRole: u.role, time: nowStr(), alasan, approver,
+      id: `ap${uid()}`, no, module: cfg.module, jenis, recordId: old.id, recordNo: old.no, recordLabel: nm(old), by: u.name, byRole: u.role, time: nowStr(), alasan, approver,
       changes: keys.map((k) => ({ key: k, label: label(k), lama: show(k, (old as R)[k]), baru: show(k, next[k]), value: next[k] })), rejectPatch, extra: extra && Object.keys(extra).length ? extra : undefined, status: 'Menunggu',
     }
     return [{ ...s, seq: { ...s.seq, approval: no }, approvals: [req, ...s.approvals] }, req]
   }
-  const reqLog = (req: ApprovalReq, alasan: string) => mkLog(u, cfg.title, 'Ajukan approval', req.recordNo, `${req.jenis} (${req.approver}): ${req.changes.map((c) => `${c.label} ${c.lama || '-'} -> ${c.baru || '-'}`).join('; ')}${alasan ? `. Alasan: ${alasan}` : ''}`, { recordId: req.recordId, kind: 'request', approver: req.approver, alasan })
+  const reqLog = (req: ApprovalReq, alasan: string) => mkLog(u, cfg.title, 'Ajukan approval', req.recordLabel ?? '', `${req.jenis} (${req.approver}): ${req.changes.map((c) => `${c.label} ${c.lama || '-'} -> ${c.baru || '-'}`).join('; ')}${alasan ? `. Alasan: ${alasan}` : ''}`, { recordId: req.recordId, kind: 'request', approver: req.approver, alasan })
 
   return {
     rows,
     stored: (id) => cur(id),
-    add: (r, silent) => insert<T>(cfg.module, cfg.title, r, u, cfg.beforeSave ? (n) => cfg.beforeSave!(null, n, ctx) : undefined, silent),
+    add: (r, silent) => insert<T>(cfg.module, cfg.title, r, u, cfg.beforeSave ? (n) => cfg.beforeSave!(null, n, ctx) : undefined, silent, cfg.name),
     update(id, patch, alasan = '') {
       const old = cur(id)
       if (!old) return
@@ -157,7 +158,7 @@ export function useModule<T extends BaseRec>(cfg: PageConfig<T>): ModuleApi<T> {
         const logs: LogEntry[] = []
         if (direct.length) { // satu entri terstruktur per simpan: dipakai Log Perubahan; keterangan tetap teks untuk halaman Log
           const changes = direct.map((k) => ({ label: label(k), before: show(k, (old as R)[k]) || '-', after: show(k, (next as R)[k]) || '-' }))
-          logs.push(mkLog(u, cfg.title, 'Ubah', old.no, `${changes.map((c) => `${c.label}: ${c.before} -> ${c.after}`).join('; ')}${alasan ? `. Alasan: ${alasan}` : ''}`, { recordId: old.id, kind: 'edit', changes, alasan }))
+          logs.push(mkLog(u, cfg.title, 'Ubah', nm(old), `${changes.map((c) => `${c.label}: ${c.before} -> ${c.after}`).join('; ')}${alasan ? `. Alasan: ${alasan}` : ''}`, { recordId: old.id, kind: 'edit', changes, alasan }))
         }
         if (rule && askKeys.length) { const [s2, req] = mkReq(n, old, rule.jenis, rule.approver, askKeys, next as R, alasan, rule.rejectPatch?.(old) as R | undefined, extra); n = s2; logs.push(reqLog(req, alasan)) }
         return withLogs(n, ...logs)
@@ -167,13 +168,13 @@ export function useModule<T extends BaseRec>(cfg: PageConfig<T>): ModuleApi<T> {
       const old = cur(id)
       if (!old) return
       const status = cfg.cancelStatus ?? 'Dibatalkan'
-      setStore((s) => withLogs(put(s, id, { status, cancelled: { prev: old.status, reason, by: u.name, at: nowStr() } }), mkLog(u, cfg.title, 'Cancel', old.no, `${old.status} -> ${status}. Alasan: ${reason}`, { recordId: old.id, kind: 'cancel', changes: [{ label: 'Status', before: old.status, after: status }], alasan: reason })))
+      setStore((s) => withLogs(put(s, id, { status, cancelled: { prev: old.status, reason, by: u.name, at: nowStr() } }), mkLog(u, cfg.title, 'Cancel', nm(old), `${old.status} -> ${status}. Alasan: ${reason}`, { recordId: old.id, kind: 'cancel', changes: [{ label: 'Status', before: old.status, after: status }], alasan: reason })))
     },
     restore(id, reason = '') {
       const old = cur(id)
       if (!old?.cancelled) return
       const prev = old.cancelled.prev
-      setStore((s) => withLogs(put(s, id, { status: prev, cancelled: undefined }), mkLog(u, cfg.title, 'Kembalikan', old.no, `${old.status} -> ${prev}${reason ? `. Alasan: ${reason}` : ''}`, { recordId: old.id, kind: 'restore', changes: [{ label: 'Status', before: old.status, after: prev }], alasan: reason })))
+      setStore((s) => withLogs(put(s, id, { status: prev, cancelled: undefined }), mkLog(u, cfg.title, 'Kembalikan', nm(old), `${old.status} -> ${prev}${reason ? `. Alasan: ${reason}` : ''}`, { recordId: old.id, kind: 'restore', changes: [{ label: 'Status', before: old.status, after: prev }], alasan: reason })))
     },
     requestApproval(id, jenis, approver, changes, alasan, rejectPatch) {
       const old = cur(id)
@@ -193,6 +194,6 @@ export function decideApproval(reqId: string, approve: boolean, catatan: string,
     const list = s.modules[req.module]
     const modules = patch && list ? { ...s.modules, [req.module]: list.map((r) => (r.id === req.recordId ? { ...r, ...patch } : r)) } : s.modules
     const approvals = s.approvals.map((a) => (a.id === reqId ? { ...a, status: approve ? ('Disetujui' as const) : ('Ditolak' as const), decidedBy: by.name, decidedAt: nowStr(), catatan } : a))
-    return withLogs({ ...s, modules, approvals }, mkLog(by, MODULE_LABEL[req.module], approve ? 'Approve' : 'Reject', req.recordNo, `${req.jenis}${catatan ? `. Catatan: ${catatan}` : ''}`, { recordId: req.recordId, kind: 'decision', approver: by.name, alasan: catatan }))
+    return withLogs({ ...s, modules, approvals }, mkLog(by, MODULE_LABEL[req.module], approve ? 'Approve' : 'Reject', req.recordLabel ?? '', `${req.jenis}${catatan ? `. Catatan: ${catatan}` : ''}`, { recordId: req.recordId, kind: 'decision', approver: by.name, alasan: catatan }))
   })
 }

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Download } from 'lucide-react'
-import { DB, fmtTime, todayStr } from '../lib'
+import { DB, findingLabel, fmtTime, todayStr } from '../lib'
 import { downloadXlsx } from '../kit/exportXlsx'
 import { useApp } from '../kit/store'
 import type { LogEntry } from '../kit/types'
@@ -11,8 +11,8 @@ export function useAllLogs(tdb: DB): LogEntry[] {
   const { store } = useApp()
   return useMemo(() => {
     const role = (n: string) => store.accounts.find((a) => a.name === n)?.role ?? 'PIC'
-    const no = new Map(tdb.findings.map((f) => [f.id, f.no]))
-    const t: LogEntry[] = tdb.audit.map((a) => ({ id: a.id, time: a.time, user: a.user, role: role(a.user), module: TRACKER, aksi: a.aksi, nomor: String(no.get(a.fid) ?? ''), keterangan: `${a.kolom ? `${a.kolom}: ${a.lama || '-'} -> ${a.baru || '-'}` : ''}${a.alasan ? `. Alasan: ${a.alasan}` : ''}` }))
+    const no = new Map(tdb.findings.map((f) => [f.id, findingLabel(f)]))
+    const t: LogEntry[] = tdb.audit.map((a) => ({ id: a.id, time: a.time, user: a.user, role: role(a.user), module: TRACKER, aksi: a.aksi, nomor: no.get(a.fid) ?? '', keterangan: `${a.kolom ? `${a.kolom}: ${a.lama || '-'} -> ${a.baru || '-'}` : ''}${a.alasan ? `. Alasan: ${a.alasan}` : ''}` }))
     return [...store.log, ...t].sort((a, b) => b.time.localeCompare(a.time))
   }, [store.log, store.accounts, tdb.audit, tdb.findings])
 }
@@ -27,7 +27,7 @@ export default function Log({ tdb }: { tdb: DB }) {
   const upd = (p: Partial<typeof f>) => { setF({ ...f, ...p }); reset() }
   const sel = (k: 'user' | 'module' | 'aksi', ph: string) => <select className="inp !w-auto" value={f[k]} onChange={(e) => upd({ [k]: e.target.value })}><option value="">{ph}</option>{uniq(k).map((o) => <option key={o}>{o}</option>)}</select>
   const exp = () => {
-    downloadXlsx(`Log_Aktivitas_${todayStr()}.xlsx`, 'Log', list.map((x) => ({ Waktu: fmtTime(x.time), User: x.user, Peran: x.role, Modul: x.module, Aksi: x.aksi, 'Nomor Data': x.nomor, Keterangan: x.keterangan })))
+    downloadXlsx(`Log_Aktivitas_${todayStr()}.xlsx`, 'Log', list.map((x) => ({ Waktu: fmtTime(x.time), User: x.user, Peran: x.role, Modul: x.module, Aksi: x.aksi, Data: x.nomor, Keterangan: x.keterangan })))
     log('Log', 'Export', '', `${list.length} baris`)
   }
   return (
@@ -41,7 +41,7 @@ export default function Log({ tdb }: { tdb: DB }) {
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-left">
-          <thead className="bg-slate-100 text-xs text-slate-600"><tr>{['Waktu', 'User', 'Peran', 'Modul', 'Aksi', 'Nomor Data', 'Keterangan'].map((h) => <th key={h} className="whitespace-nowrap px-3 py-2.5 font-semibold">{h}</th>)}</tr></thead>
+          <thead className="bg-slate-100 text-xs text-slate-600"><tr>{['Waktu', 'User', 'Peran', 'Modul', 'Aksi', 'Data', 'Keterangan'].map((h) => <th key={h} className="whitespace-nowrap px-3 py-2.5 font-semibold">{h}</th>)}</tr></thead>
           <tbody>
             {slice.map((x) => (
               <tr key={x.id} className="border-t align-top">

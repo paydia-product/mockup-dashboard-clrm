@@ -1,5 +1,6 @@
 import { addDays, diffDays, fmtDate } from '../lib'
 import PageShell from '../kit/PageShell'
+import { sameName } from '../kit/perms'
 import { BarCard, CalendarCard, DonutCard, LineCard, MiniTable, StatCards, Card, useMonthRange } from '../kit/charts'
 import { ageBucket, ageBuckets, monthKey } from '../kit/dates'
 import { StatusPill } from '../kit/fmt'
@@ -132,6 +133,8 @@ function seed(today: string): Aph[] {
 
 const cfg: PageConfig<Aph> = {
   module: 'aph', title: 'Permintaan APH', noun: 'Permintaan', exportPrefix: 'Permintaan_APH',
+  name: (r) => r.nomorSurat,
+  canEditRow: (r, c) => c.role !== 'PIC' || sameName(r.pic, c.user.name),
   seed, fields, columns, filters,
   blank: () => ({ tglTerima: '', nomorSurat: '', tglSurat: '', pengirim: '', perihalJenis: '', perihalTeks: '', kasus: '', merchant: '', groupMerchant: '', unit: '', namaPenyidik: '', noTelp: '', bapTgl: '', bapUlang: '', bapTempat: '', status: 'Active', hold: '', danaTaktis: '', tglBatas: '', pic: '', tglJawab: '' }),
   search: (r) => `${r.nomorSurat} ${r.merchant} ${r.groupMerchant} ${r.perihalJenis} ${r.perihalTeks}`, searchPlaceholder: 'Cari nomor surat, merchant, group, perihal',

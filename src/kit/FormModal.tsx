@@ -89,7 +89,7 @@ export default function FormModal<T extends BaseRec>({ cfg, mode, init, norm, c,
   const submit = () => {
     const e = validateRecord(cfg, r, mode, c, false, lockedKeys)
     for (const [k, b] of Object.entries(pending)) if (b) e[k] = OTHER_ERR
-    if (need.length && !alasan.trim()) e.alasan = `Alasan wajib diisi jika ${need.map((f) => f.label).join(', ')} diubah`
+    if (need.length && !alasan.trim()) e.alasanUbah = `Alasan wajib diisi jika ${need.map((f) => f.label).join(', ')} diubah`
     setErrs(e)
     if (Object.keys(e).length) return
     const out: R = { ...r, ...Object.fromEntries(lockedKeys.map((k) => [k, init[k]])) }
@@ -97,7 +97,7 @@ export default function FormModal<T extends BaseRec>({ cfg, mode, init, norm, c,
     onSave(out, alasan.trim()) // field terkunci/disamarkan tidak pernah ditulis ulang
   }
   return (
-    <Modal wide title={edit ? `Ubah ${cfg.noun} ${init.no}` : `Tambah ${cfg.noun}`} onClose={onClose}>
+    <Modal wide title={edit ? `Ubah ${cfg.noun}${cfg.name?.(init as T) ? ` ${cfg.name(init as T)}` : ''}` : `Tambah ${cfg.noun}`} onClose={onClose}>
       <div className="grid gap-3 sm:grid-cols-2">
         {fields.filter((f) => !f.showIf || f.showIf(r as T)).map((f) => {
           const req = isReq(f, r, c)
@@ -149,7 +149,7 @@ export default function FormModal<T extends BaseRec>({ cfg, mode, init, norm, c,
         <div className="mt-3">
           <label className="lbl">Alasan perubahan{need.length ? ' *' : ''}</label>
           <textarea className="inp" rows={2} value={alasan} onChange={(e) => setAlasan(e.target.value)} />
-          {errs.alasan && <p className="err">{errs.alasan}</p>}
+          {errs.alasanUbah && <p className="err">{errs.alasanUbah}</p>}
         </div>
       )}
       <div className="mt-5 flex justify-end gap-2"><button className="btn" onClick={onClose}>Batal</button><button className="btn btn-primary" onClick={submit}>Simpan</button></div>

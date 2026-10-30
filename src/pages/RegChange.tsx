@@ -224,7 +224,7 @@ function SopQuick({ r, add, close }: { r: Reg; add: (s: SopItem) => void; close:
     const s = addRecord<SopRec>('sop', {
       status: 'Dalam Review', noDok: no.trim(), judul: judul.trim(), ringkasan: '', pemilik: dept, tglBerlaku: '', tglUbah: ctx.today, noRevisi: 'Rev.1',
       retensi: '', klasifikasi: '', file: null, tglReview: '', pic: '', revisi: [],
-    }, seedSop)
+    }, seedSop, (x) => x.judul)
     add({ sop: sopLabel(s), done: 'Tidak' })
     close()
   }
@@ -244,6 +244,7 @@ function SopQuick({ r, add, close }: { r: Reg; add: (s: SopItem) => void; close:
 
 const cfg: PageConfig<Reg> = {
   module: 'regchange', title: 'Regulatory Change', noun: 'Peraturan', exportPrefix: 'Daftar_Peraturan',
+  name: (r) => label(r),
   seed, fields, columns, filters, alerts, cancelStatus: 'Dibatalkan',
   blank: () => ({
     status: 'Berlaku', jenis: '', nomor: '', tahun: '', regulator: '', tentang: '', kategori: '', jp: '', tglTerbit: '', tglBerlaku: '', tglDicatat: todayStr(), diubah: '',
@@ -257,7 +258,7 @@ const cfg: PageConfig<Reg> = {
     if (r.tglBerlaku && r.tglTerbit && r.tglBerlaku < r.tglTerbit) e.tglBerlaku = 'Tanggal Berlaku tidak boleh sebelum Tanggal Terbit'
     if (r.diubah && r.diubah === label(r)) e.diubah = 'Tidak boleh memilih peraturan itu sendiri'
     const dup = (c.all('regchange') as Reg[]).find((x) => x.id !== r.id && !x.cancelled && label(x).toLowerCase() === label(r).toLowerCase())
-    if (r.jenis && r.nomor && r.tahun && dup) e.nomor = `${label(r)} sudah ada (No ${dup.no})`
+    if (r.jenis && r.nomor && r.tahun && dup) e.nomor = `${label(r)} sudah ada`
     if (r.perluJawab === 'Ya' && r.jawabTgl && r.jawabBatas && r.jawabTgl < r.tglDicatat) e.jawabTgl = 'Tanggal Dijawab tidak boleh sebelum Tanggal Dicatat'
     return e
   },

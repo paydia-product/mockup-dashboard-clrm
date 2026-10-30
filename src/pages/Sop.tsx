@@ -98,6 +98,7 @@ const alerts: AlertDef<SopRec>[] = [
 
 const cfg: PageConfig<SopRec> = {
   module: 'sop', title: 'SOP & Dokumen Kontrol', noun: 'SOP', exportPrefix: 'Daftar_SOP',
+  name: (r) => r.judul,
   seed: seedSop, fields, columns, filters, alerts, cancelStatus: 'Dicabut',
   blank: () => ({ noDok: '', judul: '', ringkasan: '', pemilik: '', tglBerlaku: '', tglUbah: '', noRevisi: '', retensi: '', klasifikasi: '', file: null, tglReview: '', pic: '', revisi: [], status: 'Aktif' }),
   search: (r) => `${r.noDok} ${r.judul} ${r.ringkasan}`, searchPlaceholder: 'Cari no dokumen, judul, ringkasan',
@@ -106,7 +107,7 @@ const cfg: PageConfig<SopRec> = {
   validate: (r, mode, c) => {
     const e: Record<string, string> = {}
     const dup = (c.all('sop') as SopRec[]).find((x) => x.id !== r.id && x.noDok.trim().toLowerCase() === r.noDok.trim().toLowerCase())
-    if (r.noDok.trim() && dup) e.noDok = `No Dokumen sudah dipakai SOP no ${dup.no}`
+    if (r.noDok.trim() && dup) e.noDok = `No Dokumen sudah dipakai SOP ${dup.judul}`
     if (r.tglBerlaku && r.tglUbah && r.tglUbah < r.tglBerlaku) e.tglUbah = 'Tanggal Perubahan tidak boleh sebelum Tanggal Berlaku'
     if (mode === 'edit' && (r as SopRec & { revisiBaru?: string }).revisiBaru === 'Ya') {
       const old = (c.all('sop') as SopRec[]).find((x) => x.id === r.id)

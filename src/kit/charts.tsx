@@ -54,7 +54,7 @@ export const Card = ({ title, children, className = '', toolbar }: { title?: str
   </div>
 )
 const Empty = () => <div className="py-10 text-center text-xs text-slate-400">Tidak ada data</div>
-const hasData = (data: Row[], keys: string[]) => data.some((d) => keys.some((k) => Number(d[k]) > 0))
+const hasData = (data: Row[], keys: string[], monthly?: boolean) => (monthly ? data.length > 0 : data.some((d) => keys.some((k) => Number(d[k]) > 0))) // grafik bulanan (punya toolbar periode): bulan kosong tetap tampil sebagai nol
 
 export function StatCards({ items }: { items: { label: string; value: string | number; tone?: Tone; onClick?: () => void }[] }) {
   return (
@@ -76,7 +76,7 @@ export function BarCard({ title, data, keys, stacked, horizontal, colors, cellCo
 }) {
   return (
     <Card title={title} className={className} toolbar={toolbar}>
-      {!hasData(data, keys) ? <Empty /> : (
+      {!hasData(data, keys, !!toolbar) ? <Empty /> : (
         <ResponsiveContainer width="100%" height={horizontal ? Math.max(height, data.length * 28 + 40) : height}>
           <BarChart data={data} layout={horizontal ? 'vertical' : 'horizontal'} margin={{ left: horizontal ? 20 : 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#eef0f4" />
@@ -116,7 +116,7 @@ export function DonutCard({ title, data, onClick, className }: { title: string; 
 export function LineCard({ title, data, keys, colors, xKey = 'name', height = 240, className, toolbar }: { title: string; data: Row[]; keys: string[]; colors?: Colors; xKey?: string; height?: number; className?: string; toolbar?: ReactNode }) {
   return (
     <Card title={title} className={className} toolbar={toolbar}>
-      {!hasData(data, keys) ? <Empty /> : (
+      {!hasData(data, keys, !!toolbar) ? <Empty /> : (
         <ResponsiveContainer width="100%" height={height}>
           <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" stroke="#eef0f4" /><XAxis dataKey={xKey} fontSize={11} /><YAxis allowDecimals={false} fontSize={11} /><Tooltip />
@@ -133,7 +133,7 @@ export function ComboCard({ title, data, bars, lines, colors, xKey = 'name', hei
   const all = [...bars, ...lines]
   return (
     <Card title={title} className={className} toolbar={toolbar}>
-      {!hasData(data, all) ? <Empty /> : (
+      {!hasData(data, all, !!toolbar) ? <Empty /> : (
         <ResponsiveContainer width="100%" height={height}>
           <ComposedChart data={data}>
             <CartesianGrid strokeDasharray="3 3" stroke="#eef0f4" /><XAxis dataKey={xKey} fontSize={11} /><YAxis fontSize={11} /><Tooltip /><Legend wrapperStyle={{ fontSize: 11 }} />
@@ -146,8 +146,9 @@ export function ComboCard({ title, data, bars, lines, colors, xKey = 'name', hei
   )
 }
 
-export function MiniTable<T>({ title, cols, rows, onRow, empty = 'Tidak ada data', className }: { title?: string; cols: { label: string; get: (r: T) => ReactNode }[]; rows: T[]; onRow?: (r: T) => void; empty?: string; className?: string }) {
+export function MiniTable<T>({ title, cols: cols0, rows, onRow, empty = 'Tidak ada data', className }: { title?: string; cols: { label: string; get: (r: T) => ReactNode }[]; rows: T[]; onRow?: (r: T) => void; empty?: string; className?: string }) {
   const { slice, pager, offset } = useDashPaged(rows)
+  const cols = [{ label: 'No', get: () => '' as ReactNode }, ...cols0.filter((c) => c.label !== 'No')] // kolom No = posisi baris (lanjut di halaman berikut), selalu ada
   const body = (
     <div>
     <div className="overflow-auto">

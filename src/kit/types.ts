@@ -68,12 +68,13 @@ export interface PageConfig<T extends BaseRec> {
   beforeSave?: (old: T | null, next: T, c: Ctx) => T // hook saat tambah/ubah (mis. simpan revisi lama)
   validate?: (r: T, mode: 'add' | 'edit', c: Ctx) => Record<string, string>
   canEditRow?: (r: T, c: Ctx) => boolean
+  name?: (r: T) => string // label data yang tampil ke user (pengganti nomor internal) di judul modal, log, approval, email
   approvals?: ApprovalRule<T>[]
   rowActions?: RowAction<T>[]
   Dashboard: (p: { rows: T[]; c: Ctx; open: (id: string) => void; drill: (filter: Record<string, unknown>) => void }) => JSX.Element
 }
 export interface ApprovalReq {
-  id: string; no: number; module: ModuleId; jenis: string; recordId: string; recordNo: number
+  id: string; no: number; module: ModuleId; jenis: string; recordId: string; recordNo: number; recordLabel?: string
   by: string; byRole: Role; time: string; alasan: string; approver: Role
   changes: { key: string; label: string; lama: string; baru: string; value: unknown }[]
   rejectPatch?: Record<string, unknown>

@@ -88,8 +88,8 @@ export default function PageShell<T extends BaseRec>({ config: cfg }: { config: 
         alerts={detail.cancelled ? [] : cfg.alerts.flatMap((a) => { const hit = a.check(detail, c); return hit ? [{ a, hit }] : [] })} />}
       {modal?.k === 'add' && <FormModal cfg={cfg} mode="add" init={{ ...cfg.blank() }} c={c} onClose={close} onSave={(r) => { api.add(r as never); close() }} />}
       {editing && <FormModal cfg={cfg} mode="edit" init={editing} norm={row(editing.id)} c={c} onClose={close} onSave={(r, alasan) => { api.update(editing.id, r as Partial<T>, alasan); close() }} />}
-      {cancelling && <ReasonModal danger title={`Batalkan ${cfg.noun} ${cancelling.no}`} onClose={close} onConfirm={(reason) => { api.cancel(cancelling.id, reason); close() }} />}
-      {restoring && <ReasonModal title={`Kembalikan ${cfg.noun} ${restoring.no}`} onClose={close} onConfirm={(reason) => { api.restore(restoring.id, reason); close() }} />}
+      {cancelling && <ReasonModal danger title={`Batalkan ${cfg.noun} ${cfg.name?.(cancelling) ?? ''}`.trim()} onClose={close} onConfirm={(reason) => { api.cancel(cancelling.id, reason); close() }} />}
+      {restoring && <ReasonModal title={`Kembalikan ${cfg.noun} ${cfg.name?.(restoring) ?? ''}`.trim()} onClose={close} onConfirm={(reason) => { api.restore(restoring.id, reason); close() }} />}
       {modal?.k === 'sim' && <EmailSim cfg={cfg} rows={live} c={c} onClose={close} />}
       {modal?.k === 'import' && <ImportExcel cfg={cfg} c={c} api={api} onClose={close} onDone={(ok, fail) => log(cfg.title, 'Import', '', `${ok} baris berhasil, ${fail} gagal`)} />}
       {modal?.k === 'extra' && modal.node}

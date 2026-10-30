@@ -11,9 +11,25 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
-    v: '2.8.0',
+    v: '2.8.1',
     date: '2026-10-30',
     deployed: true,
+    title: 'Perbaikan hasil QA v2.8.0',
+    prompt: 'Lanjutan QA penuh',
+    tokens: 360000,
+    changes: [
+      'PIC hanya bisa mengedit data miliknya di Permintaan APH dan Perizinan',
+      'Semua tabel dashboard punya kolom No mulai dari 1',
+      'Nomor internal tidak lagi tampil di UI: Approval, judul modal, email, log, isi sel',
+      'Filter bulan Custom tanpa data menampilkan bulan kosong',
+      'Nama request penutupan tracker konsisten: Penutupan Temuan',
+      'Pesan error Alasan Terlambat tidak tampil ganda',
+    ],
+  },
+  {
+    v: '2.8.0',
+    date: '2026-10-30',
+    deployed: false,
     title: 'Master PIC, filter bulan per grafik, revisi Reporting',
     prompt: 'Revisi tabel, master PIC, regulator tetap, filter bulan per grafik, tooltip persen, Regulatory Reporting, Log approval',
     tokens: 300000,

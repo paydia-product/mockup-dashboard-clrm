@@ -123,7 +123,7 @@ function SelesaiModal({ r, api, close }: { r: Kajian; api: ModuleApi<Kajian>; cl
     close()
   }
   return (
-    <Modal title={`Selesaikan Kajian No ${r.no}`} onClose={close}>
+    <Modal title={`Selesaikan Kajian ${r.judul}`} onClose={close}>
       <div className="space-y-3">
         <div className="text-xs text-slate-500">{r.judul}</div>
         <div><label className="lbl">Tanggal Selesai *</label><input type="date" className="inp" value={tgl} onChange={(e) => setTgl(e.target.value)} />{err.tgl && <p className="err">{err.tgl}</p>}</div>
@@ -156,7 +156,7 @@ function seed(today: string): Kajian[] {
     const exist = v && i % 3 !== 0
     return {
       id: `kajian-${i + 1}`, no: i + 1, status, createdAt: tglMasuk, createdBy: 'Regie',
-      jenis, judul: v ? `Due diligence ${MITRA[i % 10]}` : `${jenis === 'CR' ? 'Change request' : jenis === 'Produk' ? 'Produk baru' : jenis === 'Regulasi' ? 'Regulasi' : 'Proyek'} #${i + 1}`,
+      jenis, judul: v ? `Due diligence ${MITRA[i % 10]}` : `${jenis === 'CR' ? 'Change request' : jenis === 'Produk' ? 'Produk baru' : jenis === 'Regulasi' ? 'Regulasi' : 'Proyek'} ${MITRA[i % 10]}`,
       dept: DEPT[i % 6], tglMasuk, sla, pic: PICS[i % 4],
       tglSelesai: done ? addDays(tglMasuk, Math.max(3, Math.round(sla * (0.5 + (i % 5) * 0.2)))) : '', hasil: done && h >= 0 ? HASIL[h] : '',
       klasifikasi: KLAS[i % 3],
@@ -170,6 +170,7 @@ function seed(today: string): Kajian[] {
 
 const cfg: PageConfig<Kajian> = {
   module: 'kajian', title: 'Kajian Risiko', noun: 'Kajian', exportPrefix: 'Kajian_Risiko',
+  name: (r) => r.judul,
   seed, fields, columns, filters,
   blank: () => ({ jenis: '', judul: '', dept: '', tglMasuk: '', sla: '', status: 'Baru', pic: '', tglSelesai: '', hasil: '', klasifikasi: '', namaMitra: '', konteks: '', statusMitra: '', adaPks: '', tglPks: '', aksesSistem: '', aksesData: '', aksesKeuangan: '', pantau: '', tglDD: '' }),
   search: (r) => `${r.no} ${r.judul} ${r.namaMitra}`, searchPlaceholder: 'Cari nomor, judul, nama mitra',
