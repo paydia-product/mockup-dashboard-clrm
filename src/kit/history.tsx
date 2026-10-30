@@ -24,6 +24,8 @@ export function kitHistory(r: BaseRec, moduleId: ModuleId, title: string, store:
       out.push({ key: l.id, time: l.time, title: l.aksi, tone: 'gray', by: l.user, text: l.keterangan })
     }
   }
+  // ponytail: data yang sudah dibatalkan tanpa entri log (mis. seed) tetap tampil dari r.cancelled
+  if (r.cancelled && !out.some((i) => i.title === 'Dibatalkan')) out.push({ key: 'cancelled', time: r.cancelled.at, title: 'Dibatalkan', tone: 'red', by: r.cancelled.by, note: r.cancelled.reason, noteLabel: 'Alasan' })
   for (const a of store.approvals) {
     if (a.module !== moduleId || a.recordId !== r.id) continue
     out.push({ key: `${a.id}-req`, time: a.time, title: `Pengajuan approval: ${a.jenis}`, tone: 'yellow', by: a.by, requester: `${a.by} (${a.byRole})`, approver: a.approver, lines: a.changes.map((c) => ({ label: c.label, before: dash(c.lama), after: dash(c.baru) })), note: a.alasan, noteLabel: 'Alasan' })

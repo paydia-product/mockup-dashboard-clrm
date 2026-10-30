@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 2.7.3 | 2026-10-30 | ~120k |
 | 2.7.2 | 2026-10-30 | ~160k |
 | 2.7.1 | 2026-10-30 | ~330k |
 | 2.7.0 | 2026-10-30 | ~250k |
@@ -30,6 +31,14 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [2.7.3] - 2026-10-30
+
+Estimasi token: ~120k (cek ulang oleh agent terpisah dan perbaikan)
+
+### Diperbaiki
+- Log Perubahan menampilkan entri Dibatalkan juga untuk data yang dibatalkan sebelum log tercatat, misalnya data contoh.
+- Tanggal batal data contoh Fraud tetap, tidak berubah setiap hari. Data demo direset (key `clrm.app.v6`).
 
 ## [2.7.2] - 2026-10-30
 
