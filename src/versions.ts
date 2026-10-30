@@ -11,9 +11,18 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
-    v: '2.6.0',
+    v: '2.6.1',
     date: '2026-10-30',
     deployed: true,
+    title: 'Perbaikan hasil QA master data',
+    prompt: 'Lanjutan QA master data',
+    tokens: 200000,
+    changes: ['Nama master yang panjang tanpa spasi tidak lagi melebarkan tabel', 'Data contoh memakai nama Unit Kerja yang sama dengan master; data demo halaman CR direset'],
+  },
+  {
+    v: '2.6.0',
+    date: '2026-10-30',
+    deployed: false,
     title: 'Master Data baru dan opsi Lainnya',
     prompt: 'Master data: tabel utuh, modal tambah/edit dengan validasi, edit dan hapus, 8 master baru; opsi Lainnya memunculkan field teks',
     tokens: 200000,

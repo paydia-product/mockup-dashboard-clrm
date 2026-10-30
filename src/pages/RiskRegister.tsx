@@ -71,7 +71,7 @@ const filters: FilterDef<Risk>[] = [
   { key: 'rasrt', label: 'Posisi RAS-RT', type: 'select', options: ['Dalam Batas', 'Perlu Perhatian', 'Melewati Batas'], match: (r, v) => rasrt(r) === v },
 ]
 
-const mk = (c: Ctx, o: Partial<Risk>): Risk => ({ id: 'sample', no: 99, status: 'Aktif', createdAt: c.today, createdBy: '-', konteks: 'Settlement merchant', event: 'Settlement ke merchant terlambat', domain: 'Operasional', dampak: 3, kemungkinan: 3, respon: 'Control', kontrol: 'Rekonsiliasi harian', dept: 'Operations', tglRegister: addDays(c.today, -2), produk: 'QRIS', vendor: '', levelAt: addDays(c.today, -2), ...o })
+const mk = (c: Ctx, o: Partial<Risk>): Risk => ({ id: 'sample', no: 99, status: 'Aktif', createdAt: c.today, createdBy: '-', konteks: 'Settlement merchant', event: 'Settlement ke merchant terlambat', domain: 'Operasional', dampak: 3, kemungkinan: 3, respon: 'Control', kontrol: 'Rekonsiliasi harian', dept: 'Operation', tglRegister: addDays(c.today, -2), produk: 'QRIS', vendor: '', levelAt: addDays(c.today, -2), ...o })
 const alerts: AlertDef<Risk>[] = [
   {
     key: 'high', label: 'Risiko High baru / naik ke High', rule: 'Level inherent High dan register atau kenaikan level terjadi dalam 7 hari terakhir.',
@@ -88,7 +88,7 @@ const alerts: AlertDef<Risk>[] = [
 function seed(today: string): Risk[] {
   const EV = ['Gangguan sistem pembayaran', 'Dana settlement kurang likuid', 'Salah pencatatan biaya', 'Gagal bayar mitra', 'Pelanggaran ketentuan regulator', 'Sengketa kontrak vendor', 'Target produk tidak tercapai', 'Keluhan merchant meluas', 'Data konsumen tidak terlindungi', 'Serangan siber ke API']
   const KON = ['Settlement merchant', 'Onboarding merchant', 'Rekonsiliasi harian', 'Pengelolaan vendor', 'Pelaporan regulator', 'Layanan pelanggan', 'Pengembangan produk', 'Manajemen akses']
-  const DEPT = ['IT', 'Business', 'Operations', 'Finance', 'Compliance', 'Support']
+  const DEPT = ['IT', 'Business', 'Operation', 'Finance, Accounting, Tax & Treasury', 'Compliance', 'Support (HRD & GA)']
   const PRD = ['UE', 'QRIS', 'Biller', '']
   const VEN = ['PT Mitra Bayar', 'PT Jaringan Nusa', '', 'PT Data Aman', '']
   // [dampak, kemungkinan, jumlah]: semua 9 sel heatmap terisi

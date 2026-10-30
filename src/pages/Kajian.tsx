@@ -137,7 +137,7 @@ function SelesaiModal({ r, api, close }: { r: Kajian; api: ModuleApi<Kajian>; cl
 }
 
 function seed(today: string): Kajian[] {
-  const DEPT = ['IT', 'Business', 'Operations', 'Finance', 'Compliance', 'Support']
+  const DEPT = ['IT', 'Business', 'Operation', 'Finance, Accounting, Tax & Treasury', 'Compliance', 'Support (HRD & GA)']
   const PICS = ['Lina Marlina', 'Arief Nugraha', 'Rina Kartika', 'Dedi Santoso']
   const MITRA = ['PT Nusa Cloud', 'PT Data Prima', 'PT Aman Jaya Logistik', 'PT Mitra Bayar', 'PT Sentra Verifikasi', 'PT Cipta Layanan', 'PT Biller Nusantara', 'PT Arta Teknologi', 'PT Kirim Cepat', 'PT Sigma Analitik']
   // [jenis, umur, sla, status, hasil (index atau -1), jadwal DD relatif hari (vendor)]

@@ -67,7 +67,7 @@ export default function MasterData({ kind }: { kind: keyof Master }) {
           {list.map((x, i) => ({ x, i })).filter(({ x }) => x.toLowerCase().includes(q.toLowerCase())).map(({ x, i }) => (
             <tr key={i} className="border-t">
               <td className="px-3 py-2">{i + 1}</td>
-              <td className="px-3 py-2">{x}</td>
+              <td className="px-3 py-2 break-all">{x}</td>
               <td className="px-3 py-2">
                 {can('master', 'Ubah') && <div className="flex gap-1"><button className="btn !px-2 !py-1" onClick={() => open({ mode: 'edit', i })}><Pencil size={13} />Edit</button><button className="btn !px-2 !py-1 text-red-600" onClick={() => open({ mode: 'del', i })}><Trash2 size={13} />Hapus</button></div>}
               </td>

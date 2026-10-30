@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 2.6.1 | 2026-10-30 | ~200k |
 | 2.6.0 | 2026-10-30 | ~200k |
 | 2.5.1 | 2026-10-30 | ~25k |
 | 2.5.0 | 2026-10-30 | ~40k |
@@ -26,6 +27,14 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [2.6.1] - 2026-10-30
+
+Estimasi token: ~200k (QA penuh oleh agent terpisah dan perbaikan)
+
+### Diperbaiki
+- Nama master yang panjang tanpa spasi tidak lagi melebarkan tabel.
+- Data contoh memakai nama Unit Kerja yang sama dengan master (Operation, Support (HRD & GA), Finance, Accounting, Tax & Treasury). Data demo halaman CR direset (key `clrm.app.v2`).
 
 ## [2.6.0] - 2026-10-30
 

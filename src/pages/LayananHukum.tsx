@@ -74,7 +74,7 @@ const alerts: AlertDef<Layanan>[] = [
 ]
 
 function seed(today: string): Layanan[] {
-  const DEPT = ['IT', 'Business', 'Operations', 'Finance', 'Compliance', 'Support']
+  const DEPT = ['IT', 'Business', 'Operation', 'Finance, Accounting, Tax & Treasury', 'Compliance', 'Support (HRD & GA)']
   const PICS = ['Lina Marlina', 'Lina Marlina', 'Arief Nugraha', 'Rina Kartika']
   // [umur hari, sla, status, pic kosong?]
   const sc: [number, number, string, boolean?][] = [
