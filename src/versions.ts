@@ -11,9 +11,23 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
-    v: '2.9.0',
+    v: '2.9.1',
     date: '2026-10-30',
     deployed: true,
+    title: 'Perbaikan hasil QA v2.9.0',
+    prompt: 'Lanjutan QA penuh',
+    tokens: 300000,
+    changes: [
+      'Alert Peraturan baru berdampak Tinggi punya data contoh',
+      'Nama master bawaan yang tidak diubah bisa disimpan',
+      'Contoh email alert SOP memakai SOP yang ada',
+      'Data contoh APH yang PIC-nya kosong sekarang punya PIC',
+    ],
+  },
+  {
+    v: '2.9.0',
+    date: '2026-10-30',
+    deployed: false,
     title: 'Request Product: master, Regulatory Change, SOP, RAS-RT',
     prompt: 'Implementasi Request Product.xlsx (19 butir)',
     tokens: 400000,

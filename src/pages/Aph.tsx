@@ -126,7 +126,7 @@ function seed(today: string): Aph[] {
       namaPenyidik: i === 7 ? '' : `AKP Penyidik ${i + 1}`, noTelp: i === 7 || i === 10 ? '' : `0812-55${String(1000 + i * 13)}`,
       bapTgl: bap !== null ? addDays(today, bap) : done && i % 3 === 0 ? addDays(tglTerima, 5) : '', bapUlang: i === 1 ? addDays(today, 2) : '', bapTempat: bap !== null || (done && i % 3 === 0) ? TEMPAT[i % 4] : '',
       hold: i % 4 === 0 ? 25_000_000 + i * 1_500_000 : '', danaTaktis: i % 6 === 0 ? 5_000_000 + i * 500_000 : '',
-      tglBatas: addDays(tglTerima, sla), pic: i === 10 ? '' : PICS[i % 3], tglJawab: done ? addDays(tglTerima, Math.min(sla, 5 + (i % 7))) : '',
+      tglBatas: addDays(tglTerima, sla), pic: PICS[i % 3], tglJawab: done ? addDays(tglTerima, Math.min(sla, 5 + (i % 7))) : '',
     }
   })
 }

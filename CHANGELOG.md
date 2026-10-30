@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 2.9.1 | 2026-10-30 | ~300k |
 | 2.9.0 | 2026-10-30 | ~400k |
 | 2.8.3 | 2026-10-30 | ~120k |
 | 2.8.2 | 2026-10-30 | ~190k |
@@ -36,6 +37,17 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [2.9.1] - 2026-10-30
+
+Estimasi token: ~300k (QA penuh oleh agent terpisah dan perbaikan)
+
+### Diperbaiki
+- Alert "Peraturan baru berdampak Tinggi" di Regulatory Change punya data contoh.
+- Nama master bawaan yang mengandung karakter di luar aturan bisa disimpan selama tidak diubah. Nama baru atau yang diubah tetap hanya boleh huruf, angka, spasi, dan ` ' - &.
+- Contoh email alert SOP memakai SOP yang ada di daftar.
+- Data contoh APH yang PIC-nya kosong sekarang punya PIC.
+- Data demo direset (key `clrm.app.v10`).
 
 ## [2.9.0] - 2026-10-30
 

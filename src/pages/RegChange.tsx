@@ -118,7 +118,7 @@ const alerts: AlertDef<Reg>[] = [
   {
     key: 'sop', label: 'Dicabut, SOP terkait perlu ditinjau', rule: 'Status Peraturan Dicabut, Tanggal Berlaku (pencabutan) sudah lewat, dan daftar SOP / Kebijakan yang Harus Diperbarui masih berisi. Hapus SOP dari daftar bila sudah diperbarui.',
     check: (r, c) => (r.status === 'Dicabut' && r.tglBerlaku && r.tglBerlaku < c.today && r.sopList.length ? { color: 'yellow', detail: `${r.sopList.length} SOP terkait sejak pencabutan ${fmtDate(r.tglBerlaku)}`, to: ['PIC unit terdampak', 'Compliance Officer'] } : null),
-    sample: (c) => mk(c, { jp: 'Pencabutan', status: 'Dicabut', tglBerlaku: addDays(c.today, -15), sopList: ['SOP-073-PAY - Manajemen Akses Sistem - Information Technology'] }),
+    sample: (c) => mk(c, { jp: 'Pencabutan', status: 'Dicabut', tglBerlaku: addDays(c.today, -15), sopList: [sopLabel(seedSop(c.today)[3])] }),
   },
   {
     key: 'high', label: 'Peraturan baru berdampak Tinggi', rule: 'Peraturan atau surat (jenis apa pun) dengan tingkat dampak Tinggi yang baru dicatat dalam 7 hari terakhir.',
@@ -156,11 +156,11 @@ function seed(today: string): Reg[] {
     ['PBI', '10/2026', '2026', 'BI', 'Penguatan tata kelola sistem pembayaran', 'SNAP', 'Baru', 'Berlaku', -12, 5, -10, null, 'Tinggi', 45, ['Pemetaan kontrol tata kelola'], 'Tidak', null, null, null, ['Operation', 'Information Technology']],
     ['PADG', '12/2026', '2026', 'BI', 'Pembatasan transaksi lintas negara', 'SNAP', 'Baru', 'Berlaku', -15, 25, -12, null, 'Sedang', 30, ['Penyesuaian aturan routing'], 'Tidak', null, null, null, ['Information Technology', 'Finance, Accounting, Tax & Treasury']],
     ['Surat Edaran', '9/2026', '2026', 'PPATK', 'Pelaporan transaksi tunai lintas batas', 'APU PPT', 'Baru', 'Berlaku', -8, 55, -7, null, 'Sedang', 50, ['Modul pelaporan LTKT'], 'Tidak', null, null, null, ['Compliance Legal & Risk Management', 'Finance, Accounting, Tax & Treasury']],
-    ['UU', '5/2026', '2026', 'Pemerintah-DPR', 'Pengamanan transaksi elektronik', 'Ketahanan Siber', 'Baru', 'Berlaku', -6, 85, -5, null, 'Sedang', 20, ['Asesmen kesiapan'], 'Tidak', null, null, null, ['Information Technology', 'Operation']],
+    ['UU', '5/2026', '2026', 'Pemerintah-DPR', 'Pengamanan transaksi elektronik', 'Ketahanan Siber', 'Baru', 'Berlaku', -6, 85, -5, null, 'Tinggi', 20, ['Asesmen kesiapan'], 'Tidak', null, null, null, ['Information Technology', 'Operation']],
     ['Permen', '9/2026', '2026', 'Komdigi', 'Ketentuan layanan finansial digital', 'Lainnya', 'Baru', 'Berlaku', -45, -35, -30, null, '', '', [], 'Tidak', null, null, null, ['Support']],
     ['Surat Edaran', '10/2026', '2026', 'Lainnya', 'Pedoman pelaporan keluhan konsumen', 'Pelindungan Konsumen', 'Baru', 'Berlaku', -22, 20, -15, null, '', '', [], 'Tidak', null, null, null, ['Support']],
     ['PBI', '11/2026', '2026', 'BI', 'Pencabutan standar pembayaran lama', 'Lainnya', 'Pencabutan', 'Dicabut', -35, -12, -25, 9, 'Rendah', 80, ['Hapus rujukan standar lama'], 'Tidak', null, null, -18, ['Operation', 'Information Technology'], [false, false]],
-    ['PADG', '15/2026', '2026', 'BI', 'Pembaruan interkoneksi QRIS', 'QRIS', 'Perubahan', 'Berlaku', -4, 14, -3, 8, '', '', [], 'Tidak', null, null, null, ['Information Technology']],
+    ['PADG', '15/2026', '2026', 'BI', 'Pembaruan interkoneksi QRIS', 'QRIS', 'Perubahan', 'Berlaku', -4, 14, -3, 8, 'Sedang', 50, ['Uji interkoneksi'], 'Tidak', null, null, null, ['Information Technology']],
     ['PBI', '12/2026', '2026', 'BI', 'Penguatan pengawasan penyelenggara jasa pembayaran', 'SNAP', 'Baru', 'Berlaku', -55, -20, -50, null, 'Rendah', 100, [], 'Tidak', null, null, -30, ['Operation']],
     ['Surat Edaran', '11/2026', '2026', 'PPATK', 'Pembaruan daftar pantauan transaksi', 'APU PPT', 'Perubahan', 'Berlaku', -20, 10, -18, 13, 'Sedang', 60, ['Perbarui daftar pantauan'], 'Tidak', null, null, -10, ['Compliance Legal & Risk Management']],
     ['Surat Imbauan', '9/2026', '2026', 'Komdigi', 'Imbauan keamanan aplikasi pembayaran', 'Ketahanan Siber', 'Imbauan', 'Berlaku', -18, null, -14, null, 'Rendah', 100, [], 'Ya', 9, null, -8, ['Information Technology']],

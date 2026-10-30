@@ -61,11 +61,11 @@ Semua akun contoh memakai password `Paydia123!` dan PIN `123456`:
 | regie@paydia.id | PIC |
 | tono.santoso@paydia.id | Viewer |
 
-Pemilih "Akun demo" di header berganti akun tanpa login ulang. Tombol reset menghapus `clrm.db.v7` dan `clrm.app.v8`.
+Pemilih "Akun demo" di header berganti akun tanpa login ulang. Tombol reset menghapus `clrm.db.v8` dan `clrm.app.v10`.
 
 ## Penyimpanan
 
-Tracker di `clrm.db.v7`. Semua halaman lain, approval, log, master, akun, dan permission di `clrm.app.v8`. Sesi di `clrm.session`. Kontrak page kit ada di `docs/plan-halaman.md` bagian A, keputusan desain di `docs/keputusan-desain.md`.
+Tracker di `clrm.db.v8`. Semua halaman lain, approval, log, master, akun, dan permission di `clrm.app.v10`. Sesi di `clrm.session`. Kontrak page kit ada di `docs/plan-halaman.md` bagian A, keputusan desain di `docs/keputusan-desain.md`.
 
 ## Asumsi tambahan (halaman baru)
 
