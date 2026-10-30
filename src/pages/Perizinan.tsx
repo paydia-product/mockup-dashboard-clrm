@@ -41,7 +41,7 @@ const fields: Field<Izin>[] = [
   { key: 'tglKedaluwarsa', label: 'Tanggal Kedaluwarsa', type: 'date', required: (r) => dateReq(r) || r.perpanjang === 'Ya', help: 'Wajib untuk Izin.' },
   { key: 'tglReview', label: 'Tanggal Review', type: 'date', help: 'Opsional.' },
   { key: 'kewajiban', label: 'Kewajiban Pelaporan terkait Izin', type: 'textarea', wide: true, help: 'Teks bebas (tidak ada master Daftar Laporan).' },
-  { key: 'pic', label: 'PIC', type: 'text', required: true },
+  { key: 'pic', label: 'PIC', type: 'select', options: (c) => c.master.pic, required: true },
   { key: 'status', label: 'Status', type: 'select', options: STATUS, required: true, help: 'Kedaluwarsa terisi otomatis bila tanggal kedaluwarsa terlewat dan belum diperpanjang.' },
   { key: 'versi', label: 'Nomor Versi', type: 'number', required: true },
   { key: 'perpanjang', label: 'Perpanjang izin', type: 'yesno', inForm: 'edit', noImport: true, noExport: true, help: 'Pilih Ya untuk memperpanjang: isi tanggal berlaku/kedaluwarsa dan nomor versi baru. Versi lama disimpan.' },
@@ -76,7 +76,7 @@ const filters: FilterDef<Izin>[] = [
 
 const mk = (c: Ctx, o: Partial<Izin>): Izin => ({
   id: 'sample', no: 99, status: 'Aktif', createdAt: c.today, createdBy: '-', kategori: 'Izin', nama: 'Izin QRIS', nomor: 'PJSP/0001/2024', penerbit: 'Bank Indonesia',
-  tglTerbit: addDays(c.today, -700), tglBerlaku: addDays(c.today, -700), tglKedaluwarsa: addDays(c.today, 150), tglReview: '', kewajiban: '', pic: 'Sari Wulandari',
+  tglTerbit: addDays(c.today, -700), tglBerlaku: addDays(c.today, -700), tglKedaluwarsa: addDays(c.today, 150), tglReview: '', kewajiban: '', pic: 'Regie',
   versi: 1, file: null, perpanjang: '', versiLama: [], ...o,
 })
 const alerts: AlertDef<Izin>[] = [
@@ -106,7 +106,7 @@ const alerts: AlertDef<Izin>[] = [
 
 function seed(today: string): Izin[] {
   const f = (n: string): FileMeta => ({ name: n, size: 240000, type: 'application/pdf' } as FileMeta)
-  const PIC = ['Sari Wulandari', 'Dimas Prakoso', 'Maya Anggraini']
+  const PIC = ['Regie', 'Fakhri', 'Osama'] // master PIC
   // [kategori, nama, nomor, penerbit, sisaHari|null, status, tanpaBerlaku?, versiLama?]
   type S = [string, string, string, string, number | null, string, boolean?, number?]
   const sc: S[] = [
@@ -134,7 +134,7 @@ function seed(today: string): Izin[] {
     const berlaku = tanpa ? '' : exp ? addDays(exp, -730) : addDays(today, -400 - i * 10)
     const versi = (nLama ?? 0) + 1
     return {
-      id: `perizinan-${i + 1}`, no: i + 1, status, createdAt: addDays(today, -300 + i * 5), createdBy: 'Bima Pratama',
+      id: `perizinan-${i + 1}`, no: i + 1, status, createdAt: addDays(today, -300 + i * 5), createdBy: 'Regie',
       kategori, nama, nomor, penerbit, tglTerbit: tanpa ? '' : berlaku, tglBerlaku: berlaku, tglKedaluwarsa: tanpa ? '' : exp,
       tglReview: i % 3 === 0 ? addDays(today, 30 + i) : '',
       kewajiban: kategori === 'Izin' ? 'Laporan berkala triwulanan ke regulator' : '',

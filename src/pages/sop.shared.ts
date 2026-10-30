@@ -55,7 +55,7 @@ export function seedSop(today: string): SopRec[] {
       retensi: i % 3 === 0 ? '10 Tahun' : i % 7 === 0 ? 'Permanen' : '5 Tahun', klasifikasi: i % 5 === 0 ? 'Rahasia' : i % 2 ? 'Internal' : 'Publik',
       file: { name: `SOP-${String(70 + no).padStart(3, '0')}-PAY.pdf`, size: (200 + i * 37) * 1024, type: 'application/pdf' },
       tglReview: incomplete && i === 22 ? '' : addDays(today, reviewOff[i]),
-      pic: incomplete && i === 23 ? '' : ['Bima Pratama', 'Rina Kartika', 'Arief Nugraha', 'Lina Marlina'][i % 4],
+      pic: incomplete && i === 23 ? '' : ['Regie', 'Fakhri', 'Osama'][i % 3], // master PIC
       revisi: rev > 1 ? Array.from({ length: rev - 1 }, (_, k) => ({ no: `Rev.${k + 1}`, tgl: addDays(ubah, -180 * (rev - 1 - k)), file: { name: `SOP-${String(70 + no).padStart(3, '0')}-Rev${k + 1}.pdf`, size: 150 * 1024, type: 'application/pdf' } })) : [],
     }
   })

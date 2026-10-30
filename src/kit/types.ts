@@ -14,7 +14,7 @@ export type NewRec<T> = Omit<T, Exclude<keyof BaseRec, 'status'>>
 // Nilai per FieldType: text/textarea/select/date/datetime/yesno ('Ya'|'Tidak'|'') = string; number/money/percent = number | ''; multiselect = string[];
 // checklist = Record<subKey, boolean>; file = FileMeta | null; list = Record<string, unknown>[]
 export type FieldType = 'text' | 'textarea' | 'number' | 'money' | 'percent' | 'date' | 'datetime' | 'select' | 'multiselect' | 'yesno' | 'checklist' | 'file' | 'list'
-export interface Master { laporan: string[]; regulator: string[]; kategoriRegulasi: string[]; unitKerja: string[]; produk: string[]; mitra: string[]; kategoriPelapor: string[]; mediaPelapor: string[] }
+export interface Master { laporan: string[]; pic: string[]; kategoriRegulasi: string[]; unitKerja: string[]; produk: string[]; mitra: string[]; kategoriPelapor: string[]; mediaPelapor: string[] }
 export interface Account { id: string; name: string; email: string; role: Role; departemen: string; status: 'Aktif' | 'Nonaktif'; lastLogin: string; password: string; pin: string }
 export interface Ctx { role: Role; user: Account; today: string; master: Master; all: (m: ModuleId) => BaseRec[] }
 export interface Field<T> {

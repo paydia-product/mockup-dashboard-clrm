@@ -1,7 +1,8 @@
 import { addDays, diffDays, fmtDate, todayStr } from '../lib'
 import { withLainnya } from '../kit/Lainnya'
+import { sameName } from '../kit/perms'
 import PageShell from '../kit/PageShell'
-import { BarCard, LineCard, MiniTable, StatCards } from '../kit/charts'
+import { BarCard, LineCard, MiniTable, StatCards, useMonthRange } from '../kit/charts'
 import { StatusPill } from '../kit/fmt'
 import type { AlertDef, BaseRec, Column, Ctx, Field, FilterDef, PageConfig } from '../kit/types'
 
@@ -44,7 +45,7 @@ const fields: Field<Kontrak>[] = [
   { key: 'lamaBulan', label: 'Lama Perpanjangan (bulan)', type: 'number', required: needsLama, showIf: needsLama },
   { key: 'status', label: 'Status', type: 'select', options: STATUS, required: true, help: 'Aktif otomatis menjadi Akan Berakhir (≤90 hari) atau Expired menurut Tanggal Berakhir.' },
   { key: 'bidang', label: 'Bidang Usaha', type: 'select', options: BIDANG, editableBy: notPic },
-  { key: 'pic', label: 'PIC (teks)', type: 'text', required: (r) => !r.dept, editableBy: notPic, help: 'Isi PIC atau Unit Pemilik, salah satu wajib.' },
+  { key: 'pic', label: 'PIC', type: 'select', options: (c) => c.master.pic, required: (r) => !r.dept, editableBy: notPic, help: 'Isi PIC atau Unit Pemilik, salah satu wajib.' },
   { key: 'dept', label: 'Unit Pemilik (Unit Kerja)', type: 'select', options: (c) => withLainnya(c.master.unitKerja), required: (r) => !r.pic, editableBy: notPic },
   {
     key: 'induk', label: 'Dokumen Induk', type: 'select', required: isAmd, editableBy: notPic, help: 'Wajib untuk Amandemen.',
@@ -82,7 +83,7 @@ const filters: FilterDef<Kontrak>[] = [
 const toPic = (r: Kontrak) => (r.pic ? `PIC (${r.pic})` : 'PIC')
 const mk = (c: Ctx, o: Partial<Kontrak>): Kontrak => ({
   id: 'sample', no: 99, status: 'Aktif', createdAt: c.today, createdBy: '-', jenisHubungan: 'Merchant', mitra: 'Kopi Senja', nomor: 'PKS/CLRM/099/2026', jenisDok: 'PKS QRIS',
-  mulai: addDays(c.today, -300), berakhir: addDays(c.today, 60), perpanjangan: 'Manual', lamaBulan: 12, bidang: 'F&B', pic: 'Bima Pratama', dept: '', induk: '',
+  mulai: addDays(c.today, -300), berakhir: addDays(c.today, 60), perpanjangan: 'Manual', lamaBulan: 12, bidang: 'F&B', pic: 'Regie', dept: '', induk: '',
   kelengkapan: { hardcopy: true, ttd: true }, file: { name: 'PKS-099.pdf', size: 120000, type: 'application/pdf' }, ...o,
 })
 const alerts: AlertDef<Kontrak>[] = [
@@ -113,7 +114,7 @@ const alerts: AlertDef<Kontrak>[] = [
 
 function seed(today: string): Kontrak[] {
   const MITRA = ['Kopi Senja', 'Toko Maju Jaya', 'Bimbel Cerdas', 'PT Telkom Biller', 'Warung Nusantara', 'Apotek Sehat', 'Bank Mitra Utama', 'CV Digital Kreasi', 'Resto Padang Raya', 'Laundry Kilat', 'Sekolah Harapan', 'Minimarket 24', 'PT Logistik Cepat', 'Salon Cantika']
-  const PICS = ['Bima Pratama', 'Sari Wulandari', 'Hendra Wijaya', 'Maya Lestari']
+  const PICS = ['Regie', 'Fakhri', 'Osama', 'Regie'] // master PIC
   const DEPT = ['Business', 'Operation', 'Finance, Accounting, Tax & Treasury', 'IT']
   // [hubungan, jenisDok, mulai (hari lalu), sisa hari (null = kosong), status, perpanjangan, indukIdx]
   type S = [string, string, number, number | null, string, string, number?]
@@ -147,7 +148,6 @@ function seed(today: string): Kontrak[] {
   })
 }
 
-const monthLabel = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
 
 const cfg: PageConfig<Kontrak> = {
   module: 'kontrak', title: 'Kontrak', noun: 'Kontrak', exportPrefix: 'Kontrak',
@@ -161,7 +161,7 @@ const cfg: PageConfig<Kontrak> = {
     const status = s < 0 ? 'Expired' : s <= 90 ? 'Akan Berakhir' : 'Aktif'
     return status === r.status ? r : { ...r, status }
   },
-  canEditRow: (r, c) => c.role !== 'PIC' || r.pic === c.user.name || (!!r.dept && r.dept === c.user.departemen),
+  canEditRow: (r, c) => c.role !== 'PIC' || sameName(r.pic, c.user.name) || (!!r.dept && r.dept === c.user.departemen),
   validate: (r, _mode, c) => {
     const e: Record<string, string> = {}
     const n = r.nomor.trim().toLowerCase()
@@ -175,8 +175,8 @@ const cfg: PageConfig<Kontrak> = {
     const cnt = (g: string) => rows.filter((r) => grup(r, c.today) === g).length
     const card = (label: string, g: string, tone: 'green' | 'yellow' | 'red') => ({ label, value: cnt(g), tone, onClick: () => drill({ kelompok: g }) })
     const dekat = rows.filter((r) => LIVE(r) && r.berakhir && (sisa(r, c.today) as number) >= 0 && (sisa(r, c.today) as number) <= 90).sort((a, b) => a.berakhir.localeCompare(b.berakhir))
-    const now = new Date(c.today + 'T00:00:00')
-    const bulan = Array.from({ length: 12 }, (_, i) => monthLabel(new Date(now.getFullYear(), now.getMonth() - 11 + i, 1)))
+    const rg = useMonthRange('12') // filter bulan kartu ini, independen dari filter halaman
+    const bulan = rg.months(rows.map((r) => r.mulai.slice(0, 7)))
     return (
       <div className="space-y-3">
         <StatCards items={[
@@ -185,7 +185,7 @@ const cfg: PageConfig<Kontrak> = {
         ]} />
         <div className="grid gap-3 lg:grid-cols-2">
           <BarCard title="Kontrak per jenis dokumen" horizontal data={JENIS_DOK.map((j) => ({ name: j, Jumlah: rows.filter((r) => r.jenisDok === j).length }))} keys={['Jumlah']} onClick={(row) => drill({ jenisDok: row.name })} />
-          <LineCard title="Kontrak baru per bulan (12 bulan)" data={bulan.map((m) => ({ name: m, 'Kontrak baru': rows.filter((r) => r.mulai.slice(0, 7) === m).length }))} keys={['Kontrak baru']} />
+          <LineCard title="Kontrak baru per bulan" toolbar={rg.toolbar} data={bulan.map((m) => ({ name: m, 'Kontrak baru': rows.filter((r) => r.mulai.slice(0, 7) === m).length }))} keys={['Kontrak baru']} />
         </div>
         <MiniTable
           title="Kontrak berakhir dalam 90 hari (terdekat dulu)" rows={dekat} onRow={(r) => open(r.id)}

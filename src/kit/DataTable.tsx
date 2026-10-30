@@ -1,6 +1,14 @@
 import { ReactNode, useEffect, useMemo, useState } from 'react'
 import { fmtTime } from '../lib'
+import { LAINNYA } from './Lainnya'
 import type { BaseRec, Ctx, PageConfig } from './types'
+
+// Tabel menampilkan "Lainnya" untuk teks bebas dari field pilihan ber-"Lainnya"; Detail dan Export tetap memakai teks aslinya.
+const lain = (v: string | number, custom: Set<string>) => {
+  if (typeof v !== 'string' || !custom.size) return v
+  if (custom.has(v)) return LAINNYA
+  return v.includes(', ') ? [...new Set(v.split(', ').map((x) => (custom.has(x) ? LAINNYA : x)))].join(', ') : v
+}
 
 // Tabel utama: tanpa sort kolom. Urutan tetap Tanggal Dibuat terbaru dulu; "Nomor" = posisi baris (1..n, lanjut antar halaman).
 // Kolom 'No' bawaan konfigurasi (nomor internal) tidak ditampilkan; no tetap dipakai untuk log/approval/email.
@@ -10,6 +18,8 @@ export default function DataTable<T extends BaseRec>({ cfg, rows, c, actions, re
   useEffect(() => setPage(1), [resetKey]) // cari/filter berubah: kembali ke halaman 1, nomor mulai dari 1
   const sorted = useMemo(() => [...rows].sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || '') || b.no - a.no), [rows])
   const cols = cfg.columns.filter((col) => col.label !== 'No')
+  const lainFields = cfg.fields.filter((f) => f.type === 'select' || f.type === 'multiselect').map((f) => ({ key: f.key, o: typeof f.options === 'function' ? f.options(c) : f.options ?? [] })).filter((x) => x.o.includes(LAINNYA))
+  const customOf = (r: T) => { const s = new Set<string>(); for (const { key, o } of lainFields) for (const x of [(r as Record<string, unknown>)[key]].flat()) if (typeof x === 'string' && x && !o.includes(x)) s.add(x); return s }
   const pages = Math.max(1, Math.ceil(sorted.length / size))
   const cur = Math.min(page, pages)
   const slice = sorted.slice((cur - 1) * size, cur * size)
@@ -26,14 +36,17 @@ export default function DataTable<T extends BaseRec>({ cfg, rows, c, actions, re
             </tr>
           </thead>
           <tbody>
-            {slice.map((r, i) => (
+            {slice.map((r, i) => {
+              const cu = customOf(r)
+              return (
               <tr key={r.id} className={`border-t align-top hover:bg-slate-50 ${r.cancelled ? 'text-slate-400' : ''}`}>
                 <td className="whitespace-nowrap px-3 py-2.5 font-medium">{(cur - 1) * size + i + 1}</td>
-                {cols.map((col) => <td key={col.label} className="px-3 py-2.5">{col.render ? col.render(r, c) : col.get(r, c)}</td>)}
+                {cols.map((col) => <td key={col.label} className="px-3 py-2.5">{col.render ? col.render(r, c) : lain(col.get(r, c), cu)}</td>)}
                 <td className="whitespace-nowrap px-3 py-2.5">{fmtTime(r.createdAt)}</td>
                 <td className="px-3 py-2.5"><div className="flex gap-1">{actions(r)}</div></td>
               </tr>
-            ))}
+              )
+            })}
             {!slice.length && <tr><td colSpan={cols.length + 3} className="p-8 text-center text-slate-400">Tidak ada data</td></tr>}
           </tbody>
         </table>

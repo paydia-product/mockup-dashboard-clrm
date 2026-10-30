@@ -29,7 +29,7 @@ export function kitHistory(r: BaseRec, moduleId: ModuleId, title: string, store:
   for (const a of store.approvals) {
     if (a.module !== moduleId || a.recordId !== r.id) continue
     out.push({ key: `${a.id}-req`, time: a.time, title: `Pengajuan approval: ${a.jenis}`, tone: 'yellow', by: a.by, requester: `${a.by} (${a.byRole})`, approver: a.approver, lines: a.changes.map((c) => ({ label: c.label, before: dash(c.lama), after: dash(c.baru) })), note: a.alasan, noteLabel: 'Alasan' })
-    if (a.status !== 'Menunggu') out.push({ key: `${a.id}-dec`, time: a.decidedAt ?? a.time, title: `Approval ${a.status === 'Disetujui' ? 'disetujui' : 'ditolak'}: ${a.jenis}`, tone: a.status === 'Disetujui' ? 'green' : 'red', by: a.decidedBy ?? '-', requester: `${a.by} (${a.byRole})`, approver: a.decidedBy ?? a.approver, note: a.catatan, noteLabel: 'Catatan' })
+    if (a.status !== 'Menunggu') out.push({ key: `${a.id}-dec`, time: a.decidedAt ?? a.time, title: `Approval: ${a.status === 'Disetujui' ? 'Approve' : 'Reject'} — ${a.jenis}`, tone: a.status === 'Disetujui' ? 'green' : 'red', by: a.decidedBy ?? '-', requester: `${a.by} (${a.byRole})`, approver: a.decidedBy ?? a.approver, lines: a.status === 'Disetujui' ? a.changes.map((c) => ({ label: c.label, before: dash(c.lama), after: dash(c.baru) })) : undefined, note: a.catatan, noteLabel: 'Catatan' }) // Approve = field yang berubah; Reject = hanya aksi
   }
   return out
 }
@@ -49,8 +49,8 @@ export function trackerHistory(f: Finding, db: DB): HItem[] {
       const decided = reqs.find((q) => q.decidedAt === a.time && q.decidedBy === a.user)
       const base = { key: k, time: a.time, by: a.user }
       if (a.aksi.startsWith('Ajukan penutupan')) g = { ...base, title: 'Pengajuan approval: Penutupan Temuan', tone: 'yellow', requester: a.user, approver: 'Head CLRM', lines: [], note: asked?.alasan ?? a.alasan, noteLabel: 'Alasan' }
-      else if (a.aksi === 'Setujui penutupan' || a.aksi === 'Persetujuan penutupan') g = { ...base, title: 'Approval disetujui: Penutupan Temuan', tone: 'green', requester: decided?.by, approver: a.user, lines: [], note: decided?.catatan, noteLabel: 'Catatan' }
-      else if (a.aksi === 'Tolak penutupan') g = { ...base, title: 'Approval ditolak: Penutupan Temuan', tone: 'red', requester: decided?.by, approver: a.user, lines: [], note: decided?.catatan || a.alasan, noteLabel: 'Catatan' }
+      else if (a.aksi === 'Setujui penutupan' || a.aksi === 'Persetujuan penutupan') g = { ...base, title: 'Approval: Approve — Penutupan Temuan', tone: 'green', requester: decided?.by, approver: a.user, lines: [], note: decided?.catatan, noteLabel: 'Catatan' }
+      else if (a.aksi === 'Tolak penutupan') g = { ...base, title: 'Approval: Reject — Penutupan Temuan', tone: 'red', requester: decided?.by, approver: a.user, lines: [], note: decided?.catatan || a.alasan, noteLabel: 'Catatan' }
       else if (a.aksi === 'Batalkan temuan') g = { ...base, title: 'Dibatalkan', tone: 'red', lines: [], note: a.alasan, noteLabel: 'Alasan' }
       else if (a.aksi === 'Kembalikan temuan') g = { ...base, title: 'Dikembalikan', tone: 'green', lines: [], note: a.alasan, noteLabel: 'Alasan' }
       else if (a.aksi === 'Ubah temuan') g = { ...base, title: 'Perubahan data', tone: 'gray', lines: [], note: a.alasan, noteLabel: 'Alasan' }
@@ -59,10 +59,10 @@ export function trackerHistory(f: Finding, db: DB): HItem[] {
       out.push(g)
     }
     if (!g.note && a.alasan) g.note = a.alasan
-    if (a.kolom) g.lines!.push({ label: a.kolom, before: dmy(a.lama), after: dmy(a.baru) })
+    if (a.kolom && !g.title.startsWith('Approval: Reject')) g.lines!.push({ label: a.kolom, before: dmy(a.lama), after: dmy(a.baru) })
   }
   for (const h of out) { // approval seed tanpa request: pengaju = pengajuan terakhir sebelum keputusan
-    if (h.title.startsWith('Approval') && !h.requester) h.requester = out.filter((x) => x.title.startsWith('Pengajuan') && x.time <= h.time).sort((a, b) => b.time.localeCompare(a.time))[0]?.by
+    if (h.title.startsWith('Approval:') && !h.requester) h.requester = out.filter((x) => x.title.startsWith('Pengajuan') && x.time <= h.time).sort((a, b) => b.time.localeCompare(a.time))[0]?.by
   }
   return out
 }

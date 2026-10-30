@@ -35,7 +35,7 @@ const fields: Field<Kajian>[] = [
   { key: 'sla', label: 'SLA (hari kalender)', type: 'number', required: true, reasonOnChange: true, help: 'Mengubah SLA (batas waktu) wajib disertai alasan.' },
   { key: 'batas', label: 'Tanggal Batas', type: 'date', auto: (r) => batas(r) },
   { key: 'status', label: 'Status', type: 'select', options: STATUS.filter((s) => s !== 'Selesai'), importOptions: STATUS, required: true, help: 'Status Selesai diisi lewat aksi baris "Selesai".' },
-  { key: 'pic', label: 'PIC', type: 'text', required: true },
+  { key: 'pic', label: 'PIC', type: 'select', options: (c) => c.master.pic, required: true },
   { key: 'tglSelesai', label: 'Tanggal Selesai', type: 'date', inForm: 'none' },
   { key: 'hasil', label: 'Hasil / Opini Risk Management', type: 'select', options: HASIL, inForm: 'none' },
   { key: 'klasifikasi', label: 'Klasifikasi Regulasi', type: 'select', options: KLAS },
@@ -73,7 +73,7 @@ const filters: FilterDef<Kajian>[] = [
 
 const toPic = (r: Kajian) => (r.pic ? `PIC (${r.pic})` : 'PIC')
 const mk = (c: Ctx, o: Partial<Kajian>): Kajian => ({
-  id: 'sample', no: 99, status: 'Proses', createdAt: c.today, createdBy: '-', jenis: 'CR', judul: 'Kajian contoh', dept: 'IT', tglMasuk: addDays(c.today, -10), sla: 7, pic: 'Lina Marlina',
+  id: 'sample', no: 99, status: 'Proses', createdAt: c.today, createdBy: '-', jenis: 'CR', judul: 'Kajian contoh', dept: 'IT', tglMasuk: addDays(c.today, -10), sla: 7, pic: 'Osama',
   tglSelesai: '', hasil: '', klasifikasi: 'Tidak Perlu', namaMitra: '', konteks: '', statusMitra: '', adaPks: '', tglPks: '', aksesSistem: '', aksesData: '', aksesKeuangan: '', pantau: '', tglDD: '', ...o,
 })
 const alerts: AlertDef<Kajian>[] = [
@@ -138,7 +138,7 @@ function SelesaiModal({ r, api, close }: { r: Kajian; api: ModuleApi<Kajian>; cl
 
 function seed(today: string): Kajian[] {
   const DEPT = ['IT', 'Business', 'Operation', 'Finance, Accounting, Tax & Treasury', 'Compliance', 'Support (HRD & GA)']
-  const PICS = ['Lina Marlina', 'Arief Nugraha', 'Rina Kartika', 'Dedi Santoso']
+  const PICS = ['Regie', 'Fakhri', 'Osama', 'Regie'] // master PIC
   const MITRA = ['PT Nusa Cloud', 'PT Data Prima', 'PT Aman Jaya Logistik', 'PT Mitra Bayar', 'PT Sentra Verifikasi', 'PT Cipta Layanan', 'PT Biller Nusantara', 'PT Arta Teknologi', 'PT Kirim Cepat', 'PT Sigma Analitik']
   // [jenis, umur, sla, status, hasil (index atau -1), jadwal DD relatif hari (vendor)]
   const sc: [string, number, number, string, number, number?][] = [
@@ -155,7 +155,7 @@ function seed(today: string): Kajian[] {
     const v = jenis === 'Vendor'
     const exist = v && i % 3 !== 0
     return {
-      id: `kajian-${i + 1}`, no: i + 1, status, createdAt: tglMasuk, createdBy: 'Bima Pratama',
+      id: `kajian-${i + 1}`, no: i + 1, status, createdAt: tglMasuk, createdBy: 'Regie',
       jenis, judul: v ? `Due diligence ${MITRA[i % 10]}` : `${jenis === 'CR' ? 'Change request' : jenis === 'Produk' ? 'Produk baru' : jenis === 'Regulasi' ? 'Regulasi' : 'Proyek'} #${i + 1}`,
       dept: DEPT[i % 6], tglMasuk, sla, pic: PICS[i % 4],
       tglSelesai: done ? addDays(tglMasuk, Math.max(3, Math.round(sla * (0.5 + (i % 5) * 0.2)))) : '', hasil: done && h >= 0 ? HASIL[h] : '',

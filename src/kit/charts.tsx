@@ -12,6 +12,40 @@ type Row = Record<string, string | number>
 type Colors = string[] | Record<string, string>
 const colorOf = (colors: Colors | undefined, key: string, i: number) => (Array.isArray(colors) ? colors[i] : colors?.[key]) ?? PALETTE[i % PALETTE.length]
 
+// ---- Filter bulan per grafik (independen dari filter halaman) ----
+const ymOf = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+type MonthRange = { p: string; setP: (v: string) => void; from: string; setFrom: (v: string) => void; to: string; setTo: (v: string) => void }
+export function MonthRangeFilter({ r }: { r: MonthRange }) {
+  return (
+    <div className="flex flex-wrap items-center gap-2 text-xs">
+      <span className="font-medium text-slate-500">Periode</span>
+      <select className="inp !w-auto" value={r.p} onChange={(e) => r.setP(e.target.value)}>
+        <option value="all">Seluruh Waktu</option>{[3, 6, 9, 12].map((n) => <option key={n} value={n}>{n} bulan terakhir</option>)}<option value="custom">Custom</option>
+      </select>
+      {r.p === 'custom' && <><input type="month" className="inp !w-auto" value={r.from} onChange={(e) => r.setFrom(e.target.value)} /><span>sampai</span><input type="month" className="inp !w-auto" value={r.to} onChange={(e) => r.setTo(e.target.value)} /></>}
+    </div>
+  )
+}
+// months(keys): daftar bulan berurutan 'YYYY-MM' (waktu lokal). N bulan terakhir = tepat N bulan termasuk bulan ini;
+// Seluruh Waktu = dari bulan data tertua (keys) sampai bulan ini; Custom = dari/sampai (kosong = tertua / bulan ini).
+export function useMonthRange(def = '12') {
+  const [p, setP] = useState(def)
+  const [from, setFrom] = useState('')
+  const [to, setTo] = useState('')
+  const months = (keys: string[] = []): string[] => {
+    const ks = keys.filter(Boolean).sort()
+    const cur = ymOf(new Date())
+    let start = ks[0] ?? cur
+    let end = ks.length && ks[ks.length - 1] > cur ? ks[ks.length - 1] : cur
+    if (p === 'custom') { start = from || start; end = to || cur }
+    else if (p !== 'all') { const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - (Number(p) - 1)); start = ymOf(d); end = cur }
+    const out: string[] = []
+    for (const d = new Date(`${start}-01T00:00:00`); ymOf(d) <= end && out.length < 600; d.setMonth(d.getMonth() + 1)) out.push(ymOf(d))
+    return out
+  }
+  return { months, toolbar: <MonthRangeFilter r={{ p, setP, from, setFrom, to, setTo }} /> }
+}
+
 export const Card = ({ title, children, className = '', toolbar }: { title?: string; children: ReactNode; className?: string; toolbar?: ReactNode }) => (
   <div className={`rounded-lg border border-slate-200 bg-white p-4 ${className}`}>
     {title && <h3 className="mb-3 text-sm font-semibold text-slate-800">{title}</h3>}
@@ -36,12 +70,12 @@ export function StatCards({ items }: { items: { label: string; value: string | n
 }
 
 // data: [{ name, <key1>, <key2> ... }]; cellColors mewarnai tiap batang (hanya untuk satu seri)
-export function BarCard({ title, data, keys, stacked, horizontal, colors, cellColors, xKey = 'name', onClick, height = 240, className, tip }: {
-  title: string; data: Row[]; keys: string[]; stacked?: boolean; horizontal?: boolean; colors?: Colors; cellColors?: string[]; xKey?: string; tip?: (row: Row) => ReactNode
+export function BarCard({ title, data, keys, stacked, horizontal, colors, cellColors, xKey = 'name', onClick, height = 240, className, tip, toolbar }: {
+  title: string; toolbar?: ReactNode; data: Row[]; keys: string[]; stacked?: boolean; horizontal?: boolean; colors?: Colors; cellColors?: string[]; xKey?: string; tip?: (row: Row) => ReactNode
   onClick?: (row: Row, key: string) => void; height?: number; className?: string
 }) {
   return (
-    <Card title={title} className={className}>
+    <Card title={title} className={className} toolbar={toolbar}>
       {!hasData(data, keys) ? <Empty /> : (
         <ResponsiveContainer width="100%" height={horizontal ? Math.max(height, data.length * 28 + 40) : height}>
           <BarChart data={data} layout={horizontal ? 'vertical' : 'horizontal'} margin={{ left: horizontal ? 20 : 0 }}>
@@ -95,10 +129,10 @@ export function LineCard({ title, data, keys, colors, xKey = 'name', height = 24
   )
 }
 
-export function ComboCard({ title, data, bars, lines, colors, xKey = 'name', height = 260, className }: { title: string; data: Row[]; bars: string[]; lines: string[]; colors?: Colors; xKey?: string; height?: number; className?: string }) {
+export function ComboCard({ title, data, bars, lines, colors, xKey = 'name', height = 260, className, toolbar }: { title: string; toolbar?: ReactNode; data: Row[]; bars: string[]; lines: string[]; colors?: Colors; xKey?: string; height?: number; className?: string }) {
   const all = [...bars, ...lines]
   return (
-    <Card title={title} className={className}>
+    <Card title={title} className={className} toolbar={toolbar}>
       {!hasData(data, all) ? <Empty /> : (
         <ResponsiveContainer width="100%" height={height}>
           <ComposedChart data={data}>
@@ -113,14 +147,14 @@ export function ComboCard({ title, data, bars, lines, colors, xKey = 'name', hei
 }
 
 export function MiniTable<T>({ title, cols, rows, onRow, empty = 'Tidak ada data', className }: { title?: string; cols: { label: string; get: (r: T) => ReactNode }[]; rows: T[]; onRow?: (r: T) => void; empty?: string; className?: string }) {
-  const { slice, pager } = useDashPaged(rows)
+  const { slice, pager, offset } = useDashPaged(rows)
   const body = (
     <div>
     <div className="overflow-auto">
       <table className="w-full text-left text-xs">
         <thead className="bg-slate-100 text-slate-600"><tr>{cols.map((c) => <th key={c.label} className="px-2.5 py-2 font-semibold">{c.label}</th>)}</tr></thead>
         <tbody>
-          {slice.map((r, i) => <tr key={i} onClick={onRow ? () => onRow(r) : undefined} className={`border-t ${onRow ? 'cursor-pointer hover:bg-slate-50' : ''}`}>{cols.map((c) => <td key={c.label} className="px-2.5 py-2">{c.get(r)}</td>)}</tr>)}
+          {slice.map((r, i) => <tr key={i} onClick={onRow ? () => onRow(r) : undefined} className={`border-t ${onRow ? 'cursor-pointer hover:bg-slate-50' : ''}`}>{cols.map((c) => <td key={c.label} className="px-2.5 py-2">{c.label === 'No' ? offset + i + 1 : c.get(r)}</td>)}</tr>)}
           {!rows.length && <tr><td colSpan={cols.length} className="p-6 text-center text-slate-400">{empty}</td></tr>}
         </tbody>
       </table>

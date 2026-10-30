@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 2.8.0 | 2026-10-30 | ~300k |
 | 2.7.3 | 2026-10-30 | ~120k |
 | 2.7.2 | 2026-10-30 | ~160k |
 | 2.7.1 | 2026-10-30 | ~330k |
@@ -31,6 +32,25 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [2.8.0] - 2026-10-30
+
+Estimasi token: ~300k
+
+### Ditambahkan
+- Master Data PIC (Regie, Fakhri, Osama). Semua field PIC di semua halaman kini dropdown dari master ini (tanpa Lainnya).
+- Filter bulan per grafik (Seluruh Waktu, 3/6/9/12 bulan terakhir, Custom dengan input bulan) untuk semua grafik per bulan: komponen bersama `useMonthRange` + `MonthRangeFilter`.
+- Tooltip persen dengan rincian x/y di grafik persen (Rata-rata pemenuhan per kategori) dan tile % Selesai tracker.
+- Regulatory Reporting: field Waktu Kejadian (opsional) untuk semua laporan; Status Terlambat bisa dipilih manual jika Batas Waktu sudah lewat.
+
+### Diubah
+- Master Regulator dihapus; dropdown regulator memakai daftar tetap per halaman (Tracker BI/PPATK/Komdigi/BSSN/Lainnya, Reporting BI/PPATK/Komdigi/BSSN, Regulatory Change + Pemerintah-DPR/Lainnya). Sumbu regulator di dashboard mengikuti daftar itu.
+- Kolom nomor tabel dashboard (mini tabel) = posisi baris 1..n.
+- Tabel menampilkan "Lainnya" untuk teks bebas pilihan Lainnya; Detail dan Export tetap teks aslinya.
+- Regulatory Reporting: Nama Laporan teks bebas, Batas Waktu hanya tanggal, teks bantu insidental dihapus, Alasan Terlambat wajib saat Terlambat.
+- Regulatory Change: label "Jawab imbauan" menjadi "Imbauan".
+- Log Perubahan: keputusan approval berjudul "Approval: Approve — jenis" / "Approval: Reject — jenis"; Approve menampilkan field berubah, Reject hanya aksi.
+- Akun demo PIC menjadi Regie, Fraud Investigator menjadi Fakhri (agar aturan PIC pemilik data tetap jalan). Data demo direset (key `clrm.app.v7`, `clrm.db.v6`).
 
 ## [2.7.3] - 2026-10-30
 

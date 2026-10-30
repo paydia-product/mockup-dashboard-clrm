@@ -1,6 +1,6 @@
 import { addDays, diffDays, fmtDate } from '../lib'
 import PageShell from '../kit/PageShell'
-import { BarCard, CalendarCard, DonutCard, LineCard, MiniTable, StatCards, Card } from '../kit/charts'
+import { BarCard, CalendarCard, DonutCard, LineCard, MiniTable, StatCards, Card, useMonthRange } from '../kit/charts'
 import { ageBucket, ageBuckets, monthKey } from '../kit/dates'
 import { StatusPill } from '../kit/fmt'
 import type { AlertDef, BaseRec, Column, Ctx, Field, FilterDef, PageConfig } from '../kit/types'
@@ -43,7 +43,7 @@ const fields: Field<Aph>[] = [
   { key: 'hold', label: 'Nominal Hold Settlement (Rp)', type: 'money' },
   { key: 'danaTaktis', label: 'Dana Taktis (Rp)', type: 'money' },
   { key: 'tglBatas', label: 'Batas Waktu Jawaban', type: 'date', required: true },
-  { key: 'pic', label: 'PIC', type: 'text', required: true },
+  { key: 'pic', label: 'PIC', type: 'select', options: (c) => c.master.pic, required: true },
   { key: 'tglJawab', label: 'Tanggal Jawaban Dikirim', type: 'date', required: (r) => r.status === 'Done' },
 ]
 const columns: Column<Aph>[] = [
@@ -71,7 +71,7 @@ const filters: FilterDef<Aph>[] = [
 const mk = (c: Ctx, o: Partial<Aph>): Aph => ({
   id: 'sample', no: 99, status: 'Active', createdAt: c.today, createdBy: '-', tglTerima: addDays(c.today, -10), nomorSurat: 'B/1234/X/2026/Siber', tglSurat: addDays(c.today, -12),
   pengirim: 'Bareskrim', perihalJenis: 'Permintaan Data Identitas', perihalTeks: 'Data identitas pemilik rekening merchant', kasus: 'Judi Online', merchant: 'PT Contoh Digital', groupMerchant: 'Contoh Group',
-  unit: 'Dittipidsiber', namaPenyidik: 'AKP Contoh', noTelp: '0812-0000-0000', bapTgl: '', bapUlang: '', bapTempat: '', hold: '', danaTaktis: '', tglBatas: addDays(c.today, 5), pic: 'Rina Kartika', tglJawab: '', ...o,
+  unit: 'Dittipidsiber', namaPenyidik: 'AKP Contoh', noTelp: '0812-0000-0000', bapTgl: '', bapUlang: '', bapTempat: '', hold: '', danaTaktis: '', tglBatas: addDays(c.today, 5), pic: 'Regie', tglJawab: '', ...o,
 })
 const alerts: AlertDef<Aph>[] = [
   {
@@ -103,7 +103,7 @@ const alerts: AlertDef<Aph>[] = [
 
 function seed(today: string): Aph[] {
   const MERCH: [string, string][] = [['PT Gemilang Bayar', 'Gemilang Group'], ['CV Surya Digital', 'Surya Group'], ['PT Nusa Kreasi', 'Nusa Group'], ['PT Bintang Lestari', 'Bintang Group'], ['PT Garuda Niaga', 'Gemilang Group'], ['CV Cahaya Prima', 'Cahaya Group'], ['PT Mitra Cepat', 'Surya Group'], ['PT Lintas Dana', 'Nusa Group']]
-  const PICS = ['Rina Kartika', 'Arief Nugraha', 'Lina Marlina']
+  const PICS = ['Regie', 'Fakhri', 'Osama'] // master PIC
   const TEMPAT = ['Bareskrim, Jakarta', 'Polda Metro Jaya', 'Polres Jakarta Selatan', 'Kejaksaan Negeri Jakarta']
   // [umur hari, status, hari ke batas dari tglTerima, bap offset dari hari ini | null]
   const sc: [number, string, number, number | null][] = [
@@ -118,7 +118,7 @@ function seed(today: string): Aph[] {
     const done = status === 'Done'
     const [merchant, groupMerchant] = MERCH[i % 8]
     return {
-      id: `aph-${i + 1}`, no: i + 1, status, createdAt: tglTerima, createdBy: 'Bima Pratama',
+      id: `aph-${i + 1}`, no: i + 1, status, createdAt: tglTerima, createdBy: 'Regie',
       tglTerima, nomorSurat: `B/${1200 + i * 7}/${(i % 12) + 1}/2026/${['Siber', 'Reskrimsus', 'PPATK', 'Kejari'][i % 4]}`, tglSurat: addDays(tglTerima, -2),
       pengirim: PENGIRIM[[0, 1, 0, 3, 2, 4][i % 6]], perihalJenis: PERIHAL[i % 4], perihalTeks: ['Data identitas pemilik rekening merchant', 'Keterangan alur transaksi merchant', 'Pemblokiran rekening settlement merchant', 'Salinan dokumen onboarding'][i % 4],
       kasus: KASUS[[0, 0, 1, 2, 0, 3][i % 6]], merchant, groupMerchant, unit: UNIT[i % 3],
@@ -147,7 +147,8 @@ const cfg: PageConfig<Aph> = {
     const act = rows.filter(ACTIVE)
     const lateN = act.filter((r) => late(r, c.today)).length
     const done = rows.filter((r) => r.status === 'Done').length
-    const months = [...new Set(rows.map((r) => monthKey(r.tglTerima)))].sort()
+    const rg = useMonthRange('12') // filter bulan kartu ini, independen dari filter halaman
+    const months = rg.months(rows.map((r) => monthKey(r.tglTerima)))
     const count = (g: (r: Aph) => string, names: string[]) => names.map((name) => ({ name, Jumlah: rows.filter((r) => g(r) === name).length }))
     const top = (g: (r: Aph) => string, n: number) => count(g, uniq(rows, g)).sort((a, b) => b.Jumlah - a.Jumlah).slice(0, n)
     const events = act.filter((r) => bapDate(r) && bapDate(r) >= c.today && bapDate(r) < addDays(c.today, 30)).map((r) => {
@@ -167,7 +168,7 @@ const cfg: PageConfig<Aph> = {
           { label: 'Active lewat batas jawaban', value: lateN, tone: lateN ? 'red' : 'gray' },
         ]} />
         <div className="grid gap-3 lg:grid-cols-2">
-          <LineCard title="Surat masuk per bulan" data={months.map((m) => ({ name: m, Surat: rows.filter((r) => monthKey(r.tglTerima) === m).length }))} keys={['Surat']} />
+          <LineCard title="Surat masuk per bulan" toolbar={rg.toolbar} data={months.map((m) => ({ name: m, Surat: rows.filter((r) => monthKey(r.tglTerima) === m).length }))} keys={['Surat']} />
           <BarCard title="Instansi pengirim terbanyak" horizontal data={count((r) => r.pengirim, PENGIRIM).sort((a, b) => b.Jumlah - a.Jumlah)} keys={['Jumlah']} onClick={(row) => drill({ pengirim: row.name })} />
           <DonutCard title="Permintaan per kasus" data={KASUS.map((k) => ({ name: k, value: rows.filter((r) => r.kasus === k).length }))} onClick={(name) => drill({ kasus: name })} />
           <BarCard title="Group merchant paling banyak disebut" data={top((r) => r.groupMerchant, 6)} keys={['Jumlah']} onClick={(row) => drill({ groupMerchant: row.name })} />

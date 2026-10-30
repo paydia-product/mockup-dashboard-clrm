@@ -37,7 +37,7 @@ Halaman publik: `/login.html` (+ `login.js`, `login.css`), `/api/login`, `/api/l
 - Area Temuan: lima contoh CR + "Lainnya".
 - Alert "Menunggu Validasi terlalu lama": > 7 hari (`WAIT_VALIDATION_DAYS` di `src/lib.ts`). Lama menunggu dihitung dari riwayat audit.
 - Di Dashboard, "Open" berarti semua temuan belum Selesai (Open, Proses, Menunggu Validasi); yang Dibatalkan tidak dihitung.
-- Peran demo memetakan ke satu pengguna: PIC = Bima Pratama. Temuan PIC lain tidak bisa diubah oleh peran PIC.
+- Peran demo memetakan ke satu pengguna: PIC = Regie (nama harus ada di master PIC). Temuan PIC lain tidak bisa diubah oleh peran PIC.
 - Edit oleh PIC/Compliance Officer membuat permintaan perubahan (menunggu Head CLRM, tersimpan sebagai metadata, bukan kolom data). Head CLRM menyetujui (diff diterapkan) atau menolak (alasan wajib). Satu permintaan aktif per temuan. Alur penutupan tetap terpisah.
 - "Ajukan Penutupan" otomatis mengisi progress 100%.
 - Batalkan/Kembalikan: status sebelum batal dibaca dari Riwayat (tidak ada kolom tambahan).
@@ -56,16 +56,16 @@ Semua akun contoh memakai password `Paydia123!` dan PIN `123456`:
 | rina.kartika@paydia.id, arief.nugraha@paydia.id | Compliance Officer |
 | rudi.hartono@paydia.id | Risk Officer |
 | lina.marlina@paydia.id | Legal Officer |
-| fajar.ramadhan@paydia.id | Fraud Investigator |
+| fakhri@paydia.id | Fraud Investigator |
 | yusuf.hakim@paydia.id | Ketua SMKI |
-| bima.pratama@paydia.id | PIC |
+| regie@paydia.id | PIC |
 | tono.santoso@paydia.id | Viewer |
 
-Pemilih "Akun demo" di header berganti akun tanpa login ulang. Tombol reset menghapus `clrm.db.v4` dan `clrm.app.v1`.
+Pemilih "Akun demo" di header berganti akun tanpa login ulang. Tombol reset menghapus `clrm.db.v6` dan `clrm.app.v7`.
 
 ## Penyimpanan
 
-Tracker di `clrm.db.v4`. Semua halaman lain, approval, log, master, akun, dan permission di `clrm.app.v1`. Sesi di `clrm.session`. Kontrak page kit ada di `docs/plan-halaman.md` bagian A, keputusan desain di `docs/keputusan-desain.md`.
+Tracker di `clrm.db.v6`. Semua halaman lain, approval, log, master, akun, dan permission di `clrm.app.v7`. Sesi di `clrm.session`. Kontrak page kit ada di `docs/plan-halaman.md` bagian A, keputusan desain di `docs/keputusan-desain.md`.
 
 ## Asumsi tambahan (halaman baru)
 
@@ -73,7 +73,7 @@ Tracker di `clrm.db.v4`. Semua halaman lain, approval, log, master, akun, dan pe
 - Hari kerja = Senin sampai Jumat tanpa libur nasional. SLA Kajian dan Layanan = hari kalender.
 - Status "Batal" (pilihan CR) beda dari "Dibatalkan" (hasil Cancel Head CLRM).
 - Rename dan hapus master data tidak mengubah data lama.
-- Master Data: Laporan, Regulator, Kategori Regulasi, Unit Kerja, Produk, Mitra, Kategori Pelapor, Media Pelapor. Data lama `departemen` dimigrasi ke `unitKerja`, `pihakPelapor` dibuang.
+- Master Data: Laporan, PIC (Regie, Fakhri, Osama; dipakai semua field PIC, tanpa Lainnya), Kategori Regulasi, Unit Kerja, Produk, Mitra, Kategori Pelapor, Media Pelapor. Data lama `departemen` dimigrasi ke `unitKerja`, `pihakPelapor` dan `regulator` dibuang. Regulator memakai daftar tetap per halaman (Tracker BI/PPATK/Komdigi/BSSN/Lainnya, Reporting BI/PPATK/Komdigi/BSSN, Regulatory Change BI/PPATK/Komdigi/BSSN/Pemerintah-DPR/Lainnya).
 - Logout menghapus sesi demo dan cookie gate, lalu kembali ke `/login.html`.
 - Export boleh untuk semua peran dan diatur lewat matriks permission.
 - Request perubahan tracker ikut tampil di menu Approval; keputusan yang sudah diambil tidak disimpan di daftar Approval (tercatat di Log).

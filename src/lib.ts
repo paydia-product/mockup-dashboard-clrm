@@ -23,11 +23,10 @@ export const USERS: User[] = [
   { id: 'u1', name: 'Rina Kartika', role: 'Compliance Officer' },
   { id: 'u2', name: 'Arief Nugraha', role: 'Compliance Officer' },
   { id: 'u3', name: 'Dewi Anggraini', role: 'Head CLRM' },
-  { id: 'u4', name: 'Bima Pratama', role: 'PIC' },
-  { id: 'u5', name: 'Sari Wulandari', role: 'PIC' },
-  { id: 'u6', name: 'Hendra Wijaya', role: 'PIC' },
-  { id: 'u7', name: 'Maya Lestari', role: 'PIC' },
-  { id: 'u8', name: 'Tono Santoso', role: 'Viewer' },
+  { id: 'u4', name: 'Regie', role: 'PIC' },
+  { id: 'u5', name: 'Fakhri', role: 'PIC' },
+  { id: 'u6', name: 'Osama', role: 'PIC' },
+  { id: 'u7', name: 'Tono Santoso', role: 'Viewer' },
 ]
 export const PIC_USERS = USERS.filter((u) => u.role === 'PIC')
 // Pengguna aktif untuk tiap peran demo
@@ -35,7 +34,7 @@ export const ROLE_USER: Record<Role, User> = {
   'Compliance Officer': USERS[0],
   PIC: USERS[3],
   'Head CLRM': USERS[2],
-  Viewer: USERS[7],
+  Viewer: USERS[6],
 }
 export const userName = (id: string) => USERS.find((u) => u.id === id)?.name ?? id
 
@@ -170,7 +169,7 @@ export function makeSeed(): DB {
     if (diffDays(tgl, t) > -5) tgl = addDays(t, -ri(10, 60))
     if (s.status === 'Selesai' && diffDays(due, tgl) < 10) tgl = addDays(due, -30)
     const no = i + 1
-    const pic = PIC_USERS[i < 12 ? (i % 4 === 0 ? 0 : i % 4) : i % 4].name
+    const pic = PIC_USERS[i % PIC_USERS.length].name // PIC = master PIC (Regie/Fakhri/Osama)
     const tindak = pick(TODO_TEXT)
     const tindakFile: FileMeta = { name: `bukti_temuan-${no}.pdf`, size: ri(80, 900) * 1024, type: 'application/pdf' }
     const regulator = i < 8 ? REGULATORS[i % REGULATORS.length] : pick(REGULATORS)
@@ -208,7 +207,7 @@ export function makeSeed(): DB {
 
 // ---- Penyimpanan ----
 // ponytail: v5 = seed punya createdAt dan tanpa 'Lainnya' di daftar; data v4 lama tetap aman dibaca (createdOf) tetapi direset agar seed baru dipakai
-export const KEY = 'clrm.db.v5'
+export const KEY = 'clrm.db.v6' // ponytail: v6 = PIC seed Regie/Fakhri/Osama; v5 seed lama tidak dibaca lagi (key beda), load() tetap aman membaca bentuk lama
 const ROLE_KEY = 'clrm.role'
 function load(): DB {
   try {
@@ -264,7 +263,7 @@ export function applyFilter(list: Finding[], f: Filter): Finding[] {
     if (f.status && x.status !== f.status) return false
     if (f.pic && x.pic !== f.pic) return false
     if (f.unit && x.unit !== f.unit) return false
-    if (f.regulator && x.regulator !== f.regulator) return false
+    if (f.regulator && (f.regulator === 'Lainnya' ? REGULATORS.includes(x.regulator) : x.regulator !== f.regulator)) return false // 'Lainnya' = teks bebas di luar daftar
     if (f.risiko && x.risiko !== f.risiko) return false
     return true
   })

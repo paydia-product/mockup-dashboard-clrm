@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 
 export const LAINNYA = 'Lainnya'
 export const withLainnya = (l: string[]) => (l.includes(LAINNYA) ? l : [...l, LAINNYA])
+// Tampilan tabel: teks bebas (bukan salah satu opsi) ditulis "Lainnya"; Detail dan Export memakai teks aslinya
+export const showLainnya = (v: string, options: string[]) => (v && !options.includes(v) ? LAINNYA : v)
 export const OTHER_ERR = 'Wajib diisi jika memilih Lainnya'
 // onPending(true) = Lainnya dipilih tetapi teks masih kosong; induk menolak simpan dan menampilkan OTHER_ERR.
 type Pending = (empty: boolean) => void

@@ -10,7 +10,7 @@ Sumber: CR 6 Okt 2026 (acuan kolom/visual/alert/aturan), rencana kerja tambahan 
 5. "Simulasi notifikasi (n)" = modal email (From noreply-clrm@paydia.co.id, To, Subject `[CLRM] <alert>: <noun> <no>`, isi, alasan notifikasi, badge Kuning/Merah). Maksimal 3 email contoh per jenis alert CR: pakai data yang cocok hari ini, lalu contoh statis berlabel "Contoh statis" kalau datanya kurang.
 6. Upload pakai `FileField` (PDF/JPG/JPEG/PNG, ≤25 MB, tepat 1 file, hanya metadata). Wajib di kolom yang di CR berisi file dan wajib.
 7. Nomor data = angka urut biasa (`no`), terisi otomatis, tidak muncul di form, tampil di tabel/detail/export.
-8. PIC = teks bebas (bukan dropdown user). Departemen dari Master Data (G3).
+8. PIC = dropdown dari Master Data PIC (Regie, Fakhri, Osama; tanpa Lainnya). Departemen dari Master Data (G3). Master Regulator dihapus; regulator memakai daftar tetap per halaman (C1, C2, tracker).
 9. Export Excel = baris hasil filter dan cari, nama file `<Prefix>_YYYY-MM-DD.xlsx` dari CR, dicatat di Log.
 10. Pagination 10/25/50, "x sampai y dari z data", sort per kolom.
 11. Setiap visual dalam kartu sendiri, jumlah dan bentuk sesuai CR (G11). Merchant/mitra/vendor/PT = teks (G5/G6).
@@ -183,7 +183,7 @@ Sumber kebenaran: `src/kit/types.ts`. Perbedaan dari draf di atas:
 **Master Data**: delapan list (cari, Tambah/Edit lewat modal "Tambah/Edit <Nama Master>" dengan field Nama, Hapus dengan konfirmasi). Urutan menu: Laporan, Regulator, Kategori Regulasi, Unit Kerja, Produk, Mitra, Kategori Pelapor, Media Pelapor. Validasi Nama: wajib, 2 sampai 255 karakter, hanya huruf/angka/spasi, unik tanpa beda huruf besar. Seed:
 - Unit Kerja: IT, Operation, Business, Support (HRD & GA), Compliance, Legal & Risk Management, Finance, Accounting, Tax & Treasury.
 - Produk: UE, QRIS, Biller.
-- Regulator: BI, PPATK, Komdigi, BSSN, Pemerintah-DPR, Lainnya.
+- (Master Regulator dihapus v2.8.0; daftar regulator tetap per halaman.) PIC: Regie, Fakhri, Osama.
 - Kategori Regulasi: APU PPT, QRIS, SNAP, Pelindungan Konsumen, Ketahanan Siber, Lainnya.
 - Kategori Pelapor: Departemen Internal, Konsumen, Switching, Kepolisian, PJP-Bank, Bank Indonesia, Lainnya. Media Pelapor: Email, IASC, GO AML, WhatsApp, Lainnya.
 - Laporan dan Mitra: dari nama di seed Reporting, Kontrak, dan Kajian. Dropdown Nama Laporan dan Nama Mitra menambah "Lainnya".

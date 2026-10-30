@@ -2,10 +2,11 @@ import { useEffect, useMemo, useState } from 'react'
 import * as XLSX from 'xlsx'
 import { Bell, ChevronDown, ChevronUp, Download, Eye, History, Pencil, Plus, RotateCcw, Save, Search, SlidersHorizontal, Trash2, Upload, XCircle } from 'lucide-react'
 import {
-  Audit, DB, EMPTY_FILTER, Filter, Finding, AlertInfo, RISKS, ROLE_USER, Role, STATUSES, alertsFor, applyFilter,
+  Audit, DB, EMPTY_FILTER, Filter, Finding, AlertInfo, REGULATORS, RISKS, ROLE_USER, Role, STATUSES, alertsFor, applyFilter,
   addDays, createdOf, diffDays, fmtDate, fmtTime, fmtTimeSec, isPendingReq, lastDueReason, nowStr, todayStr,
 } from './lib'
 import { getStore, setStore, useApp } from './kit/store'
+import { showLainnya } from './kit/Lainnya'
 import type { Action } from './kit/types'
 import Dashboard from './Dashboard'
 import Drawer, { Acts } from './Drawer'
@@ -194,7 +195,7 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
                       <div><label className="lbl">Status</label>{sel('status', STATUSES.map((x) => [x, x]), 'Pilih Status')}</div>
                       <div><label className="lbl">PIC</label>{sel('pic', [...new Set(db.findings.map((x) => x.pic))].sort().map((n) => [n, n]), 'Pilih PIC')}</div>
                       <div><label className="lbl">Unit Kerja</label>{sel('unit', appStore.master.unitKerja.map((x) => [x, x]), 'Pilih Unit Kerja')}</div>
-                      <div><label className="lbl">Regulator</label>{sel('regulator', appStore.master.regulator.map((x) => [x, x]), 'Pilih Regulator')}</div>
+                      <div><label className="lbl">Regulator</label>{sel('regulator', [...REGULATORS, 'Lainnya'].map((x) => [x, x]), 'Pilih Regulator')}</div>
                       <div><label className="lbl">Tingkat Risiko</label>{sel('risiko', RISKS.map((x) => [x, x]), 'Pilih Tingkat Risiko')}</div>
                     </div>
                     <div className="mt-4 border-t pt-3">
@@ -241,9 +242,9 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
                 {slice.map((f, i) => (
                   <tr key={f.id} className={`border-t align-top hover:bg-slate-50 ${f.status === 'Dibatalkan' ? 'text-slate-400' : ''}`}>
                     <td className="whitespace-nowrap px-3 py-2.5 font-medium">{(cur - 1) * size + i + 1}</td>
-                    <td className="px-3 py-2.5">{f.regulator}</td>
+                    <td className="px-3 py-2.5">{showLainnya(f.regulator, REGULATORS)}</td>
                     <td className="whitespace-nowrap px-3 py-2.5">{fmtDate(f.tglTemuan)}</td>
-                    <td className="px-3 py-2.5">{f.area}</td>
+                    <td className="px-3 py-2.5">{showLainnya(f.area, appStore.master.kategoriRegulasi)}</td>
                     <td className="whitespace-nowrap px-3 py-2.5">{f.pic}</td>
                     <td className="whitespace-nowrap px-3 py-2.5">{fmtDate(f.dueDate)}</td>
                     <td className="px-3 py-2.5"><StatusBadge s={f.status} /></td>

@@ -5,7 +5,7 @@ export function usePaged<T>(list: T[], initSize = 10, sizes = [10, 25, 50]) {
   const [size, setSize] = useState(initSize)
   const pages = Math.max(1, Math.ceil(list.length / size))
   const cur = Math.min(page, pages)
-  return { slice: list.slice((cur - 1) * size, cur * size), pager: <Pager total={list.length} cur={cur} pages={pages} size={size} setPage={setPage} setSize={(n) => { setSize(n); setPage(1) }} sizes={sizes} />, reset: () => setPage(1) }
+  return { offset: (cur - 1) * size, slice: list.slice((cur - 1) * size, cur * size), pager: <Pager total={list.length} cur={cur} pages={pages} size={size} setPage={setPage} setSize={(n) => { setSize(n); setPage(1) }} sizes={sizes} />, reset: () => setPage(1) }
 }
 function Pager({ total, cur, pages, size, setPage, setSize, sizes }: { sizes: number[]; total: number; cur: number; pages: number; size: number; setPage: (n: number) => void; setSize: (n: number) => void }) {
   return (

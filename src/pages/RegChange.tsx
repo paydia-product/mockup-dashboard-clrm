@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { addDays, diffDays, fmtDate, todayStr } from '../lib'
 import { withLainnya } from '../kit/Lainnya'
 import PageShell from '../kit/PageShell'
-import { BarCard, DonutCard, LineCard, MiniTable } from '../kit/charts'
+import { BarCard, DonutCard, LineCard, MiniTable, useMonthRange } from '../kit/charts'
 import { ageBucket, ageBuckets, workDaysBetween } from '../kit/dates'
 import { StatusPill } from '../kit/fmt'
 import { addRecord, readModule, useApp } from '../kit/store'
@@ -24,6 +24,7 @@ interface Reg extends BaseRec {
 
 const JENIS = ['PBI', 'PADG', 'UU', 'Permen', 'Peraturan BSSN', 'Surat Edaran', 'Surat Imbauan']
 const REGULATOR = ['BI', 'PPATK', 'Komdigi', 'BSSN', 'Pemerintah-DPR', 'Lainnya']
+const regB = (r: Reg) => (REGULATOR.includes(r.regulator) ? r.regulator : 'Lainnya') // teks bebas di luar daftar dihitung 'Lainnya'
 const KATEGORI = ['APU PPT', 'QRIS', 'SNAP', 'Pelindungan Konsumen', 'Ketahanan Siber', 'Lainnya']
 const JP = ['Baru', 'Perubahan', 'Pencabutan', 'Imbauan']
 const STATUS = ['Berlaku', 'Diubah', 'Dicabut']
@@ -46,7 +47,7 @@ const fields: Field<Reg>[] = [
   { key: 'jenis', label: 'Jenis Peraturan / Surat', type: 'select', options: JENIS, required: true, editableBy: (c) => !isPic(c) },
   { key: 'nomor', label: 'Nomor Peraturan', type: 'text', required: true, editableBy: (c) => !isPic(c) },
   { key: 'tahun', label: 'Tahun', type: 'text', required: true, editableBy: (c) => !isPic(c) },
-  { key: 'regulator', label: 'Regulator / Penerbit', type: 'select', options: (c) => withLainnya(c.master.regulator), required: true, editableBy: (c) => !isPic(c) },
+  { key: 'regulator', label: 'Regulator / Penerbit', type: 'select', options: REGULATOR, required: true, editableBy: (c) => !isPic(c) },
   { key: 'tentang', label: 'Tentang', type: 'textarea', required: true, editableBy: (c) => !isPic(c) },
   { key: 'kategori', label: 'Kategori (Perihal / Fitur)', type: 'select', options: (c) => withLainnya(c.master.kategoriRegulasi), required: true, editableBy: (c) => !isPic(c) },
   { key: 'jp', label: 'Jenis Perubahan', type: 'select', options: JP, required: true, editableBy: (c) => !isPic(c) },
@@ -68,7 +69,7 @@ const fields: Field<Reg>[] = [
     listLocked: isPic, itemEditableBy: (c, it) => !isPic(c) || sameName(String(it.pic ?? ''), c.user.name), // PIC: hanya item miliknya, tanpa tambah/hapus
     sub: [
       { key: 'uraian', label: 'Uraian', type: 'text', required: true },
-      { key: 'pic', label: 'PIC', type: 'text', required: true, editableBy: (c) => !isPic(c) },
+      { key: 'pic', label: 'PIC', type: 'select', options: (c) => c.master.pic, required: true, editableBy: (c) => !isPic(c) },
       { key: 'batas', label: 'Batas Waktu', type: 'date', required: true },
       { key: 'status', label: 'Status', type: 'select', options: ['Open', 'Proses', 'Selesai'], required: true },
     ],
@@ -103,7 +104,7 @@ const columns: Column<Reg>[] = [
 const uniq = (rows: Reg[], g: (r: Reg) => string[]) => [...new Set(rows.flatMap(g).filter(Boolean))].sort()
 const filters: FilterDef<Reg>[] = [
   { key: 'periode', label: 'Periode (Tanggal Dicatat)', type: 'daterange', match: (r, v) => { const [a, b] = v as [string, string]; return (!a || r.tglDicatat >= a) && (!b || r.tglDicatat <= b) } },
-  { key: 'regulator', label: 'Regulator', type: 'select', options: (_, c) => c.master.regulator, match: (r, v) => r.regulator === v },
+  { key: 'regulator', label: 'Regulator', type: 'select', options: REGULATOR, match: (r, v) => regB(r) === v },
   { key: 'jp', label: 'Jenis Perubahan', type: 'select', options: JP, match: (r, v) => r.jp === v },
   { key: 'kepatuhan', label: 'Status Kepatuhan', type: 'select', options: KEP, match: (r, v) => kep(r) === v },
   { key: 'dept', label: 'Unit Kerja Terdampak', type: 'select', options: (_, c) => c.master.unitKerja, match: (r, v) => r.dept.includes(v as string) },
@@ -128,7 +129,7 @@ const alerts: AlertDef<Reg>[] = [
   {
     key: 'effective', label: 'Akan berlaku, tindak lanjut belum selesai', rule: 'Tindak lanjut belum selesai pada H-90, 60, 30, dan 7 sebelum Tanggal Berlaku. Kuning, merah saat H-7.',
     check: (r, c) => { const x = mile(r, c.today); return x && openTindak(r).length ? { color: x.m === 7 ? 'red' : 'yellow', detail: `Berlaku ${x.d} hari lagi (tahap H-${x.m}), ${openTindak(r).length} tindak lanjut belum selesai`, to: [...picTo(r), 'Head CLRM'] } : null },
-    sample: (c) => mk(c, { tglBerlaku: addDays(c.today, 28), pemenuhan: 50, tindak: [{ uraian: 'Penyesuaian sistem', pic: 'Bima Pratama', batas: addDays(c.today, 20), status: 'Proses' }] }),
+    sample: (c) => mk(c, { tglBerlaku: addDays(c.today, 28), pemenuhan: 50, tindak: [{ uraian: 'Penyesuaian sistem', pic: 'Regie', batas: addDays(c.today, 20), status: 'Proses' }] }),
   },
   {
     key: 'reply', label: 'Imbauan harus dijawab', rule: 'Batas jawaban imbauan kurang dari 7 hari (H-7, H-3, H-1), kuning. Merah hanya bila batas terlewat.',
@@ -165,34 +166,34 @@ function seed(today: string): Reg[] {
   const rows: S[] = [
     ['PBI', '23/2025', '2025', 'BI', 'Pemrosesan transaksi pembayaran', 'QRIS', 'Baru', 'Diubah', -350, -320, -340, null, 'Sedang', 100, [], 'Tidak', null, null, -330, ['Operation', 'IT']],
     ['PADG', '14/2025', '2025', 'BI', 'Perubahan standar QRIS', 'QRIS', 'Perubahan', 'Berlaku', -300, -270, -290, 1, 'Sedang', 100, [], 'Tidak', null, null, -280, ['Business', 'IT'], [true]],
-    ['UU', '4/2025', '2025', 'Pemerintah-DPR', 'Pelindungan data konsumen sektor keuangan', 'Pelindungan Konsumen', 'Baru', 'Berlaku', -280, -240, -270, null, 'Tinggi', 85, [T('Revisi kebijakan privasi', 'Arief Nugraha', -15, 'Proses'), T('Pelatihan staf', 'Lina Marlina', 40, 'Open')], 'Tidak', null, null, -250, ['Compliance', 'Support (HRD & GA)']],
-    ['Peraturan BSSN', '2/2025', '2025', 'BSSN', 'Standar ketahanan siber penyelenggara', 'Ketahanan Siber', 'Baru', 'Berlaku', -250, -200, -240, null, 'Tinggi', 40, [T('Uji penetrasi tahunan', 'Bima Pratama', -30, 'Proses'), T('Pemantauan SOC 24 jam', 'Bima Pratama', -5, 'Open')], 'Tidak', null, null, -215, ['IT', 'Operation']],
-    ['Surat Edaran', '3/2025', '2025', 'PPATK', 'Pelaporan transaksi mencurigakan', 'APU PPT', 'Baru', 'Berlaku', -230, -190, -220, null, 'Sedang', 75, [T('Perbarui parameter pemantauan', 'Rina Kartika', -10, 'Proses')], 'Tidak', null, null, -200, ['Compliance', 'Finance, Accounting, Tax & Treasury']],
+    ['UU', '4/2025', '2025', 'Pemerintah-DPR', 'Pelindungan data konsumen sektor keuangan', 'Pelindungan Konsumen', 'Baru', 'Berlaku', -280, -240, -270, null, 'Tinggi', 85, [T('Revisi kebijakan privasi', 'Fakhri', -15, 'Proses'), T('Pelatihan staf', 'Osama', 40, 'Open')], 'Tidak', null, null, -250, ['Compliance', 'Support (HRD & GA)']],
+    ['Peraturan BSSN', '2/2025', '2025', 'BSSN', 'Standar ketahanan siber penyelenggara', 'Ketahanan Siber', 'Baru', 'Berlaku', -250, -200, -240, null, 'Tinggi', 40, [T('Uji penetrasi tahunan', 'Regie', -30, 'Proses'), T('Pemantauan SOC 24 jam', 'Regie', -5, 'Open')], 'Tidak', null, null, -215, ['IT', 'Operation']],
+    ['Surat Edaran', '3/2025', '2025', 'PPATK', 'Pelaporan transaksi mencurigakan', 'APU PPT', 'Baru', 'Berlaku', -230, -190, -220, null, 'Sedang', 75, [T('Perbarui parameter pemantauan', 'Regie', -10, 'Proses')], 'Tidak', null, null, -200, ['Compliance', 'Finance, Accounting, Tax & Treasury']],
     ['Permen', '8/2025', '2025', 'Komdigi', 'Penyelenggaraan sistem elektronik', 'Ketahanan Siber', 'Baru', 'Berlaku', -210, -180, -200, null, 'Rendah', 100, [], 'Tidak', null, null, -190, ['IT']],
-    ['PBI', '9/2025', '2025', 'BI', 'Perlindungan konsumen sistem pembayaran', 'Pelindungan Konsumen', 'Baru', 'Berlaku', -190, -150, -180, null, 'Sedang', 90, [T('Standar penanganan keluhan', 'Lina Marlina', -3, 'Proses')], 'Tidak', null, null, -160, ['Support (HRD & GA)', 'Operation']],
+    ['PBI', '9/2025', '2025', 'BI', 'Perlindungan konsumen sistem pembayaran', 'Pelindungan Konsumen', 'Baru', 'Berlaku', -190, -150, -180, null, 'Sedang', 90, [T('Standar penanganan keluhan', 'Osama', -3, 'Proses')], 'Tidak', null, null, -160, ['Support (HRD & GA)', 'Operation']],
     ['PADG', '21/2025', '2025', 'BI', 'Interkoneksi SNAP', 'SNAP', 'Baru', 'Berlaku', -170, -140, -160, null, 'Sedang', 100, [], 'Tidak', null, null, -150, ['IT', 'Business']],
     ['Surat Imbauan', '12/2025', '2025', 'BI', 'Imbauan peningkatan mitigasi fraud QRIS', 'QRIS', 'Imbauan', 'Berlaku', -150, null, -140, null, 'Rendah', 100, [], 'Ya', -100, -105, -130, ['Operation']],
-    ['PBI', '5/2026', '2026', 'BI', 'Pencabutan ketentuan uang elektronik lama', 'Lainnya', 'Pencabutan', 'Dicabut', -140, -100, -130, 1, 'Sedang', 60, [T('Sesuaikan SOP terkait', 'Arief Nugraha', -20, 'Proses')], 'Tidak', null, null, -120, ['Operation', 'Finance, Accounting, Tax & Treasury'], [false]],
-    ['UU', '1/2026', '2026', 'Pemerintah-DPR', 'Perubahan UU pelindungan konsumen', 'Pelindungan Konsumen', 'Perubahan', 'Berlaku', -120, -80, -110, 3, 'Tinggi', 70, [T('Gap analysis kebijakan', 'Rina Kartika', -2, 'Proses')], 'Tidak', null, null, -90, ['Compliance', 'Support (HRD & GA)', 'Business'], [true, false]],
-    ['Peraturan BSSN', '1/2026', '2026', 'BSSN', 'Pelaporan insiden siber', 'Ketahanan Siber', 'Perubahan', 'Berlaku', -100, -60, -95, 4, 'Sedang', 55, [T('Prosedur pelaporan insiden', 'Bima Pratama', 10, 'Proses')], 'Tidak', null, null, -70, ['IT', 'Compliance']],
-    ['Surat Edaran', '7/2026', '2026', 'PPATK', 'Penerapan prinsip mengenali pengguna jasa', 'APU PPT', 'Perubahan', 'Berlaku', -85, -40, -80, 5, 'Sedang', 95, [T('Perbarui formulir KYC', 'Rina Kartika', 5, 'Proses')], 'Tidak', null, null, -50, ['Compliance', 'Business']],
+    ['PBI', '5/2026', '2026', 'BI', 'Pencabutan ketentuan uang elektronik lama', 'Lainnya', 'Pencabutan', 'Dicabut', -140, -100, -130, 1, 'Sedang', 60, [T('Sesuaikan SOP terkait', 'Fakhri', -20, 'Proses')], 'Tidak', null, null, -120, ['Operation', 'Finance, Accounting, Tax & Treasury'], [false]],
+    ['UU', '1/2026', '2026', 'Pemerintah-DPR', 'Perubahan UU pelindungan konsumen', 'Pelindungan Konsumen', 'Perubahan', 'Berlaku', -120, -80, -110, 3, 'Tinggi', 70, [T('Gap analysis kebijakan', 'Regie', -2, 'Proses')], 'Tidak', null, null, -90, ['Compliance', 'Support (HRD & GA)', 'Business'], [true, false]],
+    ['Peraturan BSSN', '1/2026', '2026', 'BSSN', 'Pelaporan insiden siber', 'Ketahanan Siber', 'Perubahan', 'Berlaku', -100, -60, -95, 4, 'Sedang', 55, [T('Prosedur pelaporan insiden', 'Regie', 10, 'Proses')], 'Tidak', null, null, -70, ['IT', 'Compliance']],
+    ['Surat Edaran', '7/2026', '2026', 'PPATK', 'Penerapan prinsip mengenali pengguna jasa', 'APU PPT', 'Perubahan', 'Berlaku', -85, -40, -80, 5, 'Sedang', 95, [T('Perbarui formulir KYC', 'Regie', 5, 'Proses')], 'Tidak', null, null, -50, ['Compliance', 'Business']],
     ['PADG', '3/2026', '2026', 'BI', 'Biaya merchant discount rate QRIS', 'QRIS', 'Perubahan', 'Berlaku', -70, -30, -65, 2, 'Rendah', 100, [], 'Tidak', null, null, -40, ['Finance, Accounting, Tax & Treasury', 'Business']],
     ['Permen', '2/2026', '2026', 'Komdigi', 'Tata kelola data pribadi', 'Pelindungan Konsumen', 'Baru', 'Berlaku', -60, -20, -55, null, 'Sedang', 100, [], 'Tidak', null, null, -30, ['IT']],
     ['Surat Imbauan', '4/2026', '2026', 'BI', 'Imbauan pelaporan data merchant', 'QRIS', 'Imbauan', 'Berlaku', -50, null, -45, null, 'Rendah', '', [], 'Ya', 2, null, null, ['Business']],
     ['Surat Imbauan', '6/2026', '2026', 'PPATK', 'Imbauan peningkatan kualitas LTKM', 'APU PPT', 'Imbauan', 'Berlaku', -40, null, -35, null, 'Rendah', '', [], 'Ya', 6, null, null, ['Compliance']],
     ['Surat Imbauan', '8/2026', '2026', 'BSSN', 'Imbauan kerentanan perangkat lunak', 'Ketahanan Siber', 'Imbauan', 'Berlaku', -30, null, -25, null, 'Rendah', '', [], 'Ya', -3, null, null, ['IT']],
-    ['PBI', '10/2026', '2026', 'BI', 'Penguatan tata kelola sistem pembayaran', 'SNAP', 'Baru', 'Berlaku', -12, 5, -10, null, 'Tinggi', 45, [T('Pemetaan kontrol tata kelola', 'Arief Nugraha', 3, 'Proses')], 'Tidak', null, null, null, ['Operation', 'IT']],
-    ['PADG', '12/2026', '2026', 'BI', 'Pembatasan transaksi lintas negara', 'SNAP', 'Baru', 'Berlaku', -15, 25, -12, null, 'Sedang', 30, [T('Penyesuaian aturan routing', 'Bima Pratama', 15, 'Open')], 'Tidak', null, null, null, ['IT', 'Finance, Accounting, Tax & Treasury']],
-    ['Surat Edaran', '9/2026', '2026', 'PPATK', 'Pelaporan transaksi tunai lintas batas', 'APU PPT', 'Baru', 'Berlaku', -8, 55, -7, null, 'Sedang', 50, [T('Modul pelaporan LTKT', 'Rina Kartika', 40, 'Open')], 'Tidak', null, null, null, ['Compliance', 'Finance, Accounting, Tax & Treasury']],
-    ['UU', '5/2026', '2026', 'Pemerintah-DPR', 'Pengamanan transaksi elektronik', 'Ketahanan Siber', 'Baru', 'Berlaku', -6, 85, -5, null, 'Sedang', 20, [T('Asesmen kesiapan', 'Bima Pratama', 70, 'Open')], 'Tidak', null, null, null, ['IT', 'Operation']],
+    ['PBI', '10/2026', '2026', 'BI', 'Penguatan tata kelola sistem pembayaran', 'SNAP', 'Baru', 'Berlaku', -12, 5, -10, null, 'Tinggi', 45, [T('Pemetaan kontrol tata kelola', 'Fakhri', 3, 'Proses')], 'Tidak', null, null, null, ['Operation', 'IT']],
+    ['PADG', '12/2026', '2026', 'BI', 'Pembatasan transaksi lintas negara', 'SNAP', 'Baru', 'Berlaku', -15, 25, -12, null, 'Sedang', 30, [T('Penyesuaian aturan routing', 'Regie', 15, 'Open')], 'Tidak', null, null, null, ['IT', 'Finance, Accounting, Tax & Treasury']],
+    ['Surat Edaran', '9/2026', '2026', 'PPATK', 'Pelaporan transaksi tunai lintas batas', 'APU PPT', 'Baru', 'Berlaku', -8, 55, -7, null, 'Sedang', 50, [T('Modul pelaporan LTKT', 'Regie', 40, 'Open')], 'Tidak', null, null, null, ['Compliance', 'Finance, Accounting, Tax & Treasury']],
+    ['UU', '5/2026', '2026', 'Pemerintah-DPR', 'Pengamanan transaksi elektronik', 'Ketahanan Siber', 'Baru', 'Berlaku', -6, 85, -5, null, 'Sedang', 20, [T('Asesmen kesiapan', 'Regie', 70, 'Open')], 'Tidak', null, null, null, ['IT', 'Operation']],
     ['Permen', '9/2026', '2026', 'Komdigi', 'Ketentuan layanan finansial digital', 'Lainnya', 'Baru', 'Berlaku', -45, -35, -30, null, '', '', [], 'Tidak', null, null, null, ['Support (HRD & GA)']],
     ['Surat Edaran', '10/2026', '2026', 'Lainnya', 'Pedoman pelaporan keluhan konsumen', 'Pelindungan Konsumen', 'Baru', 'Berlaku', -22, 20, -15, null, '', '', [], 'Tidak', null, null, null, ['Support (HRD & GA)']],
-    ['PBI', '11/2026', '2026', 'BI', 'Pencabutan standar pembayaran lama', 'Lainnya', 'Pencabutan', 'Dicabut', -35, -12, -25, 9, 'Rendah', 80, [T('Hapus rujukan standar lama', 'Lina Marlina', 7, 'Proses')], 'Tidak', null, null, -18, ['Operation', 'IT'], [false, false]],
+    ['PBI', '11/2026', '2026', 'BI', 'Pencabutan standar pembayaran lama', 'Lainnya', 'Pencabutan', 'Dicabut', -35, -12, -25, 9, 'Rendah', 80, [T('Hapus rujukan standar lama', 'Osama', 7, 'Proses')], 'Tidak', null, null, -18, ['Operation', 'IT'], [false, false]],
     ['PADG', '15/2026', '2026', 'BI', 'Pembaruan interkoneksi QRIS', 'QRIS', 'Perubahan', 'Berlaku', -4, 14, -3, 8, '', '', [], 'Tidak', null, null, null, ['IT']],
     ['PBI', '12/2026', '2026', 'BI', 'Penguatan pengawasan penyelenggara jasa pembayaran', 'SNAP', 'Baru', 'Berlaku', -55, -20, -50, null, 'Rendah', 100, [], 'Tidak', null, null, -30, ['Operation']],
-    ['Surat Edaran', '11/2026', '2026', 'PPATK', 'Pembaruan daftar pantauan transaksi', 'APU PPT', 'Perubahan', 'Berlaku', -20, 10, -18, 13, 'Sedang', 60, [T('Perbarui daftar pantauan', 'Rina Kartika', 6, 'Proses')], 'Tidak', null, null, -10, ['Compliance']],
+    ['Surat Edaran', '11/2026', '2026', 'PPATK', 'Pembaruan daftar pantauan transaksi', 'APU PPT', 'Perubahan', 'Berlaku', -20, 10, -18, 13, 'Sedang', 60, [T('Perbarui daftar pantauan', 'Regie', 6, 'Proses')], 'Tidak', null, null, -10, ['Compliance']],
     ['Surat Imbauan', '9/2026', '2026', 'Komdigi', 'Imbauan keamanan aplikasi pembayaran', 'Ketahanan Siber', 'Imbauan', 'Berlaku', -18, null, -14, null, 'Rendah', 100, [], 'Ya', 9, null, -8, ['IT']],
-    ['Permen', '10/2026', '2026', 'Komdigi', 'Standar layanan pelindungan pengguna', 'Pelindungan Konsumen', 'Baru', 'Berlaku', -10, 40, -6, null, 'Sedang', 35, [T('Gap analysis standar layanan', 'Bima Pratama', 25, 'Open')], 'Tidak', null, null, -3, ['Support (HRD & GA)', 'Business']],
+    ['Permen', '10/2026', '2026', 'Komdigi', 'Standar layanan pelindungan pengguna', 'Pelindungan Konsumen', 'Baru', 'Berlaku', -10, 40, -6, null, 'Sedang', 35, [T('Gap analysis standar layanan', 'Regie', 25, 'Open')], 'Tidak', null, null, -3, ['Support (HRD & GA)', 'Business']],
   ]
   const ids = (n: number) => `regchange-${n}`
   return rows.map((x, i) => {
@@ -266,23 +267,25 @@ const cfg: PageConfig<Reg> = {
   }],
   Dashboard: ({ rows, c, drill, open }) => {
     const n = (k: string) => rows.filter((r) => kep(r) === k).length
-    const mons = Array.from({ length: 12 }, (_, i) => { const d = new Date(c.today + 'T00:00:00'); d.setDate(1); d.setMonth(d.getMonth() - (11 - i)); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}` })
+    const rg = useMonthRange('12') // filter bulan kartu Tren, independen dari filter halaman
+    const mons = rg.months(rows.map((r) => r.tglDicatat.slice(0, 7)))
     const rated = rows.filter((r) => r.pemenuhan !== '')
     const edges = [10, 20]
     const un = rows.filter(unrated)
     const age = (r: Reg) => diffDays(c.today, r.tglDicatat)
     const lateByDept = c.master.unitKerja.map((d) => ({ name: d, Terlambat: rows.filter((r) => r.dept.includes(d)).reduce((a, r) => a + lateTindak(r, c.today).length, 0) }))
     const soon = rows.filter((r) => r.tglBerlaku && r.tglBerlaku >= c.today && diffDays(r.tglBerlaku, c.today) <= 90).map((r) => ({ r, tgl: r.tglBerlaku, jenis: 'Berlaku', d: diffDays(r.tglBerlaku, c.today) }))
-    const reply = rows.filter(needReply).map((r) => ({ r, tgl: r.jawabBatas, jenis: 'Jawab imbauan', d: diffDays(r.jawabBatas, c.today) }))
+    const reply = rows.filter(needReply).map((r) => ({ r, tgl: r.jawabBatas, jenis: 'Imbauan', d: diffDays(r.jawabBatas, c.today) }))
     const agenda = [...soon, ...reply].sort((a, b) => a.tgl.localeCompare(b.tgl))
     const warn = (x: { d: number; jenis: string }) => (x.d <= (x.jenis === 'Berlaku' ? 7 : 1) ? 'red' : 'yellow') as 'red' | 'yellow'
     return (
       <div className="space-y-3">
         <div className="grid gap-3 lg:grid-cols-2">
-          <BarCard title="Peraturan per regulator dan jenis perubahan" stacked data={c.master.regulator.map((g) => ({ name: g, ...Object.fromEntries(JP.map((j) => [j, rows.filter((r) => r.regulator === g && r.jp === j).length])) }))} keys={JP} colors={['#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6']} onClick={(row) => drill({ regulator: row.name })} />
-          <LineCard title="Tren peraturan baru dan perubahan per bulan" data={mons.map((m) => ({ name: m, Baru: rows.filter((r) => r.tglDicatat.startsWith(m) && r.jp === 'Baru').length, Perubahan: rows.filter((r) => r.tglDicatat.startsWith(m) && r.jp === 'Perubahan').length }))} keys={['Baru', 'Perubahan']} colors={['#3b82f6', '#f59e0b']} />
+          <BarCard title="Peraturan per regulator dan jenis perubahan" stacked data={REGULATOR.map((g) => ({ name: g, ...Object.fromEntries(JP.map((j) => [j, rows.filter((r) => regB(r) === g && r.jp === j).length])) }))} keys={JP} colors={['#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6']} onClick={(row) => drill({ regulator: row.name })} />
+          <LineCard title="Tren peraturan baru dan perubahan per bulan" toolbar={rg.toolbar} data={mons.map((m) => ({ name: m, Baru: rows.filter((r) => r.tglDicatat.startsWith(m) && r.jp === 'Baru').length, Perubahan: rows.filter((r) => r.tglDicatat.startsWith(m) && r.jp === 'Perubahan').length }))} keys={['Baru', 'Perubahan']} colors={['#3b82f6', '#f59e0b']} />
           <DonutCard title="Status kepatuhan" data={KEP.map((k) => ({ name: k, value: n(k), color: KEP_COLOR[k] }))} onClick={(name) => drill({ kepatuhan: name })} />
-          <BarCard title="Rata-rata pemenuhan per kategori (%)" data={c.master.kategoriRegulasi.map((k) => { const x = rated.filter((r) => r.kategori === k); return { name: k, Pemenuhan: x.length ? Math.round(x.reduce((a, r) => a + Number(r.pemenuhan), 0) / x.length) : 0 } })} keys={['Pemenuhan']} />
+          <BarCard title="Rata-rata pemenuhan per kategori (%)" data={c.master.kategoriRegulasi.map((k) => { const x = rated.filter((r) => r.kategori === k); const sum = x.reduce((a, r) => a + Number(r.pemenuhan), 0); return { name: k, Pemenuhan: x.length ? Math.round(sum / x.length) : 0, sum, n: x.length } })} keys={['Pemenuhan']}
+            tip={(d) => <><div className="mb-1 font-semibold text-slate-800">{String(d.name)}</div><div>Rata-rata pemenuhan %: {d.Pemenuhan}</div><div>Rincian: {d.sum}/{d.n} (total % per peraturan / jumlah peraturan dinilai)</div></>} />
           <div className="space-y-3">
             <BarCard title="Belum dinilai menurut lama sejak dicatat (hari)" data={ageBuckets(edges).map((b) => ({ name: b, Jumlah: un.filter((r) => ageBucket(age(r), edges) === b).length }))} keys={['Jumlah']} colors={['#f59e0b']} />
             <MiniTable title="Peraturan belum dinilai" rows={un} onRow={(r) => open(r.id)} empty="Semua sudah dinilai"
@@ -292,7 +295,7 @@ const cfg: PageConfig<Reg> = {
         </div>
         <MiniTable title="Berlaku dalam 90 hari dan imbauan perlu dijawab" rows={agenda} onRow={(x) => open(x.r.id)} empty="Tidak ada agenda"
           cols={[
-            { label: 'Tanggal', get: (x) => fmtDate(x.tgl) }, { label: 'Jenis', get: (x) => x.jenis }, { label: 'Peraturan', get: (x) => label(x.r) }, { label: 'Tentang', get: (x) => x.r.tentang },
+            { label: 'No', get: () => '' }, { label: 'Tanggal', get: (x) => fmtDate(x.tgl) }, { label: 'Jenis', get: (x) => x.jenis }, { label: 'Peraturan', get: (x) => label(x.r) }, { label: 'Tentang', get: (x) => x.r.tentang },
             { label: 'Sisa waktu', get: (x) => <StatusPill s={x.d < 0 ? `Lewat ${-x.d} hari` : `${x.d} hari lagi`} tone={warn(x)} /> },
           ]} />
       </div>

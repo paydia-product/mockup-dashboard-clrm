@@ -1,8 +1,6 @@
-import { useState } from 'react'
-import { withLainnya } from '../kit/Lainnya'
 import { addDays, diffDays, fmtDate, fmtTime } from '../lib'
 import PageShell from '../kit/PageShell'
-import { BarCard, CalendarCard, LineCard, MiniTable } from '../kit/charts'
+import { BarCard, CalendarCard, LineCard, MiniTable, useMonthRange } from '../kit/charts'
 import { monthKey } from '../kit/dates'
 import { StatusPill, statusTone } from '../kit/fmt'
 import type { AlertDef, BaseRec, Column, Ctx, Field, FilterDef, PageConfig } from '../kit/types'
@@ -17,13 +15,13 @@ interface Laporan extends BaseRec {
 }
 const REG = ['BI', 'PPATK', 'Komdigi', 'BSSN']
 const JENIS = ['Harian', 'Mingguan', 'Bulanan', 'Triwulanan', 'Tahunan', '3 Tahun Sekali', 'Insidental']
-const STATUS = ['Belum Disiapkan', 'Disusun', 'Review', 'Terkirim'] // Terlambat otomatis (normalize), tidak bisa dipilih manual
+const STATUS = ['Belum Disiapkan', 'Disusun', 'Review', 'Terkirim', 'Terlambat'] // Terlambat otomatis (normalize) dan boleh dipilih manual hanya bila Batas Waktu sudah lewat (validate)
 const SENT = (r: Laporan) => r.status === 'Terkirim'
 const dOf = (s: string) => s.slice(0, 10)
 const isSiber = (r: Laporan) => r.jenis === 'Insidental' && r.siber === 'Ya'
 const hasBukti = (r: Laporan) => !!r.bukti || !!r.noTerima.trim()
 // Selisih hari submit terhadap batas (positif = terlambat)
-const lateBy = (r: Laporan) => (r.tglSubmit && r.batas && r.tglSubmit > r.batas ? Math.max(1, diffDays(dOf(r.tglSubmit), dOf(r.batas))) : 0)
+const lateBy = (r: Laporan) => (r.tglSubmit && r.batas && dOf(r.tglSubmit) > dOf(r.batas) ? diffDays(dOf(r.tglSubmit), dOf(r.batas)) : 0) // Batas Waktu = tanggal saja: submit di hari yang sama tepat waktu
 const tepat = (r: Laporan) => (!r.tglSubmit || !r.batas ? '-' : lateBy(r) ? `Terlambat (+${lateBy(r)} hari)` : 'Tepat Waktu')
 const wasLate = (r: Laporan) => r.status === 'Terlambat' || lateBy(r) > 0
 const pad = (n: number) => String(n).padStart(2, '0')
@@ -34,19 +32,19 @@ const dur = (ms: number) => { const m = Math.round(Math.abs(ms) / 60000); return
 // Spec: PIC dan CO hanya mengubah status, tanggal submit, bukti, dan alasan terlambat; Super Admin semua kolom.
 const full = (c: Ctx) => c.role === 'Super Admin'
 const fields: Field<Laporan>[] = [
-  { key: 'nama', label: 'Nama Laporan', type: 'select', options: (c) => withLainnya(c.master.laporan), required: true, editableBy: full },
-  { key: 'regulator', label: 'Regulator', type: 'select', options: (c) => withLainnya(c.master.regulator), required: true, editableBy: full },
+  { key: 'nama', label: 'Nama Laporan', type: 'text', required: true, editableBy: full },
+  { key: 'regulator', label: 'Regulator', type: 'select', options: REG, required: true, editableBy: full },
   { key: 'jenis', label: 'Jenis Periode', type: 'select', options: JENIS, required: true, editableBy: full },
+  { key: 'waktuKejadian', label: 'Waktu Kejadian', type: 'datetime', required: isSiber, help: 'Opsional; wajib untuk laporan insiden siber (jam berjalan dihitung dari waktu kejadian).', editableBy: full },
   { key: 'siber', label: 'Laporan Insiden Siber?', type: 'yesno', showIf: (r) => r.jenis === 'Insidental', help: 'Jam berjalan insiden siber dihitung dari waktu kejadian.', editableBy: full },
-  { key: 'waktuKejadian', label: 'Waktu Kejadian', type: 'datetime', required: (r) => r.jenis === 'Insidental', showIf: (r) => r.jenis === 'Insidental', editableBy: full },
   { key: 'waktuNotif', label: 'Waktu Notifikasi Awal', type: 'datetime', showIf: isSiber, help: 'Paling lambat 1 jam sejak kejadian.', editableBy: full },
   { key: 'periode', label: 'Periode yang Dilaporkan', type: 'text', required: true, help: 'Diisi manual, mis. "Oktober 2026" atau "Q3 2026".', editableBy: full },
-  { key: 'batas', label: 'Batas Waktu (Due Date)', type: 'datetime', required: true, help: 'Untuk laporan insidental diisi manual (paling lambat 3 hari kalender untuk insiden siber).', editableBy: full },
+  { key: 'batas', label: 'Batas Waktu (Due Date)', type: 'date', required: true, editableBy: full },
   { key: 'tglSubmit', label: 'Tanggal Submit', type: 'datetime', required: (r) => SENT(r) },
-  { key: 'status', label: 'Status', type: 'select', options: STATUS, required: true, help: 'Terlambat terisi otomatis bila batas waktu terlewat dan belum Terkirim.' },
+  { key: 'status', label: 'Status', type: 'select', options: STATUS, required: true, help: 'Terlambat terisi otomatis bila Batas Waktu lewat dan belum Terkirim; dapat dipilih manual hanya jika Batas Waktu sudah lewat.' },
   { key: 'tepat', label: 'Tepat Waktu?', type: 'text', auto: (r) => tepat(r) },
-  { key: 'picPenyusun', label: 'PIC Penyusun', type: 'text', required: true, editableBy: full },
-  { key: 'picReviewer', label: 'PIC Reviewer', type: 'text', required: true, editableBy: full },
+  { key: 'picPenyusun', label: 'PIC Penyusun', type: 'select', options: (c) => c.master.pic, required: true, editableBy: full },
+  { key: 'picReviewer', label: 'PIC Reviewer', type: 'select', options: (c) => c.master.pic, required: true, editableBy: full },
   { key: 'bukti', label: 'Bukti Submit (file)', type: 'file', help: 'Wajib file atau Nomor Tanda Terima bila status Terkirim.' },
   { key: 'noTerima', label: 'Nomor Tanda Terima', type: 'text' },
   { key: 'dasar', label: 'Dasar Ketentuan', type: 'text', editableBy: full },
@@ -58,7 +56,7 @@ const columns: Column<Laporan>[] = [
   { label: 'Regulator', get: (r) => r.regulator },
   { label: 'Jenis Periode', get: (r) => r.jenis },
   { label: 'Periode', get: (r) => r.periode },
-  { label: 'Batas Waktu', get: (r) => r.batas, render: (r) => fmtTime(r.batas) },
+  { label: 'Batas Waktu', get: (r) => r.batas, render: (r) => fmtDate(dOf(r.batas)) },
   { label: 'Status', get: (r) => r.status, render: (r) => <StatusPill s={r.status} /> },
   { label: 'Tepat Waktu?', get: (r) => tepat(r), render: (r) => { const t = tepat(r); return t === '-' ? <span className="text-slate-300">-</span> : <StatusPill s={t} /> } },
   { label: 'Penyusun', get: (r) => r.picPenyusun },
@@ -67,15 +65,15 @@ const picOpts = (rows: Laporan[]) => [...new Set(rows.flatMap((r) => [r.picPenyu
 const filters: FilterDef<Laporan>[] = [
   { key: 'periode', label: 'Periode (Batas Waktu)', type: 'daterange', match: (r, v) => { const [a, b] = v as [string, string]; return (!a || dOf(r.batas) >= a) && (!b || dOf(r.batas) <= b) } },
   { key: 'jenis', label: 'Jenis Periode', type: 'select', options: JENIS, match: (r, v) => r.jenis === v },
-  { key: 'status', label: 'Status', type: 'select', options: [...STATUS, 'Terlambat', 'Dibatalkan'], match: (r, v) => r.status === v },
-  { key: 'regulator', label: 'Regulator', type: 'select', options: (_, c) => c.master.regulator, match: (r, v) => r.regulator === v },
+  { key: 'status', label: 'Status', type: 'select', options: [...STATUS, 'Dibatalkan'], match: (r, v) => r.status === v },
+  { key: 'regulator', label: 'Regulator', type: 'select', options: REG, match: (r, v) => r.regulator === v },
   { key: 'pic', label: 'PIC', type: 'select', options: (rows) => picOpts(rows), match: (r, v) => r.picPenyusun === v || r.picReviewer === v },
 ]
 
 const toPic = (r: Laporan) => (r.picPenyusun ? `PIC (${r.picPenyusun})` : 'PIC')
 const mk = (c: Ctx, o: Partial<Laporan>): Laporan => ({
   id: 'sample', no: 99, status: 'Disusun', createdAt: c.today, createdBy: '-', nama: 'Laporan RBSP', regulator: 'BI', jenis: 'Triwulanan', periode: 'Q3 2026',
-  batas: `${addDays(c.today, 3)}T17:00`, siber: '', waktuKejadian: '', waktuNotif: '', tglSubmit: '', picPenyusun: 'Rina Kartika', picReviewer: 'Arief Nugraha',
+  batas: `${addDays(c.today, 3)}`, siber: '', waktuKejadian: '', waktuNotif: '', tglSubmit: '', picPenyusun: 'Regie', picReviewer: 'Fakhri',
   bukti: null, noTerima: '', dasar: 'PBI 23/6/PBI/2021', alasan: '', ...o,
 })
 const alerts: AlertDef<Laporan>[] = [
@@ -84,14 +82,14 @@ const alerts: AlertDef<Laporan>[] = [
     check: (r, c) => {
       if (SENT(r) || r.status === 'Terlambat' || !r.batas) return null
       const d = diffDays(dOf(r.batas), c.today)
-      return d >= 0 && d <= 7 ? { color: 'yellow', detail: `H-${d} batas waktu (${fmtTime(r.batas)})`, to: [toPic(r), 'Compliance Officer'] } : null
+      return d >= 0 && d <= 7 ? { color: 'yellow', detail: `H-${d} batas waktu (${fmtDate(dOf(r.batas))})`, to: [toPic(r), 'Compliance Officer'] } : null
     },
-    sample: (c) => mk(c, { batas: `${addDays(c.today, 3)}T17:00` }),
+    sample: (c) => mk(c, { batas: `${addDays(c.today, 3)}` }),
   },
   {
     key: 'late', label: 'Laporan terlambat', rule: 'Batas waktu terlewat dan laporan belum Terkirim.',
-    check: (r) => (r.status === 'Terlambat' ? { color: 'red', detail: `Terlambat sejak ${fmtTime(r.batas)}`, to: [toPic(r), 'Head CLRM'] } : null),
-    sample: (c) => mk(c, { status: 'Terlambat', batas: `${addDays(c.today, -3)}T17:00`, alasan: 'Menunggu data dari tim terkait.' }),
+    check: (r) => (r.status === 'Terlambat' ? { color: 'red', detail: `Terlambat sejak ${fmtDate(dOf(r.batas))}`, to: [toPic(r), 'Head CLRM'] } : null),
+    sample: (c) => mk(c, { status: 'Terlambat', batas: `${addDays(c.today, -3)}`, alasan: 'Menunggu data dari tim terkait.' }),
   },
   {
     key: 'siber', label: 'Insiden siber (jam berjalan)', rule: 'Laporan insiden siber belum Terkirim: notifikasi awal paling lambat 1 jam dan laporan lengkap paling lambat 3 hari kalender sejak waktu kejadian.',
@@ -103,7 +101,7 @@ const alerts: AlertDef<Laporan>[] = [
       const full = now > fullDue ? `laporan lengkap TERLEWAT ${dur(now - fullDue)}` : `laporan lengkap sisa ${dur(fullDue - now)}`
       return { color: 'red', detail: `Kejadian ${fmtTime(r.waktuKejadian)}: ${notif}; ${full}`, to: ['Head CLRM', 'CISO'] }
     },
-    sample: (c) => mk(c, { nama: 'Laporan Insiden Siber', regulator: 'BSSN', jenis: 'Insidental', siber: 'Ya', periode: 'Insiden siber', waktuKejadian: agoLocal(40), batas: `${addDays(c.today, 3)}T12:00` }),
+    sample: (c) => mk(c, { nama: 'Laporan Insiden Siber', regulator: 'BSSN', jenis: 'Insidental', siber: 'Ya', periode: 'Insiden siber', waktuKejadian: agoLocal(40), batas: `${addDays(c.today, 3)}` }),
   },
   {
     key: 'nobukti', label: 'Terkirim tanpa bukti', rule: 'Status Terkirim tetapi file bukti dan nomor tanda terima kosong.',
@@ -120,8 +118,8 @@ const CAT: Item[] = [
   ['Laporan PSE Terdaftar', 'Komdigi', 'Triwulanan', 'Permenkominfo 5/2020'], ['Penilaian Kembali Sertifikasi Keamanan', 'Komdigi', '3 Tahun Sekali', 'PP 71/2019'],
   ['Laporan Keamanan Informasi', 'BSSN', 'Tahunan', 'Perpres 82/2022'], ['Laporan Insiden Siber', 'BSSN', 'Insidental', 'Perban BSSN 8/2020'],
 ]
-const PEN = ['Rina Kartika', 'Arief Nugraha', 'Bima Pratama', 'Dewi Anggraini']
-const REV = ['Arief Nugraha', 'Rina Kartika', 'Dewi Anggraini', 'Bima Pratama']
+const PEN = ['Regie', 'Fakhri', 'Osama'] // master PIC; reviewer selalu orang lain (REV bergeser satu)
+const REV = ['Fakhri', 'Osama', 'Regie']
 const PERIODE: Record<string, (i: number) => string> = {
   Harian: (i) => `Hari ke-${i + 1}`, Mingguan: (i) => `Minggu ke-${i + 1}`, Bulanan: (i) => `Bulan ke-${i + 1}`, Triwulanan: (i) => `Triwulan ${(i % 4) + 1}`,
   Tahunan: () => 'Tahun 2025', '3 Tahun Sekali': () => '2024-2026', Insidental: (i) => `Kejadian #${i + 1}`,
@@ -132,11 +130,11 @@ function seed(today: string): Laporan[] {
   const push = (it: Item, o: Partial<Laporan>) => {
     const i = out.length
     const [nama, regulator, jenis, dasar] = it
-    const batas = o.batas ?? `${today}T17:00`
+    const batas = o.batas ?? `${today}`
     const dibuat = addDays(dOf(batas), -14) // dibuat 2 minggu sebelum batas (maks hari ini); jam diberi store.stamp
     out.push({
-      id: `reporting-${i + 1}`, no: i + 1, status: 'Terkirim', createdAt: dibuat >= today ? addDays(today, -1) : dibuat, createdBy: 'Rina Kartika', nama, regulator, jenis, periode: PERIODE[jenis](i), batas: `${today}T17:00`,
-      siber: '', waktuKejadian: '', waktuNotif: '', tglSubmit: '', picPenyusun: PEN[i % 4], picReviewer: REV[i % 4], bukti: null, noTerima: '', dasar, alasan: '', ...o,
+      id: `reporting-${i + 1}`, no: i + 1, status: 'Terkirim', createdAt: dibuat >= today ? addDays(today, -1) : dibuat, createdBy: 'Rina Kartika', nama, regulator, jenis, periode: PERIODE[jenis](i), batas: `${today}`,
+      siber: '', waktuKejadian: '', waktuNotif: '', tglSubmit: '', picPenyusun: PEN[i % 3], picReviewer: REV[i % 3], bukti: null, noTerima: '', dasar, alasan: '', ...o,
     })
   }
   // 12 bulan ke belakang: Terkirim, tiap 5 laporan satu terlambat (alasan terisi)
@@ -144,50 +142,31 @@ function seed(today: string): Laporan[] {
     const batasD = addDays(today, -(12 + i * 10))
     const late = i % 5 === 3
     const sub = late ? `${addDays(batasD, 1 + (i % 3))}T10:30` : `${addDays(batasD, -1)}T14:00`
-    push(CAT[i % CAT.length], { batas: `${batasD}T17:00`, tglSubmit: sub, noTerima: `TT-${String(2026000 + i)}`, alasan: late ? 'Data pendukung terlambat diterima dari unit terkait.' : '' })
+    push(CAT[i % CAT.length], { batas: `${batasD}`, tglSubmit: sub, noTerima: `TT-${String(2026000 + i)}`, alasan: late ? 'Data pendukung terlambat diterima dari unit terkait.' : '' })
   }
   // H-7, H-3, H-1
-  push(CAT[1], { status: 'Review', batas: `${addDays(today, 7)}T17:00`, periode: 'Triwulan 3' })
-  push(CAT[2], { status: 'Disusun', batas: `${addDays(today, 3)}T17:00`, periode: 'Bulan berjalan' })
-  push(CAT[6], { status: 'Belum Disiapkan', batas: `${addDays(today, 1)}T12:00`, periode: 'Minggu berjalan' })
+  push(CAT[1], { status: 'Review', batas: `${addDays(today, 7)}`, periode: 'Triwulan 3' })
+  push(CAT[2], { status: 'Disusun', batas: `${addDays(today, 3)}`, periode: 'Bulan berjalan' })
+  push(CAT[6], { status: 'Belum Disiapkan', batas: `${addDays(today, 1)}`, periode: 'Minggu berjalan' })
   // jatuh tempo jauh
-  push(CAT[7], { status: 'Belum Disiapkan', batas: `${addDays(today, 25)}T17:00`, periode: 'Tahun 2026' })
-  push(CAT[8], { status: 'Belum Disiapkan', batas: `${addDays(today, 40)}T17:00`, periode: 'Triwulan 4' })
+  push(CAT[7], { status: 'Belum Disiapkan', batas: `${addDays(today, 25)}`, periode: 'Tahun 2026' })
+  push(CAT[8], { status: 'Belum Disiapkan', batas: `${addDays(today, 40)}`, periode: 'Triwulan 4' })
   // terlambat (status dihitung normalize)
-  push(CAT[0], { status: 'Disusun', batas: `${addDays(today, -3)}T17:00`, periode: 'Bulan lalu', alasan: 'Menunggu rekonsiliasi saldo dari Finance.' })
-  push(CAT[10], { status: 'Review', batas: `${addDays(today, -6)}T17:00`, periode: 'Tahun 2026', alasan: 'Review internal belum selesai.' })
+  push(CAT[0], { status: 'Disusun', batas: `${addDays(today, -3)}`, periode: 'Bulan lalu', alasan: 'Menunggu rekonsiliasi saldo dari Finance.' })
+  push(CAT[10], { status: 'Review', batas: `${addDays(today, -6)}`, periode: 'Tahun 2026', alasan: 'Review internal belum selesai.' })
   // terkirim tanpa bukti
-  push(CAT[3], { batas: `${addDays(today, -2)}T17:00`, tglSubmit: `${addDays(today, -3)}T15:00`, periode: 'Bulan lalu' })
+  push(CAT[3], { batas: `${addDays(today, -2)}`, tglSubmit: `${addDays(today, -3)}T15:00`, periode: 'Bulan lalu' })
   // insiden siber dengan jam berjalan
-  push(CAT[11], { status: 'Disusun', jenis: 'Insidental', siber: 'Ya', waktuKejadian: agoLocal(30 * 60), waktuNotif: agoLocal(29 * 60), batas: `${addDays(today, 2)}T12:00`, periode: 'Insiden akses tidak sah' })
-  push(CAT[11], { status: 'Belum Disiapkan', jenis: 'Insidental', siber: 'Ya', waktuKejadian: agoLocal(50), batas: `${addDays(today, 3)}T12:00`, periode: 'Insiden DDoS' })
+  push(CAT[11], { status: 'Disusun', jenis: 'Insidental', siber: 'Ya', waktuKejadian: agoLocal(30 * 60), waktuNotif: agoLocal(29 * 60), batas: `${addDays(today, 2)}`, periode: 'Insiden akses tidak sah' })
+  push(CAT[11], { status: 'Belum Disiapkan', jenis: 'Insidental', siber: 'Ya', waktuKejadian: agoLocal(50), batas: `${addDays(today, 3)}`, periode: 'Insiden DDoS' })
   return out
 }
 
-const ym = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}`
-function TrenTerlambat({ rows, today }: { rows: Laporan[]; today: string }) {
-  const [p, setP] = useState('12')
-  const [from, setFrom] = useState('')
-  const [to, setTo] = useState('')
-  const cur = today.slice(0, 7)
+function TrenTerlambat({ rows }: { rows: Laporan[] }) {
+  const rg = useMonthRange('12')
   const late = rows.filter((r) => wasLate(r) && r.batas)
-  let start: string, end = cur
-  if (p === 'all') start = late.map((r) => monthKey(r.batas)).sort()[0] ?? cur
-  else if (p === 'custom') { start = from || late.map((r) => monthKey(r.batas)).sort()[0] || cur; end = to || cur }
-  else { const d = new Date(today + 'T00:00:00'); d.setDate(1); d.setMonth(d.getMonth() - (Number(p) - 1)); start = ym(d) }
-  const months: string[] = []
-  for (const d = new Date(start + '-01T00:00:00'); ym(d) <= end && months.length < 600; d.setMonth(d.getMonth() + 1)) months.push(ym(d))
-  const tren = months.map((m) => ({ name: m, Terlambat: late.filter((r) => monthKey(r.batas) === m).length }))
-  const toolbar = (
-      <div className="flex flex-wrap items-center gap-2 text-xs">
-        <span className="font-medium text-slate-500">Periode</span>
-        <select className="inp !w-auto" value={p} onChange={(e) => setP(e.target.value)}>
-          <option value="all">Seluruh Waktu</option>{[3, 6, 9, 12].map((n) => <option key={n} value={n}>{n} bulan terakhir</option>)}<option value="custom">Custom</option>
-        </select>
-        {p === 'custom' && <><input type="month" className="inp !w-auto" value={from} onChange={(e) => setFrom(e.target.value)} /><span>sampai</span><input type="month" className="inp !w-auto" value={to} onChange={(e) => setTo(e.target.value)} /></>}
-      </div>
-  )
-  return <LineCard title="Tren laporan terlambat per bulan" data={tren} keys={['Terlambat']} colors={{ Terlambat: '#ef4444' }} toolbar={toolbar} />
+  const tren = rg.months(late.map((r) => monthKey(r.batas))).map((m) => ({ name: m, Terlambat: late.filter((r) => monthKey(r.batas) === m).length }))
+  return <LineCard title="Tren laporan terlambat per bulan" data={tren} keys={['Terlambat']} colors={{ Terlambat: '#ef4444' }} toolbar={rg.toolbar} />
 }
 function SoonTable({ rows, open }: { rows: Laporan[]; open: (id: string) => void }) {
   // MiniTable sudah punya pager sendiri (5 baris); jangan paging dua kali dan jangan beri warna khusus
@@ -212,8 +191,9 @@ const cfg: PageConfig<Laporan> = {
   },
   // PIC hanya boleh mengubah laporan yang namanya tertulis sebagai penyusun/reviewer; CO bebas.
   canEditRow: (r, c) => c.role !== 'PIC' || [r.picPenyusun, r.picReviewer].some((n) => n.trim().toLowerCase() === c.user.name.toLowerCase()),
-  validate: (r) => {
+  validate: (r, _m, c) => {
     const e: Record<string, string> = {}
+    if (r.status === 'Terlambat' && !(r.batas && dOf(r.batas) < c.today)) e.status = 'Status Terlambat hanya bisa dipilih jika Batas Waktu sudah lewat'
     if (r.picPenyusun.trim() && r.picPenyusun.trim().toLowerCase() === r.picReviewer.trim().toLowerCase()) e.picReviewer = 'PIC Penyusun dan Reviewer harus orang yang berbeda'
     if (SENT(r) && !hasBukti(r)) e.bukti = 'Isi file bukti atau Nomor Tanda Terima (minimal salah satu)'
     if (r.waktuNotif && r.waktuKejadian && r.waktuNotif < r.waktuKejadian) e.waktuNotif = 'Waktu notifikasi tidak boleh sebelum waktu kejadian'
@@ -223,7 +203,7 @@ const cfg: PageConfig<Laporan> = {
     const pct = (xs: Laporan[]) => { const s = xs.filter((r) => SENT(r) && r.tglSubmit); const ok = s.filter((r) => !lateBy(r)).length; return { 'Tepat Waktu (%)': s.length ? Math.round((ok / s.length) * 100) : 0, ok, total: s.length } }
     const tepatData = [
       ...JENIS.map((j) => ({ name: `Jenis: ${j}`, ...pct(rows.filter((r) => r.jenis === j)) })),
-      ...[...new Set([...REG, ...rows.map((r) => r.regulator)])].map((g) => ({ name: `Regulator: ${g}`, ...pct(rows.filter((r) => r.regulator === g)) })),
+      ...REG.map((g) => ({ name: `Regulator: ${g}`, ...pct(rows.filter((r) => r.regulator === g)) })),
     ]
     const tepatColors = tepatData.map((d) => (d.name.startsWith('Jenis') ? '#3b82f6' : '#10b981'))
     const beban = JENIS.map((j) => {
@@ -241,7 +221,7 @@ const cfg: PageConfig<Laporan> = {
             onClick={(row) => { const n = String(row.name); if (n.startsWith('Jenis: ')) drill({ jenis: n.slice(7) }); else drill({ regulator: n.slice(11) }) }} />
           <BarCard title="Beban laporan per jenis periode" stacked data={beban} keys={['Terkirim', 'Dalam proses', 'Terlambat']} colors={{ Terkirim: '#10b981', 'Dalam proses': '#f59e0b', Terlambat: '#ef4444' }}
             onClick={(row) => drill({ jenis: String(row.name) })} />
-          <TrenTerlambat rows={rows} today={c.today} />
+          <TrenTerlambat rows={rows} />
           <SoonTable rows={soon} open={open} />
         </div>
       </div>

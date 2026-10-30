@@ -8,7 +8,7 @@ import { Modal } from '../ui'
 // Urutan = urutan submenu Master Data.
 export const MASTER_LISTS: { kind: keyof Master; slug: string; label: string }[] = [
   { kind: 'laporan', slug: 'laporan', label: 'Laporan' },
-  { kind: 'regulator', slug: 'regulator', label: 'Regulator' },
+  { kind: 'pic', slug: 'pic', label: 'PIC' },
   { kind: 'kategoriRegulasi', slug: 'kategori-regulasi', label: 'Kategori Regulasi' },
   { kind: 'unitKerja', slug: 'unit-kerja', label: 'Unit Kerja' },
   { kind: 'produk', slug: 'produk', label: 'Produk' },

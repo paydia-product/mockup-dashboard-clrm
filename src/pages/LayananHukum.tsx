@@ -25,7 +25,7 @@ const fields: Field<Layanan>[] = [
   { key: 'sla', label: 'SLA (hari kalender)', type: 'number', required: true, reasonOnChange: true, help: 'Mengubah SLA (batas waktu) wajib disertai alasan.' },
   { key: 'batas', label: 'Tanggal Batas', type: 'date', auto: (r) => batas(r) },
   { key: 'status', label: 'Status', type: 'select', options: ['Baru', 'Proses', 'Selesai', 'Batal'], required: true },
-  { key: 'pic', label: 'PIC', type: 'text', help: 'Boleh kosong saat dibuat pemohon.' },
+  { key: 'pic', label: 'PIC', type: 'select', options: (c) => c.master.pic, help: 'Boleh kosong saat dibuat pemohon.' },
   { key: 'prioritas', label: 'Prioritas', type: 'select', options: PRIO, required: true },
   { key: 'tglSelesai', label: 'Tanggal Selesai', type: 'date', required: (r) => r.status === 'Selesai', showIf: (r) => r.status === 'Selesai' },
   { key: 'memo', label: 'Nomor Memo / Pendapat Hukum', type: 'text', required: (r) => r.status === 'Selesai', showIf: (r) => r.status === 'Selesai' },
@@ -51,7 +51,7 @@ const filters: FilterDef<Layanan>[] = [
 ]
 
 const toPic = (r: Layanan) => (r.pic ? `PIC (${r.pic})` : 'PIC')
-const mk = (c: Ctx, o: Partial<Layanan>): Layanan => ({ id: 'sample', no: 99, status: 'Proses', createdAt: c.today, createdBy: '-', dept: 'IT', jenis: 'Review', tglMasuk: addDays(c.today, -10), sla: 7, pic: 'Lina Marlina', prioritas: 'Sedang', tglSelesai: '', memo: '', ...o })
+const mk = (c: Ctx, o: Partial<Layanan>): Layanan => ({ id: 'sample', no: 99, status: 'Proses', createdAt: c.today, createdBy: '-', dept: 'IT', jenis: 'Review', tglMasuk: addDays(c.today, -10), sla: 7, pic: 'Osama', prioritas: 'Sedang', tglSelesai: '', memo: '', ...o })
 const alerts: AlertDef<Layanan>[] = [
   {
     key: 'overdue', label: 'Lewat batas waktu', rule: 'Batas waktu terlewat dan permintaan belum Selesai.',
@@ -76,7 +76,7 @@ const alerts: AlertDef<Layanan>[] = [
 
 function seed(today: string): Layanan[] {
   const DEPT = ['IT', 'Business', 'Operation', 'Finance, Accounting, Tax & Treasury', 'Compliance', 'Support (HRD & GA)']
-  const PICS = ['Lina Marlina', 'Lina Marlina', 'Arief Nugraha', 'Rina Kartika']
+  const PICS = ['Osama', 'Osama', 'Fakhri', 'Regie'] // master PIC
   // [umur hari, sla, status, pic kosong?]
   const sc: [number, number, string, boolean?][] = [
     [12, 7, 'Proses'], [20, 14, 'Proses'], [9, 5, 'Baru'], [3, 14, 'Baru', true], [5, 14, 'Baru', true], // lewat batas + tanpa PIC
@@ -90,7 +90,7 @@ function seed(today: string): Layanan[] {
     const done = status === 'Selesai'
     const selesai = done ? addDays(tglMasuk, Math.max(2, Math.round(sla * (0.5 + (i % 5) * 0.2)))) : ''
     return {
-      id: `layanan-${i + 1}`, no: i + 1, status, createdAt: tglMasuk, createdBy: 'Bima Pratama',
+      id: `layanan-${i + 1}`, no: i + 1, status, createdAt: tglMasuk, createdBy: 'Regie',
       dept: DEPT[i % 6], jenis: JENIS[(i * 2) % 5], tglMasuk, sla, pic: noPic ? '' : PICS[i % 4], prioritas: PRIO[i % 3],
       tglSelesai: selesai, memo: done ? `MEMO/LGL/${String(i + 1).padStart(3, '0')}/2026` : '',
     }

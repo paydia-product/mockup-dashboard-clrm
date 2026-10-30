@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Finding, RISKS, ROOT_TYPES, createdOf, fmtDate, fmtTime } from './lib'
+import { Finding, REGULATORS, RISKS, ROOT_TYPES, createdOf, fmtDate, fmtTime } from './lib'
 import { useApp } from './kit/store'
 import { OTHER_ERR, SelectOther, withLainnya } from './kit/Lainnya'
 import { FileField, Modal } from './ui'
@@ -26,7 +26,7 @@ const Sum = ({ l, children }: { l: string; children: React.ReactNode }) => <div>
 
 export default function Form({ init, mode, prevReason = null, onSave, onClose }: { init: Finding; mode: 'add' | 'edit'; prevReason?: { alasan: string; tgl: string } | null; onSave: (f: Finding, alasan: string) => void; onClose: () => void }) {
   const { store } = useApp()
-  const { regulator, kategoriRegulasi, unitKerja } = store.master
+  const { kategoriRegulasi, unitKerja, pic } = store.master
   const [pending, setPending] = useState<Record<string, boolean>>({})
   const pend = (k: string) => (b: boolean) => setPending((p) => (!!p[k] === b ? p : { ...p, [k]: b }))
   const [f, setF] = useState<Finding>(init)
@@ -113,7 +113,7 @@ export default function Form({ init, mode, prevReason = null, onSave, onClose }:
       ) : (
         <>
           <div className="grid gap-3 sm:grid-cols-2">
-            {sel('regulator', 'Regulator', withLainnya(regulator))}
+            {sel('regulator', 'Regulator', withLainnya(REGULATORS))}
             {date('tglTemuan', 'Tanggal Temuan')}
             {sel('area', 'Area Temuan', withLainnya(kategoriRegulasi))}
             <div className="sm:col-span-2 grid gap-3 sm:grid-cols-[1fr_180px]">
@@ -122,7 +122,7 @@ export default function Form({ init, mode, prevReason = null, onSave, onClose }:
             </div>
             <div>
               <label className="lbl">PIC *</label>
-              <input className="inp" value={f.pic} onChange={(e) => set('pic', e.target.value)} />
+              <select className="inp" value={f.pic} onChange={(e) => set('pic', e.target.value)}><option value="">Pilih...</option>{pic.map((x) => <option key={x}>{x}</option>)}</select>
               {errs.pic && <p className="err">{errs.pic}</p>}
             </div>
             {date('dueDate', 'Batas Waktu (Due Date)')}

@@ -1,7 +1,7 @@
 import { addDays, diffDays, fmtDate } from '../lib'
 import { withLainnya } from '../kit/Lainnya'
 import PageShell from '../kit/PageShell'
-import { BarCard, ComboCard, DonutCard, LineCard, StatCards } from '../kit/charts'
+import { BarCard, ComboCard, DonutCard, LineCard, StatCards, useMonthRange } from '../kit/charts'
 import { addWorkDays, ageBucket, ageBuckets, monthKey, workDaysBetween } from '../kit/dates'
 import { StatusPill, fmtMoney, maskStr } from '../kit/fmt'
 import { sameName } from '../kit/perms'
@@ -82,7 +82,7 @@ const fields: Field<Fraud>[] = [
   { key: 'lapPpatk', label: 'Tanggal Lapor PPATK', type: 'date', required: blokirClosed, reasonOnChange: true },
   { key: 'tglResolved', label: 'Tanggal Email Resolved', type: 'date', required: isClosed, reasonOnChange: true },
   { key: 'status', label: 'Status', type: 'select', options: ['Open', 'Closed'], required: true, inForm: 'edit', help: 'Menutup kasus (Closed) menunggu persetujuan Head CLRM; selama menunggu status tetap Open.' },
-  { key: 'pic', label: 'PIC Investigator', type: 'text', required: isClosed },
+  { key: 'pic', label: 'PIC Investigator', type: 'select', options: (c) => c.master.pic, required: isClosed },
   { key: 'group', label: 'Group Merchant', type: 'text' },
   { key: 'produk', label: 'Produk', type: 'text' },
   { key: 'channel', label: 'Channel', type: 'text' },
@@ -120,7 +120,7 @@ const mk = (c: Ctx, o: Partial<Fraud>): Fraud => ({
   tglTerima: addDays(c.today, -10), pelapor: 'Konsumen', kategori: 'Konsumen', media: 'Email', terlapor: 'Budi Santoso', jenisPengguna: 'Merchant', jenis: 'Fraud', rincian: 'Phishing',
   uraian: 'Dugaan penipuan melalui merchant.', bukti: null, korban: 25_000_000, rrn: '', tglTrx: '', noRek: '', asesmen: 'Dilanjutkan', alasanAsesmen: 'Indikasi kuat',
   holdTgl: '', holdNom: '', tglPpatk: '', edd1: '', edd2: '', hasilEdd: '', tindakan: '', tglBlokir: '', relTgl: '', relNom: '', saldo: '', tglQris: '', tglTutup: '',
-  lapKomdigi: '', lapBi: '', lapPpatk: '', tglResolved: '', pic: 'Dewi Anggraini', group: 'Toko Sejahtera', produk: 'QRIS', channel: 'Mobile', kerugian: '', ...o,
+  lapKomdigi: '', lapBi: '', lapPpatk: '', tglResolved: '', pic: 'Regie', group: 'Toko Sejahtera', produk: 'QRIS', channel: 'Mobile', kerugian: '', ...o,
 })
 const alerts: AlertDef<Fraud>[] = [
   {
@@ -174,7 +174,7 @@ const NAMA = ['Budi Santoso', 'Siti Rahayu', 'Agus Wijaya', 'Dewi Lestari', 'Rud
 const GROUPS = ['Toko Sejahtera', 'Warung Digital', 'Mitra Jaya', 'Kopi Nusantara', 'Gamezone', 'Fashion Hub', 'Lotus Retail', 'Bintang Pay', 'Sinar Mart', 'Cahaya Group', 'Sumber Rejeki', 'Pasar Online']
 const PRODUK = ['QRIS', 'Payment Gateway', 'Virtual Account', 'E-Wallet']
 const CHANNEL = ['Mobile', 'Web', 'Offline EDC', 'API']
-const PICS = ['Dewi Anggraini', 'Fajar Ramadhan', 'Dewi Anggraini', 'Gilang Saputra']
+const PICS = ['Regie', 'Fakhri', 'Osama', 'Fakhri'] // master PIC
 const FILE: FileMeta = { name: 'bukti-kasus.pdf', size: 245_000, type: 'application/pdf' }
 
 function seed(today: string): Fraud[] {
@@ -193,13 +193,13 @@ function seed(today: string): Fraud[] {
     { age: 130, tindakan: 'Terminasi', edd1: d(125), hasilEdd: 'Lainnya' }, // 5
     { age: 20, uraian: '', korban: '', tindakan: 'Watchlist', edd1: d(16), hasilEdd: 'Kirim Bukti' }, // 6
     { age: 8, tindakan: 'Watchlist', edd1: d(5), hasilEdd: 'Kirim Bukti' }, // open sehat
-    { age: 3, tindakan: '', pic: 'Fajar Ramadhan' }, // baru masuk
+    { age: 3, tindakan: '', pic: 'Fakhri' }, // baru masuk
   ]
   const rows: Fraud[] = []
   const base = (i: number, ageDays: number): Fraud => {
     const tglTerima = d(ageDays)
     return {
-      id: `fraud-${i + 1}`, no: i + 1, status: 'Open', createdAt: tglTerima, createdBy: 'Fajar Ramadhan', tglTerima,
+      id: `fraud-${i + 1}`, no: i + 1, status: 'Open', createdAt: tglTerima, createdBy: 'Fakhri', tglTerima,
       pelapor: PIHAK[i % 7], kategori: KATEGORI[(i * 3) % 7], media: MEDIA[(i * 2) % 5],
       terlapor: NAMA[i % 8], jenisPengguna: PENGGUNA[i % 2], jenis: JENIS[i % 3], rincian: ['Phishing', 'Akun palsu', 'Pemain judi', 'Pola transaksi tidak wajar'][i % 4],
       uraian: `Laporan dugaan ${JENIS[i % 3].toLowerCase()} melalui ${GROUPS[i % 12]}.`, bukti: FILE, korban: (1 + (i % 9)) * 5_000_000,
@@ -272,9 +272,13 @@ const cfg: PageConfig<Fraud> = {
     const old = rows.filter((r) => OPEN(r) && age(r, c.today) > 90).length
     const hold = rows.reduce((a, r) => a + num(r.holdNom), 0)
     const rel = rows.reduce((a, r) => a + num(r.relNom), 0)
-    // 12 bulan terakhir (bulan ini di ujung kanan)
-    const t = new Date(c.today + 'T00:00:00')
-    const months = Array.from({ length: 12 }, (_, k) => { const m = new Date(t.getFullYear(), t.getMonth() - 11 + k, 1); return { key: `${m.getFullYear()}-${String(m.getMonth() + 1).padStart(2, '0')}`, name: `${MON[m.getMonth()]} ${String(m.getFullYear()).slice(2)}` } })
+    // filter bulan per kartu (independen satu sama lain dan dari filter halaman)
+    const rgKasus = useMonthRange('12')
+    const rgUang = useMonthRange('12')
+    const keys = rows.map((r) => monthKey(r.tglTerima))
+    const mk = (rg: typeof rgKasus) => rg.months(keys).map((key) => ({ key, name: `${MON[Number(key.slice(5)) - 1]} ${key.slice(2, 4)}` }))
+    const monthsKasus = mk(rgKasus)
+    const monthsUang = mk(rgUang)
     const inM = (k: string) => rows.filter((r) => monthKey(r.tglTerima) === k)
     const sum = (x: Fraud[], g: (r: Fraud) => Money) => x.reduce((a, r) => a + num(g(r)), 0)
     const edges = [30, 60, 90]
@@ -300,12 +304,12 @@ const cfg: PageConfig<Fraud> = {
           { label: 'Dana Dikembalikan (Released)', value: fmtMoney(rel), tone: 'green' },
         ]} />
         <div className="grid gap-3 lg:grid-cols-2">
-          <LineCard title="Kasus per bulan (12 bulan)" data={months.map((m) => ({ name: m.name, Kasus: inM(m.key).length }))} keys={['Kasus']} />
+          <LineCard title="Kasus per bulan" toolbar={rgKasus.toolbar} data={monthsKasus.map((m) => ({ name: m.name, Kasus: inM(m.key).length }))} keys={['Kasus']} />
           <DonutCard title="Jenis dugaan" data={JENIS.map((j) => ({ name: j, value: rows.filter((r) => r.jenis === j).length }))} onClick={(name) => drill({ jenis: name })} />
           <BarCard title="Kategori pelapor x media" stacked data={c.master.kategoriPelapor.map((k) => ({ name: k, ...Object.fromEntries(c.master.mediaPelapor.map((m) => [m, rows.filter((r) => r.kategori === k && r.media === m).length])) }))} keys={c.master.mediaPelapor} onClick={(row) => drill({ kategori: row.name })} />
           <BarCard title="Kasus per tindakan dan saldo tertahan (juta Rp)" data={TINDAKAN.map((x) => ({ name: x, Kasus: rows.filter((r) => r.tindakan === x).length, 'Saldo Tertahan (juta)': juta(sum(rows.filter((r) => r.tindakan === x), (r) => r.saldo)) }))} keys={['Kasus', 'Saldo Tertahan (juta)']} onClick={(row) => drill({ tindakan: row.name })} />
           <BarCard title="Top 10 merchant / group" horizontal data={top} keys={['Kasus']} onClick={(row) => drill({ group: row.name })} />
-          <ComboCard title="Nilai uang per bulan (juta Rp)" bars={['Korban', 'Hold', 'Released']} lines={['Saldo Tertahan']} data={months.map((m) => { const x = inM(m.key); return { name: m.name, Korban: juta(sum(x, (r) => r.korban)), Hold: juta(sum(x, (r) => r.holdNom)), Released: juta(sum(x, (r) => r.relNom)), 'Saldo Tertahan': juta(sum(x, (r) => r.saldo)) } })} />
+          <ComboCard title="Nilai uang per bulan (juta Rp)" toolbar={rgUang.toolbar} bars={['Korban', 'Hold', 'Released']} lines={['Saldo Tertahan']} data={monthsUang.map((m) => { const x = inM(m.key); return { name: m.name, Korban: juta(sum(x, (r) => r.korban)), Hold: juta(sum(x, (r) => r.holdNom)), Released: juta(sum(x, (r) => r.relNom)), 'Saldo Tertahan': juta(sum(x, (r) => r.saldo)) } })} />
           <BarCard title="Lama proses (hari): rata-rata dan terlama" data={spans.map(([name, v]) => ({ name, 'Rata-rata': avg(v), Terlama: v.length ? Math.max(...v) : 0 }))} keys={['Rata-rata', 'Terlama']} />
           <BarCard title="Umur kasus Open (hari)" data={ageBuckets(edges).map((name) => ({ name, Jumlah: open.filter((r) => ageBucket(age(r, c.today), edges) === name).length }))} keys={['Jumlah']} cellColors={['#22c55e', '#f59e0b', '#f59e0b', '#ef4444']} />
           <BarCard title="Lapor regulator setelah blokir" stacked data={lapor} keys={['Sudah Lapor', 'Belum Lapor', 'Terlambat']} colors={{ 'Sudah Lapor': '#10b981', 'Belum Lapor': '#f59e0b', Terlambat: '#ef4444' }} />

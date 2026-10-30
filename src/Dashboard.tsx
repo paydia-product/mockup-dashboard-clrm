@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Audit, EMPTY_FILTER, Filter, Finding, REGULATORS, RISKS, STATUSES, fmtDate, lateDays } from './lib'
 import { RiskBadge, StatusBadge } from './ui'
 import { useDashPaged } from './shared/Pager'
+import { useMonthRange } from './kit/charts'
 
 const COLORS = ['#1f2ab5', '#3b82f6', '#06b6d4', '#10b981', '#f59e0b', '#8b5cf6']
 const BUCKETS = [
@@ -41,7 +42,9 @@ export default function Dashboard({ findings, audit, filter, setFilter, onOpen }
   const overduePage = useDashPaged(overdue)
   const pct = data.length ? Math.round((done.length / data.length) * 100) : 0
 
-  const byReg = REGULATORS.map((r) => ({ name: r, Open: open.filter((f) => f.regulator === r).length, Selesai: done.filter((f) => f.regulator === r).length }))
+  // CR tracker: BI, PPATK, Komdigi, BSSN, Lainnya (teks bebas di luar daftar masuk 'Lainnya')
+  const regOf = (f: Finding) => (REGULATORS.includes(f.regulator) ? f.regulator : 'Lainnya')
+  const byReg = [...REGULATORS, 'Lainnya'].map((r) => ({ name: r, Open: open.filter((f) => regOf(f) === r).length, Selesai: done.filter((f) => regOf(f) === r).length }))
   const unitM = count(data, (f) => f.unit)
   const byUnit = [...unitM].map(([name, v]) => { const selesai = data.filter((f) => f.unit === name && f.status === 'Selesai').length; return { name, v, selesai, open: v - selesai } }).sort((a, b) => b.v - a.v)
   const byArea = [...count(data, (f) => f.area)].map(([name, value]) => ({ name, value }))
@@ -52,11 +55,9 @@ export default function Dashboard({ findings, audit, filter, setFilter, onOpen }
     STATUSES.filter((s) => s !== 'Dibatalkan').forEach((s) => (row[s] = data.filter((f) => f.risiko === r && f.status === s).length))
     return row
   })
-  const [trendP, setTrendP] = useState('12')
-  const [trendFrom, setTrendFrom] = useState('')
-  const [trendTo, setTrendTo] = useState('')
+  const range = useMonthRange('12') // filter bulan milik kartu ini, independen dari filter halaman
   const trend = useMemo(() => {
-    const all = findings.filter((f) => f.status !== 'Dibatalkan') // independen dari filter halaman
+    const all = findings.filter((f) => f.status !== 'Dibatalkan')
     const m = new Map<string, { bulan: string; Masuk: number; Selesai: number }>()
     const row = (k: string) => { if (!m.has(k)) m.set(k, { bulan: k, Masuk: 0, Selesai: 0 }); return m.get(k)! }
     all.forEach((f) => {
@@ -66,11 +67,8 @@ export default function Dashboard({ findings, audit, filter, setFilter, onOpen }
         row((e?.time ?? f.persetujuanTgl).slice(0, 7)).Selesai++
       }
     })
-    let rows = [...m.values()].sort((a, b) => a.bulan.localeCompare(b.bulan))
-    if (trendP === 'custom') rows = rows.filter((r) => (!trendFrom || r.bulan >= trendFrom.slice(0, 7)) && (!trendTo || r.bulan <= trendTo.slice(0, 7)))
-    else if (trendP !== 'all') { const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - (Number(trendP) - 1)); const min = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; rows = rows.filter((r) => r.bulan >= min) } // min pakai waktu lokal, bukan UTC
-    return rows
-  }, [findings, audit, trendP, trendFrom, trendTo])
+    return range.months([...m.keys()]).map((k) => m.get(k) ?? { bulan: k, Masuk: 0, Selesai: 0 })
+  }, [findings, audit, range.months]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const statusColor: Record<string, string> = { Open: '#3b82f6', Proses: '#f59e0b', 'Menunggu Validasi': '#8b5cf6', Selesai: '#10b981' }
   return (
@@ -86,12 +84,12 @@ export default function Dashboard({ findings, audit, filter, setFilter, onOpen }
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {[
-          { l: 'Open (belum selesai)', v: open.length, red: false },
-          { l: 'Selesai', v: done.length, red: false },
-          { l: 'Lewat Batas Waktu', v: overdue.length, red: overdue.length > 0 },
-          { l: '% Selesai', v: `${pct}%`, red: false },
+          { l: 'Open (belum selesai)', v: open.length, red: false, tip: '' },
+          { l: 'Selesai', v: done.length, red: false, tip: '' },
+          { l: 'Lewat Batas Waktu', v: overdue.length, red: overdue.length > 0, tip: '' },
+          { l: '% Selesai', v: `${pct}%`, red: false, tip: `Selesai ${done.length} dari ${data.length} temuan (${pct}%)` },
         ].map((c) => (
-          <div key={c.l} className={`rounded-lg border p-4 ${c.red ? 'border-red-300 bg-red-50 text-red-600' : 'border-slate-200 bg-white'}`}>
+          <div key={c.l} title={c.tip || undefined} className={`rounded-lg border p-4 ${c.red ? 'border-red-300 bg-red-50 text-red-600' : 'border-slate-200 bg-white'}`}>
             <div className="text-xs font-medium opacity-80">{c.l}</div>
             <div className="mt-1 text-3xl font-semibold">{c.v}</div>
           </div>
@@ -155,16 +153,7 @@ export default function Dashboard({ findings, audit, filter, setFilter, onOpen }
       </Card>
 
       <Card title="Tren Penyelesaian (per bulan)">
-        <div className="mb-3 flex flex-wrap items-center gap-2">
-          <select className="inp !w-auto" value={trendP} onChange={(e) => setTrendP(e.target.value)}>
-            <option value="all">Seluruh Waktu</option>{[3, 6, 9, 12].map((n) => <option key={n} value={n}>{n} bulan terakhir</option>)}<option value="custom">Custom</option>
-          </select>
-          {trendP === 'custom' && <>
-            <input type="date" className="inp !w-auto" value={trendFrom} onChange={(e) => setTrendFrom(e.target.value)} />
-            <span>sampai</span>
-            <input type="date" className="inp !w-auto" value={trendTo} onChange={(e) => setTrendTo(e.target.value)} />
-          </>}
-        </div>
+        <div className="mb-3">{range.toolbar}</div>
         <ResponsiveContainer width="100%" height={260}>
           <LineChart data={trend}><CartesianGrid strokeDasharray="3 3" vertical={false} /><XAxis dataKey="bulan" fontSize={12} /><YAxis allowDecimals={false} fontSize={12} /><Tooltip /><Legend />
             <Line type="monotone" dataKey="Masuk" name="Temuan masuk" stroke="#1f2ab5" strokeWidth={2} /><Line type="monotone" dataKey="Selesai" name="Temuan selesai" stroke="#10b981" strokeWidth={2} />

@@ -11,9 +11,24 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
-    v: '2.7.3',
+    v: '2.8.0',
     date: '2026-10-30',
     deployed: true,
+    title: 'Master PIC, filter bulan per grafik, revisi Reporting',
+    prompt: 'Revisi tabel, master PIC, regulator tetap, filter bulan per grafik, tooltip persen, Regulatory Reporting, Log approval',
+    tokens: 300000,
+    changes: [
+      'Master Data PIC (Regie, Fakhri, Osama); semua field PIC jadi dropdown; master Regulator dihapus',
+      'Filter bulan per grafik per bulan (komponen bersama), tooltip persen dengan rincian x/y',
+      'Nomor tabel dashboard = posisi baris; tabel menampilkan "Lainnya" untuk teks bebas',
+      'Regulatory Reporting: Nama Laporan teks, Waktu Kejadian, Batas Waktu tanggal, Terlambat manual dengan Alasan wajib',
+      'Log Perubahan: keputusan approval eksplisit Approve / Reject',
+    ],
+  },
+  {
+    v: '2.7.3',
+    date: '2026-10-30',
+    deployed: false,
     title: 'Log Perubahan untuk data yang sudah dibatalkan',
     prompt: 'Lanjutan QA penuh',
     tokens: 120000,

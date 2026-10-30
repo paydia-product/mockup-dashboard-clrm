@@ -40,7 +40,7 @@ const fields: Field<SopRec>[] = [
   { key: 'file', label: 'File PDF', type: 'file', required: true, wide: true },
   { key: 'tglReview', label: 'Tanggal Review Berikutnya', type: 'date', required: notImport },
   { key: 'status', label: 'Status', type: 'select', options: STATUS, required: notImport },
-  { key: 'pic', label: 'PIC Dokumen', type: 'text', required: notImport },
+  { key: 'pic', label: 'PIC Dokumen', type: 'select', options: (c) => c.master.pic, required: notImport },
   {
     key: 'revisi', label: 'Daftar Revisi', type: 'list', inForm: 'none', wide: true,
     sub: [
@@ -72,7 +72,7 @@ const filters: FilterDef<SopRec>[] = [
 const mk = (c: Ctx, o: Partial<SopRec>): SopRec => ({
   id: 'sample', no: 99, status: 'Aktif', createdAt: c.today, createdBy: '-', noDok: 'SOP-099-PAY', judul: 'Contoh SOP', ringkasan: 'Contoh', pemilik: 'IT',
   tglBerlaku: addDays(c.today, -400), tglUbah: addDays(c.today, -400), noRevisi: 'Rev.1', retensi: '5 Tahun', klasifikasi: 'Internal', file: null,
-  tglReview: addDays(c.today, 15), pic: 'Bima Pratama', revisi: [], ...o,
+  tglReview: addDays(c.today, 15), pic: 'Regie', revisi: [], ...o,
 })
 const alerts: AlertDef<SopRec>[] = [
   {
