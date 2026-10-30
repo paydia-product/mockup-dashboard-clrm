@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 2.6.0 | 2026-10-30 | ~200k |
 | 2.5.1 | 2026-10-30 | ~25k |
 | 2.5.0 | 2026-10-30 | ~40k |
 | 2.4.1 | 2026-10-30 | ~10k |
@@ -25,6 +26,20 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [2.6.0] - 2026-10-30
+
+Estimasi token: ~200k
+
+### Diubah
+- Master Data: tabel selebar halaman tanpa pagination. Tambah dan edit lewat modal. Validasi nama: wajib, 2 sampai 255 karakter, hanya huruf, angka, dan spasi, tidak boleh duplikat.
+- Kolom Aksi master berisi Edit dan Hapus. Hapus memakai konfirmasi.
+- Daftar master: Laporan, Regulator, Kategori Regulasi, Unit Kerja (sebelumnya Departemen), Produk, Mitra, Kategori Pelapor (menggantikan Pihak Pelapor), Media Pelapor.
+- Label "Departemen" menjadi "Unit Kerja" di semua halaman.
+- Dropdown halaman memakai master: Regulator, Kategori Regulasi, Unit Kerja, Laporan, Mitra, Kategori Pelapor, Media Pelapor.
+
+### Ditambah
+- Di semua modal tambah dan edit, dropdown yang punya opsi "Lainnya" memunculkan field teks wajib saat opsi itu dipilih.
 
 ## [2.5.1] - 2026-10-30
 

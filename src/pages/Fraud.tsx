@@ -48,9 +48,8 @@ const blokirClosed = (r: Fraud) => r.tindakan === 'Blokir' && isClosed(r)
 
 const fields: Field<Fraud>[] = [
   { key: 'tglTerima', label: 'Tanggal Terima Tugas', type: 'date', required: true, reasonOnChange: true },
-  { key: 'pelapor', label: 'Pihak Pelapor', type: 'select', options: (c) => c.master.pihakPelapor, required: true },
-  { key: 'kategori', label: 'Kategori Pelapor', type: 'select', options: KATEGORI, required: true },
-  { key: 'media', label: 'Media', type: 'select', options: MEDIA, required: true },
+  { key: 'kategori', label: 'Kategori Pelapor', type: 'select', options: (c) => c.master.kategoriPelapor, required: true },
+  { key: 'media', label: 'Media', type: 'select', options: (c) => c.master.mediaPelapor, required: true },
   { key: 'terlapor', label: 'Nama Terlapor', type: 'text', required: true, mask: isMasked },
   { key: 'jenisPengguna', label: 'Jenis Pengguna', type: 'select', options: PENGGUNA, required: true },
   { key: 'jenis', label: 'Jenis Dugaan', type: 'select', options: JENIS, required: true },
@@ -92,7 +91,7 @@ const fields: Field<Fraud>[] = [
 const columns: Column<Fraud>[] = [
   { label: 'No', get: (r) => r.no },
   { label: 'Tgl Terima', get: (r) => r.tglTerima, render: (r) => fmtDate(r.tglTerima) },
-  { label: 'Pihak Pelapor', get: (r) => r.pelapor },
+  { label: 'Kategori Pelapor', get: (r) => r.kategori },
   { label: 'Terlapor', get: (r, c) => mask(r.terlapor, c) },
   { label: 'Jenis Dugaan', get: (r) => r.jenis },
   { label: 'Nominal', get: (r) => num(r.korban), render: (r) => (r.korban === '' ? '-' : fmtMoney(r.korban)) },
@@ -108,7 +107,7 @@ const filters: FilterDef<Fraud>[] = [
   { key: 'pic', label: 'PIC', type: 'select', options: (rows) => uniq(rows, (r) => r.pic), match: (r, v) => r.pic === v },
   { key: 'jenis', label: 'Jenis Dugaan', type: 'select', options: JENIS, match: (r, v) => r.jenis === v },
   { key: 'tindakan', label: 'Tindakan', type: 'select', options: TINDAKAN, match: (r, v) => r.tindakan === v },
-  { key: 'kategori', label: 'Sumber (Kategori Pelapor)', type: 'select', options: KATEGORI, match: (r, v) => r.kategori === v },
+  { key: 'kategori', label: 'Sumber (Kategori Pelapor)', type: 'select', options: (_, c) => c.master.kategoriPelapor, match: (r, v) => r.kategori === v },
   { key: 'group', label: 'Group Merchant', type: 'select', options: (rows) => uniq(rows, (r) => r.group), match: (r, v) => r.group === v },
   { key: 'produk', label: 'Produk', type: 'select', options: (rows) => uniq(rows, (r) => r.produk), match: (r, v) => r.produk === v },
   { key: 'channel', label: 'Channel', type: 'select', options: (rows) => uniq(rows, (r) => r.channel), match: (r, v) => r.channel === v },
@@ -158,10 +157,10 @@ const alerts: AlertDef<Fraud>[] = [
     sample: (c) => mk(c, { tglTerima: addDays(c.today, -110), tindakan: 'Watchlist' }),
   },
   {
-    key: 'kosong', label: 'Data penting kosong', rule: 'Kasus Open belum punya Uraian, Nominal Korban, Jenis Dugaan, atau Pihak Pelapor.',
+    key: 'kosong', label: 'Data penting kosong', rule: 'Kasus Open belum punya Uraian, Nominal Korban, Jenis Dugaan, atau Kategori Pelapor.',
     check: (r) => {
       if (!OPEN(r)) return null
-      const miss = [!r.uraian.trim() && 'Uraian', r.korban === '' && 'Nominal Korban', !r.jenis && 'Jenis Dugaan', !r.pelapor && 'Pihak Pelapor'].filter(Boolean)
+      const miss = [!r.uraian.trim() && 'Uraian', r.korban === '' && 'Nominal Korban', !r.jenis && 'Jenis Dugaan', !r.kategori && 'Kategori Pelapor'].filter(Boolean)
       return miss.length ? { color: 'yellow', detail: `Kosong: ${miss.join(', ')}`, to: ['Compliance Officer'] } : null
     },
     sample: (c) => mk(c, { uraian: '', korban: '', tglTerima: addDays(c.today, -2), tindakan: 'Watchlist' }),
@@ -253,7 +252,7 @@ const cfg: PageConfig<Fraud> = {
     tglQris: '', tglTutup: '', lapKomdigi: '', lapBi: '', lapPpatk: '', tglResolved: '', status: 'Open', pic: '', group: '', produk: '', channel: '', kerugian: '',
   }),
   // terlapor dicari lewat nilai yang sudah disamarkan
-  search: (r, c) => `${r.no} ${mask(r.terlapor, c)} ${r.group} ${r.pelapor}`, searchPlaceholder: 'Cari nomor, terlapor/merchant, pihak pelapor',
+  search: (r, c) => `${r.no} ${mask(r.terlapor, c)} ${r.group} ${r.kategori}`, searchPlaceholder: 'Cari nomor, terlapor/merchant, kategori pelapor',
   alerts, cancelStatus: 'Dibatalkan',
   // PIC/Fraud Investigator hanya boleh mengubah kasus yang PIC Investigator-nya dirinya; Head CLRM, CO, Super Admin bebas
   canEditRow: (r, c) => r.status !== 'Closed' && (!['PIC', 'Fraud Investigator'].includes(c.role) || sameName(r.pic, c.user.name)),
@@ -302,7 +301,7 @@ const cfg: PageConfig<Fraud> = {
         <div className="grid gap-3 lg:grid-cols-2">
           <LineCard title="Kasus per bulan (12 bulan)" data={months.map((m) => ({ name: m.name, Kasus: inM(m.key).length }))} keys={['Kasus']} />
           <DonutCard title="Jenis dugaan" data={JENIS.map((j) => ({ name: j, value: rows.filter((r) => r.jenis === j).length }))} onClick={(name) => drill({ jenis: name })} />
-          <BarCard title="Kategori pelapor x media" stacked data={KATEGORI.map((k) => ({ name: k, ...Object.fromEntries(MEDIA.map((m) => [m, rows.filter((r) => r.kategori === k && r.media === m).length])) }))} keys={MEDIA} onClick={(row) => drill({ kategori: row.name })} />
+          <BarCard title="Kategori pelapor x media" stacked data={c.master.kategoriPelapor.map((k) => ({ name: k, ...Object.fromEntries(c.master.mediaPelapor.map((m) => [m, rows.filter((r) => r.kategori === k && r.media === m).length])) }))} keys={c.master.mediaPelapor} onClick={(row) => drill({ kategori: row.name })} />
           <BarCard title="Kasus per tindakan dan saldo tertahan (juta Rp)" data={TINDAKAN.map((x) => ({ name: x, Kasus: rows.filter((r) => r.tindakan === x).length, 'Saldo Tertahan (juta)': juta(sum(rows.filter((r) => r.tindakan === x), (r) => r.saldo)) }))} keys={['Kasus', 'Saldo Tertahan (juta)']} onClick={(row) => drill({ tindakan: row.name })} />
           <BarCard title="Top 10 merchant / group" horizontal data={top} keys={['Kasus']} onClick={(row) => drill({ group: row.name })} />
           <ComboCard title="Nilai uang per bulan (juta Rp)" bars={['Korban', 'Hold', 'Released']} lines={['Saldo Tertahan']} data={months.map((m) => { const x = inM(m.key); return { name: m.name, Korban: juta(sum(x, (r) => r.korban)), Hold: juta(sum(x, (r) => r.holdNom)), Released: juta(sum(x, (r) => r.relNom)), 'Saldo Tertahan': juta(sum(x, (r) => r.saldo)) } })} />

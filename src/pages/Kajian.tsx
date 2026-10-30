@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { withLainnya } from '../kit/Lainnya'
 import { CheckCircle2 } from 'lucide-react'
 import { addDays, diffDays, fmtDate } from '../lib'
 import PageShell from '../kit/PageShell'
@@ -29,7 +30,7 @@ const lamaSelesai = (r: Kajian) => diffDays(r.tglSelesai, r.tglMasuk)
 const fields: Field<Kajian>[] = [
   { key: 'jenis', label: 'Jenis', type: 'select', options: JENIS, required: true },
   { key: 'judul', label: 'Judul / Objek', type: 'text', required: true, wide: true },
-  { key: 'dept', label: 'Departemen Pengusul', type: 'select', options: (c) => c.master.departemen, required: true },
+  { key: 'dept', label: 'Unit Kerja Pengusul', type: 'select', options: (c) => c.master.unitKerja, required: true },
   { key: 'tglMasuk', label: 'Tanggal Masuk', type: 'date', required: true, reasonOnChange: true, help: 'Mengubah Tanggal Masuk menggeser batas waktu; wajib disertai alasan.' },
   { key: 'sla', label: 'SLA (hari kalender)', type: 'number', required: true, reasonOnChange: true, help: 'Mengubah SLA (batas waktu) wajib disertai alasan.' },
   { key: 'batas', label: 'Tanggal Batas', type: 'date', auto: (r) => batas(r) },
@@ -38,7 +39,7 @@ const fields: Field<Kajian>[] = [
   { key: 'tglSelesai', label: 'Tanggal Selesai', type: 'date', inForm: 'none' },
   { key: 'hasil', label: 'Hasil / Opini Risk Management', type: 'select', options: HASIL, inForm: 'none' },
   { key: 'klasifikasi', label: 'Klasifikasi Regulasi', type: 'select', options: KLAS },
-  { key: 'namaMitra', label: 'Nama Mitra', type: 'text', required: isV, showIf: isV },
+  { key: 'namaMitra', label: 'Nama Mitra', type: 'select', options: (c) => withLainnya(c.master.mitra), required: isV, showIf: isV },
   { key: 'konteks', label: 'Konteks Kerja Sama', type: 'textarea', wide: true, showIf: isV },
   { key: 'statusMitra', label: 'Status Mitra', type: 'select', options: ['Eksisting', 'Rencana'], required: isV, showIf: isV },
   { key: 'adaPks', label: 'Ada PKS?', type: 'yesno', required: isV, showIf: isV },
@@ -53,7 +54,7 @@ const columns: Column<Kajian>[] = [
   { label: 'No', get: (r) => r.no },
   { label: 'Jenis', get: (r) => r.jenis },
   { label: 'Judul / Objek', get: (r) => r.judul },
-  { label: 'Departemen', get: (r) => r.dept },
+  { label: 'Unit Kerja', get: (r) => r.dept },
   { label: 'Tgl Masuk', get: (r) => r.tglMasuk, render: (r) => fmtDate(r.tglMasuk) },
   { label: 'Batas', get: (r) => batas(r), render: (r) => fmtDate(batas(r)) },
   { label: 'Status', get: (r) => r.status, render: (r) => <StatusPill s={r.status} /> },
@@ -66,7 +67,7 @@ const filters: FilterDef<Kajian>[] = [
   { key: 'jenis', label: 'Jenis', type: 'select', options: JENIS, match: (r, v) => r.jenis === v },
   { key: 'status', label: 'Status', type: 'select', options: [...STATUS, 'Dibatalkan'], match: (r, v) => r.status === v },
   { key: 'pic', label: 'PIC', type: 'select', options: (rows) => uniq(rows, (r) => r.pic), match: (r, v) => r.pic === v },
-  { key: 'dept', label: 'Departemen', type: 'select', options: (_, c) => c.master.departemen, match: (r, v) => r.dept === v },
+  { key: 'dept', label: 'Unit Kerja', type: 'select', options: (_, c) => c.master.unitKerja, match: (r, v) => r.dept === v },
   { key: 'hasil', label: 'Hasil', type: 'select', options: HASIL, match: (r, v) => r.hasil === v },
 ]
 
@@ -204,7 +205,7 @@ const cfg: PageConfig<Kajian> = {
               { label: 'Batas', get: (r) => fmtDate(batas(r)) }, { label: 'Lewat', get: (r) => <span className="font-semibold text-red-600">{lateDays(r, c.today)} hari</span> },
             ]} rows={late} onRow={(r) => open(r.id)} empty="Tidak ada kajian lewat batas" />
           </Card>
-          <BarCard title="Kajian per departemen" horizontal data={c.master.departemen.map((d) => ({ name: d, Jumlah: rows.filter((r) => r.dept === d).length }))} keys={['Jumlah']} onClick={(row) => drill({ dept: row.name })} />
+          <BarCard title="Kajian per unit kerja" horizontal data={c.master.unitKerja.map((d) => ({ name: d, Jumlah: rows.filter((r) => r.dept === d).length }))} keys={['Jumlah']} onClick={(row) => drill({ dept: row.name })} />
           <BarCard title="Rata-rata lama masuk sampai selesai per jenis (hari)" data={JENIS.map((j) => { const x = done.filter((r) => r.jenis === j); return { name: j, Hari: x.length ? Math.round(x.reduce((a, r) => a + lamaSelesai(r), 0) / x.length) : 0 } })} keys={['Hari']} />
           <DonutCard title="Kajian per hasil / opini" data={HASIL.map((h) => ({ name: h, value: rows.filter((r) => r.hasil === h).length }))} onClick={(name) => drill({ hasil: name })} />
           <Card title="Mitra: jadwal due diligence / evaluasi ≤30 hari atau lewat, dan Eksisting vs Rencana">

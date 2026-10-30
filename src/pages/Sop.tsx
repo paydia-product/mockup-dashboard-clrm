@@ -29,7 +29,7 @@ const fields: Field<SopRec>[] = [
   { key: 'noDok', label: 'No Dokumen', type: 'text', required: true, help: 'Unik, contoh SOP-077-PAY.' },
   { key: 'judul', label: 'Judul', type: 'text', required: true, wide: true },
   { key: 'ringkasan', label: 'Ringkasan (Key Point)', type: 'textarea', required: true, wide: true },
-  { key: 'pemilik', label: 'Pemilik Dokumen', type: 'select', options: (c) => c.master.departemen, required: true },
+  { key: 'pemilik', label: 'Pemilik Dokumen', type: 'select', options: (c) => c.master.unitKerja, required: true },
   { key: 'tglBerlaku', label: 'Tanggal Berlaku', type: 'date', required: true },
   { key: 'revisiBaru', label: 'Revisi dokumen', type: 'yesno', inForm: 'edit', noExport: true, noImport: true, help: 'Pilih Ya bila dokumen direvisi: No Revisi dan Tanggal Perubahan wajib baru, revisi lama tersimpan di daftar revisi.' },
   { key: 'tglUbah', label: 'Tanggal Perubahan Terakhir', type: 'date', required: true },
@@ -62,7 +62,7 @@ const columns: Column<SopRec>[] = [
 
 const years = (rows: SopRec[]) => [...new Set(rows.map((r) => r.tglBerlaku.slice(0, 4)).filter(Boolean))].sort().reverse()
 const filters: FilterDef<SopRec>[] = [
-  { key: 'pemilik', label: 'Pemilik Dokumen', type: 'select', options: (_, c) => c.master.departemen, match: (r, v) => r.pemilik === v },
+  { key: 'pemilik', label: 'Pemilik Dokumen', type: 'select', options: (_, c) => c.master.unitKerja, match: (r, v) => r.pemilik === v },
   { key: 'status', label: 'Status', type: 'select', options: [...STATUS], match: (r, v) => r.status === v },
   { key: 'tahun', label: 'Tahun Berlaku', type: 'select', options: (rows) => years(rows), match: (r, v) => r.tglBerlaku.slice(0, 4) === v },
   { key: 'umur', label: 'Umur Dokumen', type: 'select', options: UMUR, match: (r, v) => umurBucket(r, todayStr()) === v },
@@ -134,7 +134,7 @@ const cfg: PageConfig<SopRec> = {
           { label: 'Review terlewat', value: over.length, tone: over.length ? 'red' : 'gray' },
         ]} />
         <div className="grid gap-3 lg:grid-cols-2">
-          <BarCard title="SOP per departemen pemilik" horizontal data={c.master.departemen.map((d) => ({ name: d, Jumlah: rows.filter((r) => r.pemilik === d).length }))} keys={['Jumlah']} onClick={(row) => drill({ pemilik: row.name })} />
+          <BarCard title="SOP per unit kerja pemilik" horizontal data={c.master.unitKerja.map((d) => ({ name: d, Jumlah: rows.filter((r) => r.pemilik === d).length }))} keys={['Jumlah']} onClick={(row) => drill({ pemilik: row.name })} />
           <DonutCard title="SOP per status" data={statusData} onClick={(name) => name !== 'Belum diisi' && drill({ status: name })} />
           <BarCard title="Umur dokumen (sejak Tanggal Berlaku)" data={UMUR.map((u) => ({ name: u, Jumlah: rows.filter((r) => umurBucket(r, c.today) === u).length }))} keys={['Jumlah']} cellColors={['#22c55e', '#f59e0b', '#ef4444']} onClick={(row) => drill({ umur: row.name })} />
           <MiniTable<SopRec> title="SOP yang harus direview (<= 30 hari atau lewat)" rows={review} onRow={(r) => open(r.id)}

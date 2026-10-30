@@ -1,4 +1,5 @@
 import { addDays, diffDays, fmtDate, todayStr } from '../lib'
+import { withLainnya } from '../kit/Lainnya'
 import PageShell from '../kit/PageShell'
 import { BarCard, LineCard, MiniTable, StatCards } from '../kit/charts'
 import { StatusPill } from '../kit/fmt'
@@ -34,7 +35,7 @@ const needsLama = (r: Kontrak) => r.perpanjangan === 'Otomatis' || r.perpanjanga
 
 const fields: Field<Kontrak>[] = [
   { key: 'jenisHubungan', label: 'Jenis Hubungan', type: 'select', options: HUBUNGAN, required: true, editableBy: notPic },
-  { key: 'mitra', label: 'Nama Mitra', type: 'text', required: true, editableBy: notPic, help: 'Teks bebas (nama merchant, vendor, atau mitra).' },
+  { key: 'mitra', label: 'Nama Mitra', type: 'select', options: (c) => withLainnya(c.master.mitra), required: true, editableBy: notPic },
   { key: 'nomor', label: 'Nomor PKS / NDA', type: 'text', required: true, editableBy: notPic, help: 'Harus unik.' },
   { key: 'jenisDok', label: 'Jenis Dokumen', type: 'select', options: JENIS_DOK, required: true, editableBy: notPic },
   { key: 'mulai', label: 'Tanggal Mulai', type: 'date', required: true, editableBy: notPic },
@@ -44,7 +45,7 @@ const fields: Field<Kontrak>[] = [
   { key: 'status', label: 'Status', type: 'select', options: STATUS, required: true, help: 'Aktif otomatis menjadi Akan Berakhir (≤90 hari) atau Expired menurut Tanggal Berakhir.' },
   { key: 'bidang', label: 'Bidang Usaha', type: 'select', options: BIDANG, editableBy: notPic },
   { key: 'pic', label: 'PIC (teks)', type: 'text', required: (r) => !r.dept, editableBy: notPic, help: 'Isi PIC atau Unit Pemilik, salah satu wajib.' },
-  { key: 'dept', label: 'Unit Pemilik (Departemen)', type: 'select', options: (c) => c.master.departemen, required: (r) => !r.pic, editableBy: notPic },
+  { key: 'dept', label: 'Unit Pemilik (Unit Kerja)', type: 'select', options: (c) => c.master.unitKerja, required: (r) => !r.pic, editableBy: notPic },
   {
     key: 'induk', label: 'Dokumen Induk', type: 'select', required: isAmd, editableBy: notPic, help: 'Wajib untuk Amandemen.',
     options: (c) => others(c).filter((k) => !k.cancelled && k.jenisDok !== 'Amandemen').map((k) => k.nomor),

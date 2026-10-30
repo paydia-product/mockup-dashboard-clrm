@@ -180,12 +180,15 @@ Sumber kebenaran: `src/kit/types.ts`. Perbedaan dari draf di atas:
 
 **Approval**: list + pagination + filter status (Menunggu/Disetujui/Ditolak) + filter modul + cari; kolom Nomor request, Modul, Jenis request, Nomor data, Pengaju, Tanggal ajuan, Status. Detail: ringkasan data, tabel kolom/nilai lama/nilai baru, alasan, keputusan. Approve/Reject hanya untuk `approver === role` (atau Super Admin) yang punya `can(module,'Approve')`; Reject wajib catatan. Tracker tampil lewat adapter.
 
-**Master Data**: tiga list (tambah, ubah nama, cari). Seed:
-- Departemen: IT, Business, Operations, Finance, Compliance, Support.
+**Master Data**: delapan list (cari, Tambah/Edit lewat modal "Tambah/Edit <Nama Master>" dengan field Nama, Hapus dengan konfirmasi). Urutan menu: Laporan, Regulator, Kategori Regulasi, Unit Kerja, Produk, Mitra, Kategori Pelapor, Media Pelapor. Validasi Nama: wajib, 2 sampai 255 karakter, hanya huruf/angka/spasi, unik tanpa beda huruf besar. Seed:
+- Unit Kerja: IT, Operation, Business, Support (HRD & GA), Compliance, Legal & Risk Management, Finance, Accounting, Tax & Treasury.
 - Produk: UE, QRIS, Biller.
-- Pihak Pelapor: Konsumen, Merchant, Bank Mitra, Switching, Kepolisian, Bank Indonesia, Internal.
+- Regulator: BI, PPATK, Komdigi, BSSN, Pemerintah-DPR, Lainnya.
+- Kategori Regulasi: APU PPT, QRIS, SNAP, Pelindungan Konsumen, Ketahanan Siber, Lainnya.
+- Kategori Pelapor: Departemen Internal, Konsumen, Switching, Kepolisian, PJP-Bank, Bank Indonesia, Lainnya. Media Pelapor: Email, IASC, GO AML, WhatsApp, Lainnya.
+- Laporan dan Mitra: dari nama di seed Reporting, Kontrak, dan Kajian. Dropdown Nama Laporan dan Nama Mitra menambah "Lainnya".
 
-Rename tidak mengubah data lama (asumsi). Semua perubahan dicatat di Log.
+Pihak Pelapor diganti Kategori Pelapor dan Media Pelapor (field Pihak Pelapor di Fraud dihapus). Rename dan hapus tidak mengubah data lama. Semua perubahan dicatat di Log.
 
 **Log**: gabungan semua aksi (login, logout, tambah, ubah per kolom, cancel, kembalikan, ajukan approval, approve, reject, export, import, ubah permission, ubah akun, ubah master, ganti password/PIN, reset password). Kolom waktu, user, peran, modul, aksi, nomor data, keterangan. Filter periode/user/modul/aksi, pagination, export `Log_Aktivitas_YYYY-MM-DD.xlsx`.
 

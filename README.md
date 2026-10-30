@@ -72,7 +72,8 @@ Tracker di `clrm.db.v4`. Semua halaman lain, approval, log, master, akun, dan pe
 - Peran Fraud Investigator dan Ketua SMKI ditambah (ada di CR).
 - Hari kerja = Senin sampai Jumat tanpa libur nasional. SLA Kajian dan Layanan = hari kalender.
 - Status "Batal" (pilihan CR) beda dari "Dibatalkan" (hasil Cancel Head CLRM).
-- Rename master data tidak mengubah data lama.
+- Rename dan hapus master data tidak mengubah data lama.
+- Master Data: Laporan, Regulator, Kategori Regulasi, Unit Kerja, Produk, Mitra, Kategori Pelapor, Media Pelapor. Data lama `departemen` dimigrasi ke `unitKerja`, `pihakPelapor` dibuang.
 - Logout menghapus sesi demo dan cookie gate, lalu kembali ke `/login.html`.
 - Export boleh untuk semua peran dan diatur lewat matriks permission.
 - Request perubahan tracker ikut tampil di menu Approval; keputusan yang sudah diambil tidak disimpan di daftar Approval (tercatat di Log).

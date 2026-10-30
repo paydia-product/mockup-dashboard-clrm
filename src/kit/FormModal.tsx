@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 import { FileField, Modal } from '../ui'
 import { maskStr } from './fmt'
+import { MultiOther, OTHER_ERR, SelectOther } from './Lainnya'
 import type { BaseRec, Ctx, Field, PageConfig } from './types'
 
 type R = Record<string, any> // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -46,7 +47,7 @@ function lockList(f: Field<any>, cur: R[], base: R[], c: Ctx): R[] { // eslint-d
   return out
 }
 
-function Input({ f, v, set, c, err, off }: { f: Field<any>; v: any; set: (v: unknown) => void; c: Ctx; err?: string; off?: boolean }) { // eslint-disable-line @typescript-eslint/no-explicit-any
+function Input({ f, v, set, c, err, off, pend }: { f: Field<any>; v: any; set: (v: unknown) => void; c: Ctx; err?: string; off?: boolean; pend?: (b: boolean) => void }) { // eslint-disable-line @typescript-eslint/no-explicit-any
   const o = opts(f, c)
   switch (f.type) {
     case 'textarea': return <textarea className="inp" rows={3} value={v ?? ''} disabled={off} onChange={(e) => set(e.target.value)} />
@@ -61,14 +62,9 @@ function Input({ f, v, set, c, err, off }: { f: Field<any>; v: any; set: (v: unk
     case 'date': return <input type="date" className="inp" value={v ?? ''} disabled={off} onChange={(e) => set(e.target.value)} />
     case 'datetime': return <input type="datetime-local" className="inp" value={(v ?? '').slice(0, 16)} disabled={off} onChange={(e) => set(e.target.value)} />
     case 'select': case 'yesno':
+      if (f.type === 'select' && !numericOpts(o)) return <SelectOther value={v} options={o} off={off} extra set={set} onPending={pend} />
       return <select className="inp" value={v ?? ''} disabled={off} onChange={(e) => set(numericOpts(o) && e.target.value !== '' ? Number(e.target.value) : e.target.value)}><option value="">Pilih...</option>{(f.type === 'yesno' ? ['Ya', 'Tidak'] : o).map((x) => <option key={x}>{x}</option>)}</select>
-    case 'multiselect':
-      return (
-        <div className="flex flex-wrap gap-x-4 gap-y-1">
-          {o.map((x) => <label key={x} className="flex items-center gap-1.5"><input type="checkbox" disabled={off} checked={(v ?? []).includes(x)} onChange={(e) => set(e.target.checked ? [...(v ?? []), x] : (v ?? []).filter((y: string) => y !== x))} />{x}</label>)}
-          {!o.length && <span className="text-slate-400">Belum ada pilihan</span>}
-        </div>
-      )
+    case 'multiselect': return <MultiOther value={v ?? []} options={o} off={off} set={set} onPending={pend} />
     case 'checklist':
       return <div className="flex flex-wrap gap-x-4 gap-y-1">{(f.sub ?? []).map((s) => <label key={s.key} className="flex items-center gap-1.5"><input type="checkbox" disabled={off} checked={!!v?.[s.key]} onChange={(e) => set({ ...(v ?? {}), [s.key]: e.target.checked })} />{s.label}</label>)}</div>
     case 'file': return <FileField label="" value={v ?? null} onChange={set} error={err} />
@@ -80,6 +76,8 @@ export default function FormModal<T extends BaseRec>({ cfg, mode, init, norm, c,
   const [r, setR] = useState<R>(init)
   const [alasan, setAlasan] = useState('')
   const [errs, setErrs] = useState<Record<string, string>>({})
+  const [pending, setPending] = useState<Record<string, boolean>>({})
+  const pend = (k: string) => (b: boolean) => setPending((p) => (!!p[k] === b ? p : { ...p, [k]: b }))
   const edit = mode === 'edit'
   const fields = fieldsFor(cfg, mode)
   const need = edit ? fields.filter((f) => f.reasonOnChange && !isEmpty(init[f.key]) && JSON.stringify(init[f.key]) !== JSON.stringify(r[f.key])) : []
@@ -90,6 +88,7 @@ export default function FormModal<T extends BaseRec>({ cfg, mode, init, norm, c,
   const lockedKeys = fields.filter(locked).map((f) => f.key)
   const submit = () => {
     const e = validateRecord(cfg, r, mode, c, false, lockedKeys)
+    for (const [k, b] of Object.entries(pending)) if (b) e[k] = OTHER_ERR
     if (need.length && !alasan.trim()) e.alasan = `Alasan wajib diisi jika ${need.map((f) => f.label).join(', ')} diubah`
     setErrs(e)
     if (Object.keys(e).length) return
@@ -124,7 +123,7 @@ export default function FormModal<T extends BaseRec>({ cfg, mode, init, norm, c,
                             {f.sub?.map((s) => (
                               <div key={s.key} className={s.type === 'textarea' ? 'sm:col-span-2' : ''}>
                                 <label className="lbl">{s.label}{isReq(s, it, c) ? ' *' : ''}</label>
-                                <Input f={s} v={it[s.key]} c={c} off={itOff || (edit && !!s.editableBy && !s.editableBy(c, it))} set={(v) => set(f.key, (list ?? []).map((x, j) => (j === i ? { ...x, [s.key]: v } : x)))} />
+                                <Input f={s} v={it[s.key]} c={c} pend={pend(`${f.key}.${i}.${s.key}`)} off={itOff || (edit && !!s.editableBy && !s.editableBy(c, it))} set={(v) => set(f.key, (list ?? []).map((x, j) => (j === i ? { ...x, [s.key]: v } : x)))} />
                                 {errs[`${f.key}.${i}.${s.key}`] && <p className="err">{errs[`${f.key}.${i}.${s.key}`]}</p>}
                               </div>
                             ))}
@@ -136,7 +135,7 @@ export default function FormModal<T extends BaseRec>({ cfg, mode, init, norm, c,
                       })}
                       {!(edit && f.listLocked?.(c)) && <button type="button" className="btn !py-1" onClick={() => set(f.key, [...(list ?? []), Object.fromEntries((f.sub ?? []).map((s) => [s.key, s.type === 'multiselect' ? [] : s.type === 'checklist' ? {} : s.type === 'file' ? null : '']))])}><Plus size={13} />Tambah item</button>}
                     </div>
-                  ) : <Input f={f} v={masked(f) ? maskStr(String(r[f.key] ?? '')) : r[f.key]} c={c} set={(v) => set(f.key, v)} off={locked(f)} />}
+                  ) : <Input f={f} v={masked(f) ? maskStr(String(r[f.key] ?? '')) : r[f.key]} c={c} pend={pend(f.key)} set={(v) => set(f.key, v)} off={locked(f)} />}
                   {edit && f.key === 'status' && cfg.normalize && norm && norm.status !== init.status && <p className="mt-0.5 text-xs text-amber-600">Status saat ini (otomatis): {String(norm.status)}</p>}
                   {f.help && <p className="mt-0.5 text-xs text-slate-400">{f.help}</p>}
                   {errs[f.key] && <p className="err">{errs[f.key]}</p>}

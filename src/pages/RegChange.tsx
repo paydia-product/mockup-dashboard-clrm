@@ -45,9 +45,9 @@ const fields: Field<Reg>[] = [
   { key: 'jenis', label: 'Jenis Peraturan / Surat', type: 'select', options: JENIS, required: true, editableBy: (c) => !isPic(c) },
   { key: 'nomor', label: 'Nomor', type: 'text', required: true, editableBy: (c) => !isPic(c) },
   { key: 'tahun', label: 'Tahun', type: 'text', required: true, editableBy: (c) => !isPic(c) },
-  { key: 'regulator', label: 'Regulator / Penerbit', type: 'select', options: REGULATOR, required: true, editableBy: (c) => !isPic(c) },
+  { key: 'regulator', label: 'Regulator / Penerbit', type: 'select', options: (c) => c.master.regulator, required: true, editableBy: (c) => !isPic(c) },
   { key: 'tentang', label: 'Tentang', type: 'textarea', required: true, editableBy: (c) => !isPic(c) },
-  { key: 'kategori', label: 'Kategori (Perihal / Fitur)', type: 'select', options: KATEGORI, required: true, editableBy: (c) => !isPic(c) },
+  { key: 'kategori', label: 'Kategori (Perihal / Fitur)', type: 'select', options: (c) => c.master.kategoriRegulasi, required: true, editableBy: (c) => !isPic(c) },
   { key: 'jp', label: 'Jenis Perubahan', type: 'select', options: JP, required: true, editableBy: (c) => !isPic(c) },
   { key: 'status', label: 'Status Peraturan', type: 'select', options: STATUS, required: true, editableBy: (c) => !isPic(c) },
   { key: 'tglTerbit', label: 'Tanggal Terbit', type: 'date', required: true, editableBy: (c) => !isPic(c) },
@@ -59,7 +59,7 @@ const fields: Field<Reg>[] = [
   },
   { key: 'dampak', label: 'Tingkat Dampak bagi Paydia', type: 'select', options: DAMPAK, required: (r) => !!r.tglSosialisasi, help: 'Wajib dinilai sebelum Tanggal Sosialisasi diisi.', editableBy: (c) => !isPic(c) },
   { key: 'dampakUraian', label: 'Uraian Dampak', type: 'textarea', required: (r) => !!r.tglSosialisasi, editableBy: (c) => !isPic(c) },
-  { key: 'dept', label: 'Departemen Terdampak', type: 'multiselect', options: (c) => c.master.departemen, required: true, editableBy: (c) => !isPic(c) },
+  { key: 'dept', label: 'Unit Kerja Terdampak', type: 'multiselect', options: (c) => c.master.unitKerja, required: true, editableBy: (c) => !isPic(c) },
   { key: 'pemenuhan', label: 'Pemenuhan (%)', type: 'percent', help: 'Kosong = belum dinilai.', editableBy: (c) => !isPic(c) },
   { key: 'kepatuhan', label: 'Status Kepatuhan', type: 'text', auto: (r) => kep(r) },
   {
@@ -79,7 +79,7 @@ const fields: Field<Reg>[] = [
   {
     key: 'sopList', label: 'SOP / Kebijakan yang Harus Diperbarui', type: 'list', wide: true, help: 'Opsional; kosong tidak memblokir simpan. Gunakan aksi "+ SOP cepat" di tabel untuk SOP baru.',
     sub: [
-      { key: 'sop', label: 'SOP (No Dokumen - Judul - Departemen)', type: 'select', options: () => readModule<SopRec>('sop', seedSop).map(sopLabel), required: true },
+      { key: 'sop', label: 'SOP (No Dokumen - Judul - Unit Kerja)', type: 'select', options: () => readModule<SopRec>('sop', seedSop).map(sopLabel), required: true },
       { key: 'done', label: 'Sudah diperbarui?', type: 'yesno', required: true },
     ],
     editableBy: (c) => !isPic(c),
@@ -102,10 +102,10 @@ const columns: Column<Reg>[] = [
 const uniq = (rows: Reg[], g: (r: Reg) => string[]) => [...new Set(rows.flatMap(g).filter(Boolean))].sort()
 const filters: FilterDef<Reg>[] = [
   { key: 'periode', label: 'Periode (Tanggal Dicatat)', type: 'daterange', match: (r, v) => { const [a, b] = v as [string, string]; return (!a || r.tglDicatat >= a) && (!b || r.tglDicatat <= b) } },
-  { key: 'regulator', label: 'Regulator', type: 'select', options: REGULATOR, match: (r, v) => r.regulator === v },
+  { key: 'regulator', label: 'Regulator', type: 'select', options: (_, c) => c.master.regulator, match: (r, v) => r.regulator === v },
   { key: 'jp', label: 'Jenis Perubahan', type: 'select', options: JP, match: (r, v) => r.jp === v },
   { key: 'kepatuhan', label: 'Status Kepatuhan', type: 'select', options: KEP, match: (r, v) => kep(r) === v },
-  { key: 'dept', label: 'Departemen Terdampak', type: 'select', options: (_, c) => c.master.departemen, match: (r, v) => r.dept.includes(v as string) },
+  { key: 'dept', label: 'Unit Kerja Terdampak', type: 'select', options: (_, c) => c.master.unitKerja, match: (r, v) => r.dept.includes(v as string) },
   { key: 'pic', label: 'PIC Tindak Lanjut', type: 'select', options: (rows) => uniq(rows, (r) => r.tindak.map((t) => t.pic)), match: (r, v) => r.tindak.some((t) => t.pic === v) },
   { key: 'status', label: 'Status Peraturan', type: 'select', options: [...STATUS, 'Dibatalkan'], match: (r, v) => r.status === v },
 ]
@@ -218,7 +218,7 @@ function SopQuick({ r, add, close }: { r: Reg; add: (s: SopItem) => void; close:
   const [dept, setDept] = useState('')
   const [err, setErr] = useState('')
   const save = () => {
-    if (!no.trim() || !judul.trim() || !dept) return setErr('No Dokumen, Judul, dan Departemen wajib diisi.')
+    if (!no.trim() || !judul.trim() || !dept) return setErr('No Dokumen, Judul, dan Unit Kerja wajib diisi.')
     const s = addRecord<SopRec>('sop', {
       status: 'Dalam Review', noDok: no.trim(), judul: judul.trim(), ringkasan: '', pemilik: dept, tglBerlaku: '', tglUbah: ctx.today, noRevisi: 'Rev.1',
       retensi: '', klasifikasi: '', file: null, tglReview: '', pic: '', revisi: [],
@@ -231,7 +231,7 @@ function SopQuick({ r, add, close }: { r: Reg; add: (s: SopItem) => void; close:
       <div className="space-y-3">
         <div><label className="lbl">No Dokumen *</label><input className="inp" value={no} onChange={(e) => setNo(e.target.value)} /></div>
         <div><label className="lbl">Judul *</label><input className="inp" value={judul} onChange={(e) => setJudul(e.target.value)} /></div>
-        <div><label className="lbl">Departemen *</label><select className="inp" value={dept} onChange={(e) => setDept(e.target.value)}><option value="">Pilih...</option>{ctx.master.departemen.map((d) => <option key={d}>{d}</option>)}</select></div>
+        <div><label className="lbl">Unit Kerja *</label><select className="inp" value={dept} onChange={(e) => setDept(e.target.value)}><option value="">Pilih...</option>{ctx.master.unitKerja.map((d) => <option key={d}>{d}</option>)}</select></div>
         <p className="text-xs text-slate-400">SOP dibuat dengan status Dalam Review dan ditambahkan ke daftar SOP peraturan ini.</p>
         {err && <p className="err">{err}</p>}
       </div>
@@ -270,7 +270,7 @@ const cfg: PageConfig<Reg> = {
     const edges = [10, 20]
     const un = rows.filter(unrated)
     const age = (r: Reg) => diffDays(c.today, r.tglDicatat)
-    const lateByDept = c.master.departemen.map((d) => ({ name: d, Terlambat: rows.filter((r) => r.dept.includes(d)).reduce((a, r) => a + lateTindak(r, c.today).length, 0) }))
+    const lateByDept = c.master.unitKerja.map((d) => ({ name: d, Terlambat: rows.filter((r) => r.dept.includes(d)).reduce((a, r) => a + lateTindak(r, c.today).length, 0) }))
     const soon = rows.filter((r) => r.tglBerlaku && r.tglBerlaku >= c.today && diffDays(r.tglBerlaku, c.today) <= 90).map((r) => ({ r, tgl: r.tglBerlaku, jenis: 'Berlaku', d: diffDays(r.tglBerlaku, c.today) }))
     const reply = rows.filter(needReply).map((r) => ({ r, tgl: r.jawabBatas, jenis: 'Jawab imbauan', d: diffDays(r.jawabBatas, c.today) }))
     const agenda = [...soon, ...reply].sort((a, b) => a.tgl.localeCompare(b.tgl))
@@ -278,16 +278,16 @@ const cfg: PageConfig<Reg> = {
     return (
       <div className="space-y-3">
         <div className="grid gap-3 lg:grid-cols-2">
-          <BarCard title="Peraturan per regulator dan jenis perubahan" stacked data={REGULATOR.map((g) => ({ name: g, ...Object.fromEntries(JP.map((j) => [j, rows.filter((r) => r.regulator === g && r.jp === j).length])) }))} keys={JP} colors={['#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6']} onClick={(row) => drill({ regulator: row.name })} />
+          <BarCard title="Peraturan per regulator dan jenis perubahan" stacked data={c.master.regulator.map((g) => ({ name: g, ...Object.fromEntries(JP.map((j) => [j, rows.filter((r) => r.regulator === g && r.jp === j).length])) }))} keys={JP} colors={['#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6']} onClick={(row) => drill({ regulator: row.name })} />
           <LineCard title="Tren peraturan baru dan perubahan per bulan" data={mons.map((m) => ({ name: m, Baru: rows.filter((r) => r.tglDicatat.startsWith(m) && r.jp === 'Baru').length, Perubahan: rows.filter((r) => r.tglDicatat.startsWith(m) && r.jp === 'Perubahan').length }))} keys={['Baru', 'Perubahan']} colors={['#3b82f6', '#f59e0b']} />
           <DonutCard title="Status kepatuhan" data={KEP.map((k) => ({ name: k, value: n(k), color: KEP_COLOR[k] }))} onClick={(name) => drill({ kepatuhan: name })} />
-          <BarCard title="Rata-rata pemenuhan per kategori (%)" data={KATEGORI.map((k) => { const x = rated.filter((r) => r.kategori === k); return { name: k, Pemenuhan: x.length ? Math.round(x.reduce((a, r) => a + Number(r.pemenuhan), 0) / x.length) : 0 } })} keys={['Pemenuhan']} />
+          <BarCard title="Rata-rata pemenuhan per kategori (%)" data={c.master.kategoriRegulasi.map((k) => { const x = rated.filter((r) => r.kategori === k); return { name: k, Pemenuhan: x.length ? Math.round(x.reduce((a, r) => a + Number(r.pemenuhan), 0) / x.length) : 0 } })} keys={['Pemenuhan']} />
           <div className="space-y-3">
             <BarCard title="Belum dinilai menurut lama sejak dicatat (hari)" data={ageBuckets(edges).map((b) => ({ name: b, Jumlah: un.filter((r) => ageBucket(age(r), edges) === b).length }))} keys={['Jumlah']} colors={['#f59e0b']} />
             <MiniTable title="Peraturan belum dinilai" rows={un} onRow={(r) => open(r.id)} empty="Semua sudah dinilai"
               cols={[{ label: 'No', get: (r) => r.no }, { label: 'Peraturan', get: label }, { label: 'Dicatat', get: (r) => fmtDate(r.tglDicatat) }, { label: 'Umur (hari)', get: (r) => age(r) }]} />
           </div>
-          <BarCard title="Tindak lanjut lewat batas per departemen" horizontal data={lateByDept} keys={['Terlambat']} colors={['#ef4444']} onClick={(row) => drill({ dept: row.name })} />
+          <BarCard title="Tindak lanjut lewat batas per unit kerja" horizontal data={lateByDept} keys={['Terlambat']} colors={['#ef4444']} onClick={(row) => drill({ dept: row.name })} />
         </div>
         <MiniTable title="Berlaku dalam 90 hari dan imbauan perlu dijawab" rows={agenda} onRow={(x) => open(x.r.id)} empty="Tidak ada agenda"
           cols={[

@@ -5,7 +5,7 @@ import { ageBuckets, ageBucket, workDaysBetween } from '../kit/dates'
 import { StatusPill } from '../kit/fmt'
 import type { AlertDef, BaseRec, Column, Ctx, Field, FilterDef, PageConfig } from '../kit/types'
 
-// Halaman referensi untuk page kit: SLA, hari kerja, Departemen master, alert, saved filter, export, import.
+// Halaman referensi untuk page kit: SLA, hari kerja, Unit Kerja master, alert, saved filter, export, import.
 interface Layanan extends BaseRec {
   dept: string; jenis: string; tglMasuk: string; sla: number | ''; pic: string; prioritas: string
   tglSelesai: string; memo: string
@@ -18,7 +18,7 @@ const lateDays = (r: Layanan, today: string) => (OPEN(r) && batas(r) ? Math.max(
 const age = (r: Layanan, today: string) => diffDays(today, r.tglMasuk)
 
 const fields: Field<Layanan>[] = [
-  { key: 'dept', label: 'Departemen Pemohon', type: 'select', options: (c) => c.master.departemen, required: true },
+  { key: 'dept', label: 'Unit Kerja Pemohon', type: 'select', options: (c) => c.master.unitKerja, required: true },
   { key: 'jenis', label: 'Jenis', type: 'select', options: JENIS, required: true },
   { key: 'tglMasuk', label: 'Tanggal Masuk', type: 'date', required: true, reasonOnChange: true, help: 'Mengubah Tanggal Masuk menggeser batas waktu; wajib disertai alasan.' },
   { key: 'sla', label: 'SLA (hari kalender)', type: 'number', required: true, reasonOnChange: true, help: 'Mengubah SLA (batas waktu) wajib disertai alasan.' },
@@ -31,7 +31,7 @@ const fields: Field<Layanan>[] = [
 ]
 const columns: Column<Layanan>[] = [
   { label: 'No', get: (r) => r.no },
-  { label: 'Departemen', get: (r) => r.dept },
+  { label: 'Unit Kerja', get: (r) => r.dept },
   { label: 'Jenis', get: (r) => r.jenis },
   { label: 'Tgl Masuk', get: (r) => r.tglMasuk, render: (r) => fmtDate(r.tglMasuk) },
   { label: 'Batas', get: (r) => batas(r), render: (r) => fmtDate(batas(r)) },
@@ -44,7 +44,7 @@ const filters: FilterDef<Layanan>[] = [
   { key: 'periode', label: 'Periode (Tanggal Masuk)', type: 'daterange', match: (r, v) => { const [a, b] = v as [string, string]; return (!a || r.tglMasuk >= a) && (!b || r.tglMasuk <= b) } },
   { key: 'status', label: 'Status', type: 'select', options: ['Baru', 'Proses', 'Selesai', 'Batal', 'Dibatalkan'], match: (r, v) => r.status === v },
   { key: 'pic', label: 'PIC', type: 'select', options: (rows) => uniq(rows, (r) => r.pic), match: (r, v) => r.pic === v },
-  { key: 'dept', label: 'Departemen', type: 'select', options: (_, c) => c.master.departemen, match: (r, v) => r.dept === v },
+  { key: 'dept', label: 'Unit Kerja', type: 'select', options: (_, c) => c.master.unitKerja, match: (r, v) => r.dept === v },
   { key: 'jenis', label: 'Jenis', type: 'select', options: JENIS, match: (r, v) => r.jenis === v },
   { key: 'prioritas', label: 'Prioritas', type: 'select', options: PRIO, match: (r, v) => r.prioritas === v },
 ]
@@ -100,7 +100,7 @@ const cfg: PageConfig<Layanan> = {
   module: 'layanan', title: 'Permintaan Layanan Hukum', noun: 'Permintaan', exportPrefix: 'Permintaan_Layanan_Hukum',
   seed, fields, columns, filters,
   blank: () => ({ dept: '', jenis: '', tglMasuk: '', sla: '', status: 'Baru', pic: '', prioritas: '', tglSelesai: '', memo: '' }),
-  search: (r) => `${r.no} ${r.dept} ${r.jenis}`, searchPlaceholder: 'Cari nomor, departemen, jenis',
+  search: (r) => `${r.no} ${r.dept} ${r.jenis}`, searchPlaceholder: 'Cari nomor, unit kerja, jenis',
   alerts, cancelStatus: 'Dibatalkan',
   canEditRow: (r) => r.status !== 'Selesai' && r.status !== 'Batal',
   validate: (r) => {
@@ -128,7 +128,7 @@ const cfg: PageConfig<Layanan> = {
         <div className="grid gap-3 lg:grid-cols-2">
           <DonutCard title="Permintaan per jenis" data={JENIS.map((j) => ({ name: j, value: rows.filter((r) => r.jenis === j).length }))} onClick={(name) => drill({ jenis: name })} />
           <BarCard title="Belum selesai menurut umur (hari)" data={umur} keys={['Jumlah']} cellColors={['#f59e0b', '#f59e0b', '#ef4444']} />
-          <BarCard title="Permintaan per departemen" horizontal data={c.master.departemen.map((d) => ({ name: d, Jumlah: rows.filter((r) => r.dept === d).length }))} keys={['Jumlah']} onClick={(row) => drill({ dept: row.name })} />
+          <BarCard title="Permintaan per unit kerja" horizontal data={c.master.unitKerja.map((d) => ({ name: d, Jumlah: rows.filter((r) => r.dept === d).length }))} keys={['Jumlah']} onClick={(row) => drill({ dept: row.name })} />
           <BarCard title="Rata-rata lama selesai per jenis (hari)" data={JENIS.map((j) => { const x = done.filter((r) => r.jenis === j); return { name: j, Hari: x.length ? Math.round(x.reduce((a, r) => a + diffDays(r.tglSelesai, r.tglMasuk), 0) / x.length) : 0 } })} keys={['Hari']} />
         </div>
       </div>

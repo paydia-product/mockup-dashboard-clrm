@@ -10,7 +10,9 @@ Ringkasan aturan yang berlaku untuk semua halaman. Detail halaman dan kontrak ki
 5. Simulasi notifikasi berupa modal email. Maksimal 3 email per jenis alert, lalu satu contoh statis berlabel.
 6. Upload memakai `FileField`: PDF, JPG, JPEG, PNG, maksimal 25 MB, tepat 1 file, hanya metadata.
 7. Nomor data berupa angka urut biasa, terisi otomatis, tidak ada di form.
-8. PIC berupa teks bebas. Departemen dari Master Data.
+8. PIC berupa teks bebas. Unit Kerja dari Master Data.
+8a. Master Data punya 8 list: Laporan, Regulator, Kategori Regulasi, Unit Kerja, Produk, Mitra, Kategori Pelapor, Media Pelapor. Tambah dan Edit lewat modal dengan field Nama (2 sampai 255 karakter, huruf/angka/spasi, unik tanpa beda huruf besar). Hapus lewat modal konfirmasi. Semua aksi masuk Log.
+8b. Select yang punya opsi "Lainnya" menampilkan teks wajib. Teks itu yang disimpan sebagai nilai. Saat ubah, nilai di luar opsi dipilih sebagai Lainnya dan teks terisi.
 9. Export Excel berisi baris hasil filter dan cari, nama file `<Prefix>_YYYY-MM-DD.xlsx`, dicatat di Log.
 10. Pagination 10, 25, 50. Teks "x sampai y dari z data". Sort per kolom.
 11. Tiap visual dalam kartu sendiri.

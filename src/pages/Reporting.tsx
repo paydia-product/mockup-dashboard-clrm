@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { withLainnya } from '../kit/Lainnya'
 import { useDashPaged } from '../shared/Pager'
 import { addDays, diffDays, fmtDate, fmtTime } from '../lib'
 import PageShell from '../kit/PageShell'
@@ -34,8 +35,8 @@ const dur = (ms: number) => { const m = Math.round(Math.abs(ms) / 60000); return
 // Spec: PIC dan CO hanya mengubah status, tanggal submit, bukti, dan alasan terlambat; Super Admin semua kolom.
 const full = (c: Ctx) => c.role === 'Super Admin'
 const fields: Field<Laporan>[] = [
-  { key: 'nama', label: 'Nama Laporan', type: 'text', required: true, help: 'Teks bebas. Contoh: Pelaporan Dana Floating, Laporan RBSP, SiPesat, LTKM, LTKT, Laporan Insiden Siber.', editableBy: full },
-  { key: 'regulator', label: 'Regulator', type: 'select', options: REG, required: true, editableBy: full },
+  { key: 'nama', label: 'Nama Laporan', type: 'select', options: (c) => withLainnya(c.master.laporan), required: true, editableBy: full },
+  { key: 'regulator', label: 'Regulator', type: 'select', options: (c) => c.master.regulator, required: true, editableBy: full },
   { key: 'jenis', label: 'Jenis Periode', type: 'select', options: JENIS, required: true, editableBy: full },
   { key: 'siber', label: 'Laporan Insiden Siber?', type: 'yesno', showIf: (r) => r.jenis === 'Insidental', help: 'Jam berjalan insiden siber dihitung dari waktu kejadian.', editableBy: full },
   { key: 'waktuKejadian', label: 'Waktu Kejadian', type: 'datetime', required: (r) => r.jenis === 'Insidental', showIf: (r) => r.jenis === 'Insidental', editableBy: full },
@@ -68,7 +69,7 @@ const filters: FilterDef<Laporan>[] = [
   { key: 'periode', label: 'Periode (Batas Waktu)', type: 'daterange', match: (r, v) => { const [a, b] = v as [string, string]; return (!a || dOf(r.batas) >= a) && (!b || dOf(r.batas) <= b) } },
   { key: 'jenis', label: 'Jenis Periode', type: 'select', options: JENIS, match: (r, v) => r.jenis === v },
   { key: 'status', label: 'Status', type: 'select', options: [...STATUS, 'Terlambat', 'Dibatalkan'], match: (r, v) => r.status === v },
-  { key: 'regulator', label: 'Regulator', type: 'select', options: REG, match: (r, v) => r.regulator === v },
+  { key: 'regulator', label: 'Regulator', type: 'select', options: (_, c) => c.master.regulator, match: (r, v) => r.regulator === v },
   { key: 'pic', label: 'PIC', type: 'select', options: (rows) => picOpts(rows), match: (r, v) => r.picPenyusun === v || r.picReviewer === v },
 ]
 
@@ -224,7 +225,7 @@ const cfg: PageConfig<Laporan> = {
     const pct = (xs: Laporan[]) => { const s = xs.filter((r) => SENT(r) && r.tglSubmit); const ok = s.filter((r) => !lateBy(r)).length; return { 'Tepat Waktu (%)': s.length ? Math.round((ok / s.length) * 100) : 0, ok, total: s.length } }
     const tepatData = [
       ...JENIS.map((j) => ({ name: `Jenis: ${j}`, ...pct(rows.filter((r) => r.jenis === j)) })),
-      ...REG.map((g) => ({ name: `Regulator: ${g}`, ...pct(rows.filter((r) => r.regulator === g)) })),
+      ...[...new Set([...REG, ...rows.map((r) => r.regulator)])].map((g) => ({ name: `Regulator: ${g}`, ...pct(rows.filter((r) => r.regulator === g)) })),
     ]
     const tepatColors = tepatData.map((d) => (d.name.startsWith('Jenis') ? '#3b82f6' : '#10b981'))
     const beban = JENIS.map((j) => {

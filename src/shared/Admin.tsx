@@ -9,7 +9,7 @@ import { usePaged } from './Pager'
 
 function AccountForm({ init, onClose }: { init: Account | null; onClose: () => void }) {
   const { store, log } = useApp()
-  const [a, setA] = useState<Account>(init ?? { id: '', name: '', email: '', role: 'Viewer', departemen: store.master.departemen[0] ?? '', status: 'Aktif', lastLogin: '', password: DEFAULT_PASSWORD, pin: DEFAULT_PIN })
+  const [a, setA] = useState<Account>(init ?? { id: '', name: '', email: '', role: 'Viewer', departemen: store.master.unitKerja[0] ?? '', status: 'Aktif', lastLogin: '', password: DEFAULT_PASSWORD, pin: DEFAULT_PIN })
   const [err, setErr] = useState('')
   const save = () => {
     if (!a.name.trim() || !/^\S+@\S+\.\S+$/.test(a.email)) return setErr('Nama dan email yang valid wajib diisi')
@@ -26,7 +26,7 @@ function AccountForm({ init, onClose }: { init: Account | null; onClose: () => v
         <div><label className="lbl">Nama *</label><input className="inp" value={a.name} onChange={(e) => set('name', e.target.value)} /></div>
         <div><label className="lbl">Email *</label><input className="inp" value={a.email} onChange={(e) => set('email', e.target.value)} /></div>
         <div><label className="lbl">Peran *</label><select className="inp" value={a.role} onChange={(e) => set('role', e.target.value)}>{ROLES.map((r) => <option key={r}>{r}</option>)}</select></div>
-        <div><label className="lbl">Departemen *</label><select className="inp" value={a.departemen} onChange={(e) => set('departemen', e.target.value)}>{store.master.departemen.map((d) => <option key={d}>{d}</option>)}</select></div>
+        <div><label className="lbl">Unit Kerja *</label><select className="inp" value={a.departemen} onChange={(e) => set('departemen', e.target.value)}>{(store.master.unitKerja.includes(a.departemen) || !a.departemen ? store.master.unitKerja : [...store.master.unitKerja, a.departemen]).map((d) => <option key={d}>{d}</option>)}</select></div>
         <div><label className="lbl">Status</label><select className="inp" value={a.status} onChange={(e) => set('status', e.target.value)}><option>Aktif</option><option>Nonaktif</option></select></div>
         {!init && <p className="text-xs text-slate-400">Password awal {DEFAULT_PASSWORD}, PIN awal {DEFAULT_PIN}.</p>}
         {err && <p className="err">{err}</p>}
@@ -56,7 +56,7 @@ export function Akun() {
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-left">
-          <thead className="bg-slate-100 text-xs text-slate-600"><tr>{['Nama', 'Email', 'Peran', 'Departemen', 'Status', 'Terakhir Login', 'Aksi'].map((h) => <th key={h} className="whitespace-nowrap px-3 py-2.5 font-semibold">{h}</th>)}</tr></thead>
+          <thead className="bg-slate-100 text-xs text-slate-600"><tr>{['Nama', 'Email', 'Peran', 'Unit Kerja', 'Status', 'Terakhir Login', 'Aksi'].map((h) => <th key={h} className="whitespace-nowrap px-3 py-2.5 font-semibold">{h}</th>)}</tr></thead>
           <tbody>
             {slice.map((a) => (
               <tr key={a.id} className="border-t">

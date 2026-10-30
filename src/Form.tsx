@@ -1,5 +1,7 @@
 import { useState } from 'react'
-import { AREAS, Finding, REGULATORS, RISKS, ROOT_TYPES, UNITS, fmtDate } from './lib'
+import { Finding, RISKS, ROOT_TYPES, fmtDate } from './lib'
+import { useApp } from './kit/store'
+import { OTHER_ERR, SelectOther } from './kit/Lainnya'
 import { FileField, Modal } from './ui'
 
 type Errs = Partial<Record<string, string>>
@@ -23,6 +25,10 @@ export function validate(f: Finding, alasan = '', needAlasan = false): Errs {
 const Sum = ({ l, children }: { l: string; children: React.ReactNode }) => <div><div className="text-xs text-slate-400">{l}</div><div className="text-slate-800">{children}</div></div>
 
 export default function Form({ init, mode, prevReason = null, onSave, onClose }: { init: Finding; mode: 'add' | 'edit'; prevReason?: { alasan: string; tgl: string } | null; onSave: (f: Finding, alasan: string) => void; onClose: () => void }) {
+  const { store } = useApp()
+  const { regulator, kategoriRegulasi, unitKerja } = store.master
+  const [pending, setPending] = useState<Record<string, boolean>>({})
+  const pend = (k: string) => (b: boolean) => setPending((p) => (!!p[k] === b ? p : { ...p, [k]: b }))
   const [f, setF] = useState<Finding>(init)
   const [alasan, setAlasan] = useState(prevReason?.alasan ?? '')
   const [errs, setErrs] = useState<Errs>({})
@@ -32,9 +38,7 @@ export default function Form({ init, mode, prevReason = null, onSave, onClose }:
   const sel = (k: keyof Finding, label: string, opts: string[]) => (
     <div>
       <label className="lbl">{label} *</label>
-      <select className="inp" value={String(f[k])} onChange={(e) => set(k, e.target.value as never)}>
-        <option value="">Pilih...</option>{opts.map((o) => <option key={o}>{o}</option>)}
-      </select>
+      <SelectOther value={f[k]} options={opts} set={(v) => set(k, v as never)} onPending={pend(k)} />
       {errs[k] && <p className="err">{errs[k]}</p>}
     </div>
   )
@@ -47,6 +51,7 @@ export default function Form({ init, mode, prevReason = null, onSave, onClose }:
   )
   const submit = () => {
     const e = validate(f, alasan, dueChanged)
+    for (const [k, b] of Object.entries(pending)) if (b) e[k] = OTHER_ERR
     if (dueChanged && !e.alasan && prevReason && alasan.trim() === prevReason.alasan.trim()) e.alasan = 'Isi alasan baru untuk perubahan Batas Waktu'
     setErrs(e)
     if (!Object.keys(e).length) onSave(f, dueChanged ? alasan.trim() : '')
@@ -108,9 +113,9 @@ export default function Form({ init, mode, prevReason = null, onSave, onClose }:
       ) : (
         <>
           <div className="grid gap-3 sm:grid-cols-2">
-            {sel('regulator', 'Regulator', REGULATORS)}
+            {sel('regulator', 'Regulator', regulator)}
             {date('tglTemuan', 'Tanggal Temuan')}
-            {sel('area', 'Area Temuan', AREAS)}
+            {sel('area', 'Area Temuan', kategoriRegulasi)}
             <div className="sm:col-span-2 grid gap-3 sm:grid-cols-[1fr_180px]">
               <div><label className="lbl">Penyebab Utama (Root Cause) *</label><input className="inp" value={f.rootCause} onChange={(e) => set('rootCause', e.target.value)} />{errs.rootCause && <p className="err">{errs.rootCause}</p>}</div>
               {sel('rootType', 'Jenis Penyebab', ROOT_TYPES)}
@@ -122,7 +127,7 @@ export default function Form({ init, mode, prevReason = null, onSave, onClose }:
             </div>
             {date('dueDate', 'Batas Waktu (Due Date)')}
             {statusField(ADD_STATUS)}
-            {sel('unit', 'Unit Kerja', UNITS)}
+            {sel('unit', 'Unit Kerja', unitKerja)}
             {sel('risiko', 'Tingkat Risiko', [...RISKS])}
           </div>
           {files}

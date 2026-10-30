@@ -41,7 +41,7 @@ const fields: Field<Risk>[] = [
   { key: 'level', label: 'Level Risiko Awal (Inherent)', type: 'text', auto: (r) => level(r) },
   { key: 'respon', label: 'Respon', type: 'select', options: RESPON, required: true },
   { key: 'kontrol', label: 'Kontrol / Mitigasi', type: 'textarea', required: true, wide: true },
-  { key: 'dept', label: 'Unit Pemilik Risiko (Departemen)', type: 'select', options: (c) => c.master.departemen, required: true },
+  { key: 'dept', label: 'Unit Pemilik Risiko (Unit Kerja)', type: 'select', options: (c) => c.master.unitKerja, required: true },
   { key: 'tglRegister', label: 'Tanggal Register', type: 'date', required: true },
   { key: 'produk', label: 'Produk', type: 'select', options: (c) => c.master.produk },
   { key: 'vendor', label: 'Vendor / Mitra', type: 'text' },
@@ -56,7 +56,7 @@ const columns: Column<Risk>[] = [
   { label: 'Skor', get: (r) => skor(r) },
   { label: 'Level', get: (r) => level(r), render: (r) => <StatusPill s={level(r)} tone={LV_TONE[level(r)]} /> },
   { label: 'Posisi RAS-RT', get: (r) => rasrt(r), render: (r) => <StatusPill s={rasrt(r)} tone={RAS_TONE[rasrt(r)]} /> },
-  { label: 'Departemen', get: (r) => r.dept },
+  { label: 'Unit Kerja', get: (r) => r.dept },
   { label: 'Respon', get: (r) => r.respon },
 ]
 const uniq = (rows: Risk[], g: (r: Risk) => string) => [...new Set(rows.map(g).filter(Boolean))].sort()
@@ -64,7 +64,7 @@ const filters: FilterDef<Risk>[] = [
   { key: 'periode', label: 'Periode Register', type: 'daterange', match: (r, v) => { const [a, b] = v as [string, string]; return (!a || r.tglRegister >= a) && (!b || r.tglRegister <= b) } },
   { key: 'domain', label: 'Domain', type: 'select', options: DOMAINS, match: (r, v) => r.domain === v },
   { key: 'level', label: 'Level', type: 'select', options: LEVELS, match: (r, v) => level(r) === v },
-  { key: 'dept', label: 'Departemen', type: 'select', options: (_, c) => c.master.departemen, match: (r, v) => r.dept === v },
+  { key: 'dept', label: 'Unit Kerja', type: 'select', options: (_, c) => c.master.unitKerja, match: (r, v) => r.dept === v },
   { key: 'respon', label: 'Respon', type: 'select', options: RESPON, match: (r, v) => r.respon === v },
   { key: 'produk', label: 'Produk', type: 'select', options: (_, c) => c.master.produk, match: (r, v) => r.produk === v },
   { key: 'vendor', label: 'Vendor / Mitra', type: 'select', options: (rows) => uniq(rows, (r) => r.vendor), match: (r, v) => r.vendor === v },
@@ -143,7 +143,7 @@ function Heatmap({ rows, open }: { rows: Risk[]; open: (id: string) => void }) {
       </div>
       {sel && (
         <MiniTable className="mt-3" title={`Risiko: Dampak ${sel[0]}, Kemungkinan ${sel[1]} (${list.length})`} rows={list} onRow={(r) => open(r.id)}
-          cols={[{ label: 'No', get: (r) => r.no }, { label: 'Risk Event', get: (r) => r.event }, { label: 'Domain', get: (r) => r.domain }, { label: 'Departemen', get: (r) => r.dept }]} />
+          cols={[{ label: 'No', get: (r) => r.no }, { label: 'Risk Event', get: (r) => r.event }, { label: 'Domain', get: (r) => r.domain }, { label: 'Unit Kerja', get: (r) => r.dept }]} />
       )}
       {!sel && <div className="mt-3 text-xs text-slate-400">Klik kotak untuk melihat daftar risiko.</div>}
     </Card>
@@ -155,7 +155,7 @@ const cfg: PageConfig<Risk> = {
   seed, fields, columns, filters, alerts, cancelStatus: 'Dibatalkan',
   blank: () => ({ konteks: '', event: '', domain: '', dampak: '', kemungkinan: '', respon: '', kontrol: '', dept: '', tglRegister: '', produk: '', vendor: '', levelAt: '', status: 'Aktif' }),
   search: (r) => `${r.no} ${r.event} ${r.kontrol}`, searchPlaceholder: 'Cari nomor, risk event, kontrol',
-  canEditRow: (r, c) => c.role !== 'PIC' || r.dept === c.user.departemen, // PIC hanya risiko departemennya
+  canEditRow: (r, c) => c.role !== 'PIC' || r.dept === c.user.departemen, // PIC hanya risiko unit kerjanya
   normalize: (r) => ({ ...r, dampak: r.dampak === '' ? '' : Number(r.dampak), kemungkinan: r.kemungkinan === '' ? '' : Number(r.kemungkinan) }),
   beforeSave: (old, next, c) => (!old || RANK[level(next)] > (RANK[level(old)] ?? 0) ? { ...next, levelAt: c.today } : next),
   approvals: [{
@@ -177,7 +177,7 @@ const cfg: PageConfig<Risk> = {
         <Heatmap rows={rows} open={open} />
         <div className="grid gap-3 lg:grid-cols-2">
           <BarCard title="Risiko per domain menurut level" stacked data={DOMAINS.map((d) => ({ name: d, High: rows.filter((r) => r.domain === d && level(r) === 'High').length, Medium: rows.filter((r) => r.domain === d && level(r) === 'Medium').length, Low: rows.filter((r) => r.domain === d && level(r) === 'Low').length }))} keys={LEVELS} colors={{ High: TONE_HEX.red, Medium: TONE_HEX.yellow, Low: TONE_HEX.green }} onClick={(row) => drill({ domain: row.name })} />
-          <BarCard title="Risiko per departemen pemilik" horizontal data={depts.map((d) => ({ name: d, Jumlah: rows.filter((r) => r.dept === d).length })).sort((a, b) => b.Jumlah - a.Jumlah)} keys={['Jumlah']} onClick={(row) => drill({ dept: row.name })} />
+          <BarCard title="Risiko per unit kerja pemilik" horizontal data={depts.map((d) => ({ name: d, Jumlah: rows.filter((r) => r.dept === d).length })).sort((a, b) => b.Jumlah - a.Jumlah)} keys={['Jumlah']} onClick={(row) => drill({ dept: row.name })} />
           <BarCard title="Perlu Perhatian dan Melewati Batas (RAS-RT) per domain" stacked className="lg:col-span-2" data={DOMAINS.map((d) => ({ name: d, 'Perlu Perhatian': rows.filter((r) => r.domain === d && rasrt(r) === 'Perlu Perhatian').length, 'Melewati Batas': rows.filter((r) => r.domain === d && rasrt(r) === 'Melewati Batas').length }))} keys={['Perlu Perhatian', 'Melewati Batas']} colors={{ 'Perlu Perhatian': TONE_HEX.yellow, 'Melewati Batas': TONE_HEX.red }} />
         </div>
       </div>

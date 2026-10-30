@@ -11,9 +11,24 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
-    v: '2.5.1',
+    v: '2.6.0',
     date: '2026-10-30',
     deployed: true,
+    title: 'Master Data baru dan opsi Lainnya',
+    prompt: 'Master data: tabel utuh, modal tambah/edit dengan validasi, edit dan hapus, 8 master baru; opsi Lainnya memunculkan field teks',
+    tokens: 200000,
+    changes: [
+      'Master Data: Laporan, Regulator, Kategori Regulasi, Unit Kerja, Produk, Mitra, Kategori Pelapor, Media Pelapor',
+      'Tabel master selebar halaman; tambah dan edit lewat modal; validasi wajib, 2 sampai 255 karakter, hanya huruf, angka, spasi, tidak boleh duplikat',
+      'Kolom Aksi master: Edit dan Hapus (dengan konfirmasi)',
+      'Label Departemen jadi Unit Kerja di semua halaman',
+      'Dropdown dengan opsi Lainnya memunculkan field teks wajib',
+    ],
+  },
+  {
+    v: '2.5.1',
+    date: '2026-10-30',
+    deployed: false,
     title: 'Aturan kalender dan tabel dashboard diseragamkan',
     prompt: 'Kalender mode hari tanpa warna biru; tabel jatuh tempo fixed 5 data tanpa Baris per halaman; samakan di halaman lain',
     tokens: 25000,

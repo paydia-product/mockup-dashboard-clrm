@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import * as XLSX from 'xlsx'
 import { Bell, ChevronDown, ChevronUp, Download, Eye, History, Pencil, Plus, RotateCcw, Save, Search, SlidersHorizontal, Trash2, Upload, XCircle } from 'lucide-react'
 import {
-  Audit, DB, EMPTY_FILTER, Filter, Finding, REGULATORS, AlertInfo, RISKS, ROLE_USER, Role, STATUSES, UNITS, alertsFor, applyFilter,
+  Audit, DB, EMPTY_FILTER, Filter, Finding, AlertInfo, RISKS, ROLE_USER, Role, STATUSES, alertsFor, applyFilter,
   addDays, diffDays, fmtDate, fmtTime, isPendingReq, lastDueReason, nowStr, todayStr,
 } from './lib'
 import { getStore, setStore, useApp } from './kit/store'
@@ -22,7 +22,7 @@ const COLS: { k: SortKey; l: string }[] = [
 type Pending = { kind: 'add' } | { kind: 'edit'; id: string } | { kind: 'reason'; title: string; danger?: boolean; run: (r: string) => void } | { kind: 'sim' } | { kind: 'import' } | null
 
 export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb: React.Dispatch<React.SetStateAction<DB>>; role: Role; user: { name: string }; can: (a: Action) => boolean }) {
-  const { log: appLog } = useApp()
+  const { log: appLog, store: appStore } = useApp()
   const [tab, setTab] = useState<'table' | 'dashboard'>('dashboard')
   const [filter, setFilter] = useState<Filter>(EMPTY_FILTER)
   const [showFilters, setShowFilters] = useState(false)
@@ -201,8 +201,8 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
                         <div className="flex items-center gap-2"><input type="date" className="inp" value={draft.from} onChange={(e) => setDraft({ ...draft, from: e.target.value })} /><span>-</span><input type="date" className="inp" value={draft.to} onChange={(e) => setDraft({ ...draft, to: e.target.value })} /></div></div>
                       <div><label className="lbl">Status</label>{sel('status', STATUSES.map((x) => [x, x]), 'Pilih Status')}</div>
                       <div><label className="lbl">PIC</label>{sel('pic', [...new Set(db.findings.map((x) => x.pic))].sort().map((n) => [n, n]), 'Pilih PIC')}</div>
-                      <div><label className="lbl">Unit Kerja</label>{sel('unit', UNITS.map((x) => [x, x]), 'Pilih Unit Kerja')}</div>
-                      <div><label className="lbl">Regulator</label>{sel('regulator', REGULATORS.map((x) => [x, x]), 'Pilih Regulator')}</div>
+                      <div><label className="lbl">Unit Kerja</label>{sel('unit', appStore.master.unitKerja.map((x) => [x, x]), 'Pilih Unit Kerja')}</div>
+                      <div><label className="lbl">Regulator</label>{sel('regulator', appStore.master.regulator.map((x) => [x, x]), 'Pilih Regulator')}</div>
                       <div><label className="lbl">Tingkat Risiko</label>{sel('risiko', RISKS.map((x) => [x, x]), 'Pilih Tingkat Risiko')}</div>
                     </div>
                     <div className="mt-4 border-t pt-3">

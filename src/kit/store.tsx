@@ -1,5 +1,5 @@
 import { ReactNode, useMemo, useSyncExternalStore } from 'react'
-import { nowStr, todayStr } from '../lib'
+import { AREAS, UNITS, nowStr, todayStr } from '../lib'
 import { fmtValue } from './fmt'
 import { DEFAULT_PERMS, MODULE_LABEL, can as canPerm } from './perms'
 import type { Account, Action, ApprovalReq, ApprovalRule, BaseRec, Ctx, LogEntry, ModuleApi, ModuleId, NewRec, PageConfig, PermKey, Role, Session, Store } from './types'
@@ -16,18 +16,32 @@ const acc = (n: number, name: string, role: Role, departemen: string, email?: st
 const ACCOUNTS: Account[] = [
   acc(1, 'Super Admin', 'Super Admin', 'IT', 'admin@paydia.id'), acc(2, 'Dewi Anggraini', 'Head CLRM', 'Compliance'), acc(3, 'Rina Kartika', 'Compliance Officer', 'Compliance'),
   acc(4, 'Arief Nugraha', 'Compliance Officer', 'Compliance'), acc(5, 'Rudi Hartono', 'Risk Officer', 'Compliance'), acc(6, 'Lina Marlina', 'Legal Officer', 'Compliance'),
-  acc(7, 'Fajar Ramadhan', 'Fraud Investigator', 'Operations'), acc(8, 'Yusuf Hakim', 'Ketua SMKI', 'IT'), acc(9, 'Bima Pratama', 'PIC', 'Business'), acc(10, 'Tono Santoso', 'Viewer', 'Finance'),
+  acc(7, 'Fajar Ramadhan', 'Fraud Investigator', 'Operation'), acc(8, 'Yusuf Hakim', 'Ketua SMKI', 'IT'), acc(9, 'Bima Pratama', 'PIC', 'Business'), acc(10, 'Tono Santoso', 'Viewer', 'Finance, Accounting, Tax & Treasury'),
 ]
 const defaults = (): Store => ({
   modules: {}, saved: {}, approvals: [], log: [], accounts: ACCOUNTS, perms: DEFAULT_PERMS, seq: {},
   master: {
-    departemen: ['IT', 'Business', 'Operations', 'Finance', 'Compliance', 'Support'], produk: ['UE', 'QRIS', 'Biller'],
-    pihakPelapor: ['Konsumen', 'Merchant', 'Bank Mitra', 'Switching', 'Kepolisian', 'Bank Indonesia', 'Internal'],
+    laporan: ['Pelaporan Dana Floating', 'Laporan RBSP', 'SiPesat', 'LTKT', 'LTKM', 'Laporan Transaksi Harian', 'Laporan Fraud Mingguan', 'Laporan Tahunan Perlindungan Konsumen', 'Laporan PSE Terdaftar', 'Penilaian Kembali Sertifikasi Keamanan', 'Laporan Keamanan Informasi', 'Laporan Insiden Siber'],
+    regulator: ['BI', 'PPATK', 'Komdigi', 'BSSN', 'Pemerintah-DPR', 'Lainnya'],
+    kategoriRegulasi: [...AREAS], unitKerja: [...UNITS], produk: ['UE', 'QRIS', 'Biller'],
+    mitra: ['Kopi Senja', 'Toko Maju Jaya', 'Bimbel Cerdas', 'PT Telkom Biller', 'Warung Nusantara', 'Apotek Sehat', 'Bank Mitra Utama', 'CV Digital Kreasi', 'Resto Padang Raya', 'Laundry Kilat', 'Sekolah Harapan', 'Minimarket 24', 'PT Logistik Cepat', 'Salon Cantika', 'PT Nusa Cloud', 'PT Data Prima', 'PT Aman Jaya Logistik', 'PT Mitra Bayar', 'PT Sentra Verifikasi', 'PT Cipta Layanan', 'PT Biller Nusantara', 'PT Arta Teknologi', 'PT Kirim Cepat', 'PT Sigma Analitik'],
+    kategoriPelapor: ['Departemen Internal', 'Konsumen', 'Switching', 'Kepolisian', 'PJP-Bank', 'Bank Indonesia', 'Lainnya'], mediaPelapor: ['Email', 'IASC', 'GO AML', 'WhatsApp', 'Lainnya'],
   },
 })
 
 // ---- Singleton + subscribe (readModule/addRecord dipanggil di luar komponen) ----
-let store: Store = (() => { try { const s = localStorage.getItem(APP_KEY); if (s) return { ...defaults(), ...JSON.parse(s) } as Store } catch { /* abaikan */ } return defaults() })()
+// Migrasi master lama: departemen -> unitKerja (nilai lama dipakai), pihakPelapor dibuang, list baru diisi seed.
+function load(): Store {
+  const d = defaults()
+  const s = JSON.parse(localStorage.getItem(APP_KEY) ?? 'null')
+  if (!s || typeof s !== 'object') return d
+  const m = { ...(s.master ?? {}) }
+  if (!Array.isArray(m.unitKerja) && Array.isArray(m.departemen)) m.unitKerja = m.departemen
+  delete m.departemen; delete m.pihakPelapor
+  for (const k of Object.keys(d.master)) if (!Array.isArray(m[k])) delete m[k]
+  return { ...d, ...s, master: { ...d.master, ...m } } as Store
+}
+let store: Store = (() => { try { return load() } catch { return defaults() } })()
 let session: Session | null = (() => { try { const s = localStorage.getItem(SESSION_KEY); if (s) return JSON.parse(s) as Session } catch { /* abaikan */ } return null })()
 let ver = 0
 const subs = new Set<() => void>()

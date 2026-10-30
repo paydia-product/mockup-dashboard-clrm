@@ -11,7 +11,7 @@ import { PAGES } from './pages'
 import { Akun, Permission } from './shared/Admin'
 import Approval, { pendingCount } from './shared/Approval'
 import Log from './shared/Log'
-import MasterData from './shared/MasterData'
+import MasterData, { MASTER_LISTS } from './shared/MasterData'
 import Profile from './shared/Profile'
 import { versions } from './versions'
 
@@ -41,9 +41,7 @@ const APPROVAL: Item = { id: 'approval', label: 'Approval', icon: ClipboardCheck
 const LOG: Item = { id: 'log', label: 'Log', icon: History, perm: 'log' }
 const LOWER: Group[] = [
   { id: 'master', label: 'Master Data', icon: Database, items: [
-    { id: 'master/departemen', label: 'Departemen', icon: Database, perm: 'master' },
-    { id: 'master/produk', label: 'Produk', icon: Database, perm: 'master' },
-    { id: 'master/pihak-pelapor', label: 'Pihak Pelapor', icon: Database, perm: 'master' },
+    ...MASTER_LISTS.map((m) => ({ id: `master/${m.slug}`, label: m.label, icon: Database, perm: 'master' as const })),
   ] },
   { id: 'admin', label: 'Admin', icon: UserCog, items: [
     { id: 'admin/akun', label: 'Akun', icon: Users, perm: 'admin' },
@@ -154,9 +152,7 @@ function Shell() {
     : route === TRACKER ? <Tracker db={db} setDb={setDb} role={trackerRole(user.role)} user={user} can={(a) => can('tracker', a)} />
     : route === 'approval' ? <Approval tdb={db} setTdb={setDb} />
     : route === 'log' ? <Log tdb={db} />
-    : route === 'master/departemen' ? <MasterData kind="departemen" />
-    : route === 'master/produk' ? <MasterData kind="produk" />
-    : route === 'master/pihak-pelapor' ? <MasterData kind="pihakPelapor" />
+    : route.startsWith('master/') ? <MasterData key={route} kind={MASTER_LISTS.find((m) => `master/${m.slug}` === route)!.kind} />
     : route === 'admin/akun' ? <Akun />
     : route === 'admin/permission' ? <Permission />
     : route === 'profil/password' ? <Profile kind="password" />
