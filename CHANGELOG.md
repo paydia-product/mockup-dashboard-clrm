@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 2.8.3 | 2026-10-30 | ~120k |
 | 2.8.2 | 2026-10-30 | ~190k |
 | 2.8.1 | 2026-10-30 | ~360k |
 | 2.8.0 | 2026-10-30 | ~300k |
@@ -34,6 +35,14 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [2.8.3] - 2026-10-30
+
+Estimasi token: ~120k (cek ulang oleh agent terpisah dan perbaikan)
+
+### Diperbaiki
+- Subjek email simulasi tidak lagi mengulang kata, misalnya "Laporan Laporan RBSP".
+- Tanggal di isi email simulasi memakai format dd/mm/yyyy.
 
 ## [2.8.2] - 2026-10-30
 

@@ -11,9 +11,18 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
-    v: '2.8.2',
+    v: '2.8.3',
     date: '2026-10-30',
     deployed: true,
+    title: 'Rapikan email simulasi',
+    prompt: 'Lanjutan QA penuh',
+    tokens: 120000,
+    changes: ['Subjek email tidak mengulang kata (Laporan Laporan)', 'Tanggal di isi email memakai format dd/mm/yyyy'],
+  },
+  {
+    v: '2.8.2',
+    date: '2026-10-30',
+    deployed: false,
     title: 'Email simulasi tanpa nomor internal',
     prompt: 'Lanjutan QA penuh',
     tokens: 190000,

@@ -1,5 +1,9 @@
 import { fmtDate } from '../lib'
 import { Modal } from '../ui'
+
+// nama data yang sudah diawali kata benda (mis. "Laporan RBSP") tidak diulang; tanggal ISO ditampilkan dd/mm/yyyy
+const subj = (noun: string, name: string) => (name.toLowerCase().startsWith(noun.toLowerCase()) ? name : `${noun} ${name}`.trim())
+const fmtVal = (v: unknown) => { const s = String(v ?? ''); return !s ? '-' : /^\d{4}-\d{2}-\d{2}$/.test(s) ? fmtDate(s) : s }
 import type { AlertDef, BaseRec, Ctx, PageConfig } from './types'
 
 type Hit = { color: 'yellow' | 'red'; detail: string; to: string[] }
@@ -26,9 +30,9 @@ export default function EmailSim<T extends BaseRec>({ cfg, rows, c, onClose }: {
             </div>
             <div><b>From:</b> noreply-clrm@paydia.co.id</div>
             <div><b>To:</b> {m.hit.to.join('; ') || '-'}</div>
-            <div className="mb-2"><b>Subject:</b> [CLRM] {m.a.label}: {cfg.noun} {cfg.name?.(m.r)}</div>
+            <div className="mb-2"><b>Subject:</b> [CLRM] {m.a.label}: {subj(cfg.noun, String(cfg.name?.(m.r) ?? ''))}</div>
             <div className="space-y-0.5 border-t pt-2">
-              {cfg.columns.filter((col) => col.label !== 'No').slice(0, 6).map((col) => <div key={col.label}>{col.label}: {col.get(m.r, c) || '-'}</div>)}
+              {cfg.columns.filter((col) => col.label !== 'No').slice(0, 6).map((col) => <div key={col.label}>{col.label}: {fmtVal(col.get(m.r, c))}</div>)}
               {m.hit.detail && <div>Keterangan: {m.hit.detail}</div>}
               <div className="pt-1 text-slate-500">Alasan notifikasi: {m.a.rule}</div>
             </div>
