@@ -4,6 +4,8 @@ import { LAINNYA } from '../kit/Lainnya'
 import { setStore, useApp } from '../kit/store'
 import type { Master } from '../kit/types'
 import { Modal } from '../ui'
+import PageGuide from '../kit/PageGuide'
+import { masterGuide } from '../guides/shared'
 
 // Urutan = urutan submenu Master Data.
 export const MASTER_LISTS: { kind: keyof Master; slug: string; label: string }[] = [
@@ -59,6 +61,7 @@ export default function MasterData({ kind }: { kind: keyof Master }) {
   }
   return (
     <div className="w-full rounded-lg border border-slate-200 bg-white">
+      <PageGuide name={title} items={masterGuide(title)} />
       <div className="flex flex-wrap items-center gap-2 border-b p-3">
         <div className="relative w-56"><Search size={14} className="absolute left-2.5 top-2.5 text-slate-400" /><input className="inp !pl-8" placeholder={`Cari ${title.toLowerCase()}`} value={q} onChange={(e) => setQ(e.target.value)} /></div>
         {can('master', 'Tambah') && <button className="btn btn-primary ml-auto" onClick={() => open({ mode: 'add' })}><Plus size={14} />Tambah</button>}

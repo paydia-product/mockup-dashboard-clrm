@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 2.12.0 | 2026-10-30 | ~250k |
 | 2.11.1 | 2026-10-30 | ~60k |
 | 2.11.0 | 2026-10-30 | ~200k |
 | 2.10.1 | 2026-10-30 | ~230k |
@@ -42,6 +43,13 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [2.12.0] - 2026-10-30
+
+### Ditambahkan
+- Tombol Panduan Halaman di samping judul semua halaman (Tracker, 10 halaman kit, Approval, Master Data, Admin Akun, Admin Permission, Log, Ganti Password, Ganti PIN): panel item yang dibuka satu per satu berisi alur penggunaan dan penjelasan fitur per halaman
+- Ikon info (ⓘ) di setiap grafik, kartu angka, kalender, dan tabel mini dashboard: hover atau klik menampilkan "Apa yang ditampilkan" dan "Cara membaca" (Esc atau klik di luar menutup)
+- Komponen `PageGuide` dan `InfoTip`; prop `info` pada kit Card, BarCard, DonutCard, LineCard, ComboCard, CalendarCard, MiniTable, StatCards
 
 ## [2.11.1] - 2026-10-30
 

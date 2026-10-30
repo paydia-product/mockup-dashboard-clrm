@@ -1,5 +1,6 @@
 import { addDays, diffDays, fmtDate } from '../lib'
 import PageShell from '../kit/PageShell'
+import { LayananGuide } from '../guides/layanan'
 import { BarCard, Breakdown, DonutCard, StatCards, countBy } from '../kit/charts'
 import { ageBuckets, ageBucket, workDaysBetween } from '../kit/dates'
 import { StatusPill } from '../kit/fmt'
@@ -102,7 +103,7 @@ const cfg: PageConfig<Layanan> = {
   seed, fields, columns, filters,
   blank: () => ({ dept: '', jenis: '', tglMasuk: '', sla: '', status: 'Baru', pic: '', prioritas: '', tglSelesai: '', memo: '' }),
   search: (r) => `${r.no} ${r.dept} ${r.jenis}`, searchPlaceholder: 'Cari nomor, unit kerja, jenis',
-  alerts, cancelStatus: 'Dibatalkan',
+  alerts, cancelStatus: 'Dibatalkan', guide: LayananGuide,
   canEditRow: (r) => r.status !== 'Selesai' && r.status !== 'Batal',
   validate: (r) => {
     const e: Record<string, string> = {}
@@ -121,18 +122,33 @@ const cfg: PageConfig<Layanan> = {
     const done = rows.filter((r) => r.status === 'Selesai' && r.tglSelesai)
     return (
       <div className="space-y-3">
-        <StatCards items={[
+        <StatCards title="Status permintaan" info={{
+          apa: 'Jumlah permintaan layanan hukum menurut status, ditambah jumlah yang sudah lewat Tanggal Batas. Data Dibatalkan tidak dihitung.',
+          baca: ['Baru (biru), Proses (kuning), Selesai (hijau): jumlah permintaan menurut Status. Klik kartu untuk membuka tab Table terfilter Status.', 'Lewat batas (merah bila ada): permintaan Baru atau Proses yang Tanggal Batasnya sudah terlewat. Kartu ini tidak bisa diklik.', 'Permintaan berstatus Batal tidak punya kartu.'],
+        }} items={[
           { label: 'Baru', value: n('Baru'), tone: 'blue', onClick: () => drill({ status: 'Baru' }) },
           { label: 'Proses', value: n('Proses'), tone: 'yellow', onClick: () => drill({ status: 'Proses' }) },
           { label: 'Selesai', value: n('Selesai'), tone: 'green', onClick: () => drill({ status: 'Selesai' }) },
           { label: 'Lewat batas', value: late, tone: late ? 'red' : 'gray' },
         ]} />
         <div className="grid gap-3 lg:grid-cols-2">
-          <DonutCard title="Permintaan per jenis" data={JENIS.map((j) => ({ name: j, value: rows.filter((r) => r.jenis === j).length }))} onClick={(name) => drill({ jenis: name })}
+          <DonutCard title="Permintaan per jenis" info={{
+            apa: 'Proporsi semua permintaan (semua status kecuali Dibatalkan) menurut Jenis, dalam Periode Tanggal Masuk yang dipilih.',
+            baca: ['Tiap irisan adalah satu Jenis. Jenis tanpa data tidak tampil.', 'Arahkan kursor ke irisan untuk melihat jumlah dan rinciannya per unit kerja.', 'Isian teks bebas pada Lainnya belum dihitung.', 'Klik irisan untuk membuka tab Table terfilter Jenis.'],
+          }} data={JENIS.map((j) => ({ name: j, value: rows.filter((r) => r.jenis === j).length }))} onClick={(name) => drill({ jenis: name })}
             tip={(name, value) => <Breakdown title={`${name}: ${value} permintaan`} sub="Per unit kerja" items={countBy(rows.filter((r) => r.jenis === name), (r) => r.dept)} />} />
-          <BarCard title="Belum selesai menurut umur (hari)" data={umur} keys={['Jumlah']} catLabel="Hari" cellColors={['#f59e0b', '#f59e0b', '#ef4444']} />
-          <BarCard title="Permintaan per unit kerja" horizontal data={c.master.unitKerja.map((d) => ({ name: d, Jumlah: rows.filter((r) => r.dept === d).length }))} keys={['Jumlah']} onClick={(row) => drill({ dept: row.name })} />
-          <BarCard title="Rata-rata lama selesai per jenis (hari)" data={JENIS.map((j) => { const x = done.filter((r) => r.jenis === j); return { name: j, Hari: x.length ? Math.round(x.reduce((a, r) => a + diffDays(r.tglSelesai, r.tglMasuk), 0) / x.length) : 0 } })} keys={['Hari']} unit="Hari" />
+          <BarCard title="Belum selesai menurut umur (hari)" info={{
+            apa: 'Permintaan berstatus Baru atau Proses dikelompokkan menurut umur sejak Tanggal Masuk.',
+            baca: ['Sumbu horizontal: rentang umur dalam hari (0-7, 8-14, lebih dari 14). Sumbu vertikal: jumlah permintaan.', 'Warna batang tetap: kuning untuk dua rentang pertama, merah untuk lebih dari 14 hari.', 'Batang tidak bisa diklik.'],
+          }} data={umur} keys={['Jumlah']} catLabel="Hari" cellColors={['#f59e0b', '#f59e0b', '#ef4444']} />
+          <BarCard title="Permintaan per unit kerja" info={{
+            apa: 'Jumlah permintaan (semua status kecuali Dibatalkan) menurut Unit Kerja Pemohon dari master Unit Kerja, dalam Periode Tanggal Masuk yang dipilih.',
+            baca: ['Sumbu vertikal: unit kerja. Sumbu horizontal: jumlah permintaan.', 'Klik batang untuk membuka tab Table terfilter Unit Kerja.'],
+          }} horizontal data={c.master.unitKerja.map((d) => ({ name: d, Jumlah: rows.filter((r) => r.dept === d).length }))} keys={['Jumlah']} onClick={(row) => drill({ dept: row.name })} />
+          <BarCard title="Rata-rata lama selesai per jenis (hari)" info={{
+            apa: 'Rata-rata hari dari Tanggal Masuk sampai Tanggal Selesai, dihitung dari permintaan berstatus Selesai yang punya Tanggal Selesai. Hasil dibulatkan.',
+            baca: ['Sumbu horizontal: Jenis. Sumbu vertikal: rata-rata dalam hari.', 'Jenis tanpa permintaan Selesai tampil sebagai nol.', 'Arahkan kursor ke batang untuk melihat nilai dalam hari. Batang tidak bisa diklik.'],
+          }} data={JENIS.map((j) => { const x = done.filter((r) => r.jenis === j); return { name: j, Hari: x.length ? Math.round(x.reduce((a, r) => a + diffDays(r.tglSelesai, r.tglMasuk), 0) / x.length) : 0 } })} keys={['Hari']} unit="Hari" />
         </div>
       </div>
     )

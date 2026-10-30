@@ -1,0 +1,74 @@
+import type { GuideItem } from '../kit/PageGuide'
+
+export const AphGuide: GuideItem[] = [
+  { h: 'Alur penggunaan', b: `<ol>
+<li>Buka tab <b>Dashboard</b>. Lihat jumlah permintaan Active dan Done, grafik, jadwal BAP, dan daftar permintaan Active menurut umur.</li>
+<li>Atur <b>Periode Tanggal Terima Surat</b> bila perlu. Kosongkan kedua tanggal untuk melihat semua data.</li>
+<li>Klik kartu atau grafik untuk membuka tab <b>Table</b> yang sudah terfilter. Atau buka tab <b>Table</b> langsung.</li>
+<li>Klik <b>Tambah</b>, isi field wajib, lalu <b>Simpan</b>.</li>
+<li>Klik <b>Edit</b> untuk memperbarui data, misalnya jadwal BAP atau status Done. Alasan perubahan boleh diisi.</li>
+<li>Head CLRM dapat <b>Batalkan</b> permintaan yang salah (alasan wajib) dan <b>Kembalikan</b> bila perlu.</li>
+<li>Klik <b>Export Excel</b> untuk mengunduh baris yang tampil di tabel.</li>
+</ol>` },
+  { h: 'Dashboard', b: `<p>Dashboard menghitung permintaan yang tidak <b>Dibatalkan</b>. Filter <b>Periode Tanggal Terima Surat</b> membatasi data menurut Tanggal Terima Surat. Kosong berarti semua data.</p>
+<ul>
+<li><b>Kartu Active dan Done</b>: jumlah permintaan menurut status. Klik kartu untuk membuka Table terfilter Status.</li>
+<li><b>Surat masuk per bulan</b>: garis jumlah surat menurut bulan Tanggal Terima. Punya filter <b>Periode</b> sendiri (bawaan 12 bulan terakhir), tidak ikut Periode halaman. Arahkan kursor ke titik untuk rincian per instansi pengirim.</li>
+<li><b>Instansi pengirim terbanyak</b>: batang mendatar, urut terbanyak. Klik batang untuk membuka Table terfilter Pengirim.</li>
+<li><b>Permintaan per kasus</b>: diagram donat. Arahkan kursor untuk rincian per instansi pengirim. Klik irisan untuk membuka Table terfilter Kasus.</li>
+<li><b>Group merchant paling banyak disebut</b>: 6 group teratas. Klik batang untuk membuka Table terfilter Group Merchant.</li>
+<li><b>Jadwal BAP 30 hari ke depan</b>: kalender permintaan Active yang punya jadwal BAP. Klik acara untuk membuka Detail.</li>
+<li><b>Permintaan Active menurut umur</b>: batang umur sejak surat diterima dan tabel permintaan Active (5 baris per halaman, tertua dulu). Klik baris untuk membuka Detail.</li>
+</ul>` },
+  { h: 'Tabel, cari, filter', b: `<ul>
+<li>Kolom <b>Nomor</b> adalah posisi baris (1, 2, 3, ...), bukan ID data. Nomor berlanjut antar halaman.</li>
+<li>Urutan tabel: <b>Tanggal Dibuat</b> terbaru dulu. Tabel tidak bisa diurutkan per kolom.</li>
+<li><b>Pencarian</b> mencari di Nomor Surat, Nama Merchant, Group Merchant, Perihal (jenis dan uraian).</li>
+<li><b>Filter</b>: Periode (Tanggal Terima), Status, Pengirim, Kasus, Unit Penyidik, Group Merchant, dan PIC. Pilihan Status memuat juga <b>Dibatalkan</b>.</li>
+<li>Tabel menampilkan data Dibatalkan (teks abu-abu). Dashboard dan alert tidak menghitungnya.</li>
+<li>Pagination: 10, 25, atau 50 baris per halaman. Mengubah pencarian atau filter mengembalikan ke halaman 1.</li>
+</ul>` },
+  { h: 'Tambah & Edit', b: `<p><b>Field wajib</b> (bertanda *): Tanggal Terima Surat, Nomor Surat, Tanggal Surat, Pengirim dan Kategori, Perihal (Jenis dan Uraian), Kasus, Nama Merchant, Group Merchant, Unit Penyidik, Status, Batas Waktu Jawaban, dan PIC.</p>
+<ul>
+<li><b>Tanggal Jawaban Dikirim</b> wajib bila Status = Done.</li>
+<li>Field opsional: Nama Penyidik, No. Telepon Penyidik, Tanggal BAP, Tanggal Jadwal Ulang BAP, Tempat BAP, Nominal Hold Settlement, dan Dana Taktis. Nama dan nomor telepon yang kosong memicu alert "Data penting kosong".</li>
+<li>Aturan tanggal: Batas Waktu Jawaban dan Tanggal Jawaban tidak boleh sebelum Tanggal Terima. Jadwal Ulang BAP tidak boleh sebelum Tanggal BAP.</li>
+<li>Bila Jadwal Ulang BAP diisi, alert dan kalender memakai tanggal itu. Perubahan jadwal BAP tercatat di Log.</li>
+<li><b>Lainnya</b>: pada Pengirim, Perihal (Jenis), Kasus, dan Unit Penyidik, memilih Lainnya memunculkan isian teks bebas yang wajib diisi. Tabel menampilkan "Lainnya", Detail dan Export menampilkan teks aslinya. Teks bebas itu belum dihitung di grafik per Pengirim dan per Kasus.</li>
+<li><b>Nama Penyidik</b> dan <b>No. Telepon Penyidik</b> disamarkan untuk peran Viewer, dan tidak ikut Export.</li>
+<li>Halaman ini tidak memakai approval dan tidak ada field yang wajib alasan. Alasan perubahan bersifat opsional.</li>
+<li><b>Siapa boleh</b>: Tambah oleh Legal Officer. Edit oleh Legal Officer dan PIC. PIC hanya boleh mengedit permintaan yang PIC-nya namanya sendiri.</li>
+</ul>` },
+  { h: 'Batalkan & Kembalikan', b: `<ul>
+<li>Hanya <b>Head CLRM</b> (dan Super Admin) yang melihat tombol <b>Batalkan</b>. Alasan wajib diisi.</li>
+<li>Status berubah menjadi <b>Dibatalkan</b>. Data tidak bisa diedit, tidak masuk dashboard, dan tidak memicu alert.</li>
+<li>Tombol <b>Kembalikan</b> mengembalikan status sebelum dibatalkan (Active atau Done). Alasan wajib diisi.</li>
+<li>Pembatalan dan pengembalian tercatat di Log Perubahan dan menu Log.</li>
+</ul>` },
+  { h: 'Detail & Log Perubahan', b: `<ul>
+<li>Klik <b>Lihat Detail</b> untuk melihat semua field. Badge alert yang sedang aktif tampil di atas Detail.</li>
+<li>Bagian <b>Log Perubahan</b> mencatat: data dibuat, perubahan data (kolom sebelum dan sesudah), pembatalan, dan pengembalian. Setiap entri memuat siapa, kapan, dan alasan bila diisi.</li>
+<li>Terbaru di atas.</li>
+</ul>` },
+  { h: 'Simulasi notifikasi email', b: `<p>Tombol <b>Simulasi notifikasi</b> menampilkan contoh isi email. Angka di tombol adalah jumlah alert yang sedang aktif. Tiap jenis alert menampilkan maksimal 3 email dari data nyata. Bila tidak ada data yang cocok, ditampilkan satu <b>contoh statis</b>. Semua alert hanya untuk permintaan berstatus Active.</p>
+<ul>
+<li><b>Jadwal BAP mendekat</b>: muncul bila BAP tinggal 0 sampai 7 hari. <b>Kuning</b> bila 3 sampai 7 hari, <b>merah</b> bila 2 hari atau kurang. Penerima: Legal Officer dan Head CLRM.</li>
+<li><b>Lewat batas waktu jawaban</b>: muncul bila Batas Waktu Jawaban sudah lewat. <b>Merah</b>. Penerima: Legal Officer dan Head CLRM.</li>
+<li><b>Data penting kosong</b>: muncul bila PIC, Nama Penyidik, atau No. Telepon Penyidik masih kosong. <b>Kuning</b>. Penerima: Legal Officer.</li>
+</ul>` },
+  { h: 'Export Excel', b: `<ul>
+<li>Tombol <b>Export Excel</b> mengekspor baris yang tampil di tabel, sesuai pencarian dan filter saat itu. Baris Dibatalkan ikut terekspor bila tampil.</li>
+<li>Kolom: Nomor (posisi baris), Tanggal Dibuat, lalu semua field yang tampil di Detail. <b>Nama Penyidik</b> dan <b>No. Telepon Penyidik</b> tidak diekspor.</li>
+<li>Nama file: <b>Permintaan_APH_[tanggal hari ini].xlsx</b>.</li>
+<li>Setiap export tercatat di menu Log beserta jumlah barisnya.</li>
+</ul>` },
+  { h: 'Hak akses per peran', b: `<p>Berikut matriks bawaan. Super Admin dapat mengubahnya di Admin &gt; Permission.</p>
+<ul>
+<li><b>Super Admin</b>: Lihat, Tambah, Ubah, Batalkan/Kembalikan, Export.</li>
+<li><b>Head CLRM</b>: Lihat, Batalkan/Kembalikan, Export.</li>
+<li><b>Legal Officer</b>: Lihat, Tambah, Ubah, Export.</li>
+<li><b>PIC</b>: Lihat, Ubah (hanya permintaan miliknya), Export.</li>
+<li><b>Compliance Officer, Risk Officer, Fraud Investigator, Ketua SMKI, Viewer</b>: Lihat dan Export. Viewer melihat data penyidik tersamar.</li>
+<li>Approve tidak dipakai di halaman ini.</li>
+</ul>` },
+]

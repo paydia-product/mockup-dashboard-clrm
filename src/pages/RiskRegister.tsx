@@ -7,6 +7,7 @@ import { diffDays } from '../kit/dates'
 import type { AlertDef, BaseRec, Column, Ctx, Field, FilterDef, PageConfig } from '../kit/types'
 import type { Tone } from '../ui'
 import { DOMAINS, rasOf } from './risk.ras'
+import { RiskGuide } from '../guides/risk'
 
 interface Risk extends BaseRec {
   konteks: string; event: string; domain: string; dampak: number | ''; kemungkinan: number | ''
@@ -121,7 +122,7 @@ function Heatmap({ rows, open }: { rows: Risk[]; open: (id: string) => void }) {
   const [sel, setSel] = useState<[number, number] | null>(null)
   const list = sel ? rows.filter((r) => r.dampak === sel[0] && r.kemungkinan === sel[1]) : []
   return (
-    <Card title="Heatmap risiko (Dampak x Kemungkinan)">
+    <Card title="Heatmap risiko (Dampak x Kemungkinan)" info={{ apa: 'Peta 3 x 3 yang menempatkan tiap risiko menurut Skor Dampak dan Skor Kemungkinan (level awal / inherent), pada Periode yang dipilih.', baca: ['Sumbu horizontal: Dampak (Rendah, Sedang, Tinggi). Sumbu vertikal: Kemungkinan.', 'Isi kotak: Level dan Skor (Dampak x Kemungkinan), serta jumlah risiko di kotak itu.', 'Warna: hijau = Low (skor 1-2), kuning = Medium (skor 3-4), merah = High (skor 6-9).', 'Klik kotak untuk menampilkan daftar risikonya di bawah heatmap.', 'Tombol Setelah kontrol (residual) belum dipakai.'] }}>
       <div className="mb-3 flex items-center gap-2 text-xs">
         <button className="rounded border border-blue-600 bg-blue-600 px-2.5 py-1 text-white">Awal (inherent)</button>
         <button disabled title="belum dipakai" className="cursor-not-allowed rounded border border-slate-200 bg-slate-100 px-2.5 py-1 text-slate-400">Setelah kontrol (residual)</button>
@@ -146,7 +147,7 @@ function Heatmap({ rows, open }: { rows: Risk[]; open: (id: string) => void }) {
         {[1, 2, 3].map((d) => <div key={d} className="text-center text-xs text-slate-500">Dampak {AXIS[d]}</div>)}
       </div>
       {sel && (
-        <MiniTable className="mt-3" title={`Risiko: Dampak ${AXIS[sel[0]]}, Kemungkinan ${AXIS[sel[1]]} (${list.length})`} rows={list} onRow={(r) => open(r.id)}
+        <MiniTable className="mt-3" info={{ apa: 'Daftar risiko pada kotak heatmap yang dipilih.', baca: ['Kolom: nomor urut, Risk Event, Domain, dan Unit Kerja.', 'Klik baris untuk membuka Detail risiko.', 'Tabel menampilkan 5 baris per halaman.'] }} title={`Risiko: Dampak ${AXIS[sel[0]]}, Kemungkinan ${AXIS[sel[1]]} (${list.length})`} rows={list} onRow={(r) => open(r.id)}
           cols={[{ label: 'No', get: (r) => r.no }, { label: 'Risk Event', get: (r) => r.event }, { label: 'Domain', get: (r) => r.domain }, { label: 'Unit Kerja', get: (r) => r.dept }]} />
       )}
       {!sel && <div className="mt-3 text-xs text-slate-400">Klik kotak untuk melihat daftar risiko.</div>}
@@ -157,6 +158,7 @@ function Heatmap({ rows, open }: { rows: Risk[]; open: (id: string) => void }) {
 const cfg: PageConfig<Risk> = {
   module: 'risk', title: 'Risk Register', noun: 'Risiko', exportPrefix: 'Risk_Register',
   name: (r) => r.event,
+  guide: RiskGuide,
   seed, fields, columns, filters, alerts, cancelStatus: 'Dibatalkan',
   blank: () => ({ konteks: '', event: '', domain: '', dampak: '', kemungkinan: '', respon: '', kontrol: '', dept: '', tglRegister: '', produk: '', vendor: '', levelAt: '', status: 'Aktif' }),
   search: (r) => `${r.no} ${r.event} ${r.kontrol}`, searchPlaceholder: 'Cari nomor, risk event, kontrol',
@@ -174,7 +176,7 @@ const cfg: PageConfig<Risk> = {
     const depts = [...new Set(rows.map((r) => r.dept))]
     return (
       <div className="space-y-3">
-        <StatCards items={[
+        <StatCards info={{ apa: 'Jumlah risiko per Level (inherent) pada Periode yang dipilih, ditambah jumlah risiko yang Breach terhadap RAS-RT.', baca: ['High: skor 6-9. Medium: skor 3-4. Low: skor 1-2. Skor = Dampak x Kemungkinan.', 'Breach (RAS-RT): risiko dengan Posisi RAS-RT Breach, sama dengan Level High (merah bila ada).', 'Klik kartu untuk membuka Table terfilter Level atau Posisi RAS-RT tersebut.'] }} items={[
           { label: 'High', value: cnt('High'), tone: 'red', onClick: () => drill({ level: 'High' }) },
           { label: 'Medium', value: cnt('Medium'), tone: 'yellow', onClick: () => drill({ level: 'Medium' }) },
           { label: 'Low', value: cnt('Low'), tone: 'green', onClick: () => drill({ level: 'Low' }) },
@@ -182,10 +184,10 @@ const cfg: PageConfig<Risk> = {
         ]} />
         <Heatmap rows={rows} open={open} />
         <div className="grid gap-3 lg:grid-cols-2">
-          <BarCard title="Risiko per domain menurut level" stacked data={DOMAINS.map((d) => ({ name: d, High: rows.filter((r) => r.domain === d && level(r) === 'High').length, Medium: rows.filter((r) => r.domain === d && level(r) === 'Medium').length, Low: rows.filter((r) => r.domain === d && level(r) === 'Low').length }))} keys={LEVELS} colors={{ High: TONE_HEX.red, Medium: TONE_HEX.yellow, Low: TONE_HEX.green }} onClick={(row) => drill({ domain: row.name })} />
-          <BarCard title="Risiko per unit kerja pemilik" horizontal data={depts.map((d) => ({ name: d, Jumlah: rows.filter((r) => r.dept === d).length, ...Object.fromEntries(LEVELS.map((l) => [l, rows.filter((r) => r.dept === d && level(r) === l).length])) })).sort((a, b) => b.Jumlah - a.Jumlah)} keys={['Jumlah']}
+          <BarCard info={{ apa: 'Jumlah risiko di tiap Domain Risiko (10 domain RAS-RT), ditumpuk menurut Level inherent.', baca: ['Sumbu X: domain risiko. Sumbu Y: jumlah risiko.', 'Warna tumpukan: merah = High, kuning = Medium, hijau = Low.', 'Arahkan kursor ke batang untuk melihat jumlah per level.', 'Klik batang (bagian mana pun) untuk membuka Table terfilter domain tersebut.'] }} title="Risiko per domain menurut level" stacked data={DOMAINS.map((d) => ({ name: d, High: rows.filter((r) => r.domain === d && level(r) === 'High').length, Medium: rows.filter((r) => r.domain === d && level(r) === 'Medium').length, Low: rows.filter((r) => r.domain === d && level(r) === 'Low').length }))} keys={LEVELS} colors={{ High: TONE_HEX.red, Medium: TONE_HEX.yellow, Low: TONE_HEX.green }} onClick={(row) => drill({ domain: row.name })} />
+          <BarCard info={{ apa: 'Jumlah risiko per Unit Pemilik Risiko. Hanya Unit Kerja yang punya risiko pada periode ini yang tampil, urut dari terbanyak.', baca: ['Sumbu Y: Unit Kerja. Sumbu X: jumlah risiko.', 'Arahkan kursor ke batang untuk melihat jumlah total dan rincian High, Medium, Low.', 'Klik batang untuk membuka Table terfilter Unit Kerja tersebut.'] }} title="Risiko per unit kerja pemilik" horizontal data={depts.map((d) => ({ name: d, Jumlah: rows.filter((r) => r.dept === d).length, ...Object.fromEntries(LEVELS.map((l) => [l, rows.filter((r) => r.dept === d && level(r) === l).length])) })).sort((a, b) => b.Jumlah - a.Jumlah)} keys={['Jumlah']}
             tip={(d) => <><div className="mb-1 font-semibold text-slate-800">{String(d.name)}: {d.Jumlah}</div>{LEVELS.map((l) => <div key={l}>{l}: {d[l]}</div>)}</>} onClick={(row) => drill({ dept: row.name })} />
-          <BarCard title="Dalam Toleransi dan Breach (RAS-RT) per domain" stacked className="lg:col-span-2" data={DOMAINS.map((d) => ({ name: d, 'Dalam Toleransi': rows.filter((r) => r.domain === d && rasrt(r) === TOLERANSI).length, Breach: rows.filter((r) => r.domain === d && rasrt(r) === BREACH).length }))} keys={['Dalam Toleransi', 'Breach']} colors={{ 'Dalam Toleransi': TONE_HEX.yellow, Breach: TONE_HEX.red }} />
+          <BarCard info={{ apa: 'Jumlah risiko per domain yang berada di posisi Dalam Toleransi (Level Medium) atau Breach (Level High) menurut RAS-RT. Risiko Dalam Appetite (Low) tidak ditampilkan.', baca: ['Sumbu X: domain risiko. Sumbu Y: jumlah risiko.', 'Warna: kuning = Dalam Toleransi, merah = Breach (wajib eskalasi).', 'Arahkan kursor ke batang untuk melihat jumlahnya.', 'Grafik ini tidak bisa diklik.'] }} title="Dalam Toleransi dan Breach (RAS-RT) per domain" stacked className="lg:col-span-2" data={DOMAINS.map((d) => ({ name: d, 'Dalam Toleransi': rows.filter((r) => r.domain === d && rasrt(r) === TOLERANSI).length, Breach: rows.filter((r) => r.domain === d && rasrt(r) === BREACH).length }))} keys={['Dalam Toleransi', 'Breach']} colors={{ 'Dalam Toleransi': TONE_HEX.yellow, Breach: TONE_HEX.red }} />
         </div>
       </div>
     )

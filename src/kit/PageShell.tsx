@@ -8,6 +8,7 @@ import { exportRows } from './exportXlsx'
 import FilterPopover from './FilterPopover'
 import FormModal from './FormModal'
 import ImportExcel from './ImportExcel'
+import PageGuide from './PageGuide'
 import { useApp, useModule } from './store'
 import type { BaseRec, PageConfig } from './types'
 
@@ -60,6 +61,7 @@ export default function PageShell<T extends BaseRec>({ config: cfg }: { config: 
 
   return (
     <div>
+      <PageGuide name={cfg.title} items={cfg.guide} />
       <div className="mb-3 flex gap-1 border-b border-slate-200">
         {(['dashboard', 'table'] as const).map((t) => (
           <button key={t} onClick={() => setTab(t)} className={`border-b-2 px-4 py-2 text-sm font-medium ${tab === t ? 'border-brand text-brand' : 'border-transparent text-slate-500'}`}>{t === 'table' ? 'Table' : 'Dashboard'}</button>

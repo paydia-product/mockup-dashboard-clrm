@@ -11,9 +11,23 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
-    v: '2.11.1',
+    v: '2.12.0',
     date: '2026-10-30',
     deployed: true,
+    title: 'Panduan Halaman di semua halaman dan info (ⓘ) di semua grafik dashboard',
+    prompt: 'Tombol Panduan Halaman (alur penggunaan dan penjelasan fitur) di setiap halaman, ikon info hover/klik di setiap grafik dan kartu dashboard',
+    tokens: 250000,
+    changes: [
+      'Tombol Panduan Halaman di samping judul: panel berisi item yang dibuka satu per satu (alur penggunaan, dashboard, tabel, form, approval, batalkan, log, email, export, hak akses)',
+      'Panduan tersedia di Tracker, 10 halaman kit, Approval, Master Data (satu panduan untuk semua master), Admin Akun, Admin Permission, Log, Ganti Password, Ganti PIN',
+      'Ikon info (ⓘ) di judul setiap grafik, kartu angka, kalender, dan tabel mini dashboard: hover atau klik menampilkan apa yang ditampilkan dan cara membaca; Esc atau klik di luar menutup',
+      'Kit Card, BarCard, DonutCard, LineCard, ComboCard, CalendarCard, MiniTable, StatCards menerima prop info',
+    ],
+  },
+  {
+    v: '2.11.1',
+    date: '2026-10-30',
+    deployed: false,
     title: 'Perbaikan master Mitra Vendor, form Kontrak, data lokal rusak, label Hari Tracker',
     prompt: 'Rapikan master Mitra Vendor, Nama Mitra/Merchant menunggu Jenis Hubungan, aturan Tanggal Berakhir kosong, load() tahan data rusak, label Hari grafik Tracker',
     tokens: 60000,

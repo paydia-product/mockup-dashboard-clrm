@@ -6,6 +6,8 @@ import { decideApproval, useApp } from '../kit/store'
 import type { Action, ApprovalReq, ModuleId, PermKey, Role, Store } from '../kit/types'
 import { Badge, Modal } from '../ui'
 import { usePaged } from './Pager'
+import PageGuide from '../kit/PageGuide'
+import { APPROVAL_GUIDE } from '../guides/shared'
 
 // Adapter: request perubahan tracker tampil sebagai ApprovalReq
 const adapt = (r: ChangeReq, db: DB, store: Store): ApprovalReq => {
@@ -41,6 +43,7 @@ export default function Approval({ tdb, setTdb }: { tdb: DB; setTdb: React.Dispa
   }
   return (
     <div className="rounded-lg border border-slate-200 bg-white">
+      <PageGuide name="Approval" items={APPROVAL_GUIDE} />
       <div className="flex flex-wrap items-center gap-2 border-b p-3">
         <div className="relative w-64"><Search size={14} className="absolute left-2.5 top-2.5 text-slate-400" /><input className="inp !pl-8" placeholder="Cari jenis, data, pengaju" value={f.q} onChange={(e) => upd({ q: e.target.value })} /></div>
         <select className="inp !w-auto" value={f.status} onChange={(e) => upd({ status: e.target.value })}><option value="">Semua status</option>{['Menunggu', 'Disetujui', 'Ditolak'].map((s) => <option key={s}>{s}</option>)}</select>

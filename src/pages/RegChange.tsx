@@ -1,7 +1,9 @@
 import { addDays, diffDays, fmtDate, todayStr } from '../lib'
 import { withLainnya } from '../kit/Lainnya'
 import PageShell from '../kit/PageShell'
+import { REGCHANGE_GUIDE } from '../guides/regchange'
 import { BarCard, DonutCard, LineCard, MiniTable, useMonthRange } from '../kit/charts'
+import type { ChartInfo } from '../kit/charts'
 import { ageBucket, ageBuckets, monthKey, workDaysBetween } from '../kit/dates'
 import { StatusPill } from '../kit/fmt'
 import { readModule } from '../kit/store'
@@ -16,6 +18,75 @@ interface Reg extends BaseRec {
   dampak: string; dampakUraian: string; dept: string[]; pemenuhan: number | ''
   tindak: string; perluJawab: string; jawabBatas: string; jawabTgl: string; tglSosialisasi: string
   sopList: string[]; lampiran: { name: string; size: number; type: string } | null
+}
+
+// Teks info (i) tiap kartu dashboard
+const INFO: Record<string, ChartInfo> = {
+  regulator: {
+    apa: 'Jumlah peraturan per regulator, dipisah menurut Jenis Perubahan. Regulator yang diketik bebas di luar daftar dihitung sebagai Lainnya.',
+    baca: [
+      'Sumbu X: regulator. Sumbu Y: jumlah peraturan.',
+      'Warna = Jenis Perubahan: biru Baru, kuning Perubahan, merah Pencabutan, ungu Imbauan. Tinggi tumpukan = total peraturan regulator itu.',
+      'Klik batang untuk membuka tab Table terfilter menurut regulator tersebut.',
+    ],
+  },
+  tren: {
+    apa: 'Jumlah peraturan Baru dan Perubahan yang dicatat per bulan (menurut Tanggal Dicatat). Jenis Pencabutan dan Imbauan tidak masuk grafik ini. Memakai semua data, tidak ikut Periode Tanggal Dicatat.',
+    baca: [
+      'Sumbu X: bulan Tanggal Dicatat. Sumbu Y: jumlah peraturan.',
+      'Garis biru = Baru. Garis kuning = Perubahan.',
+      'Filter bulan di atas grafik berlaku untuk kartu ini saja (default 12 bulan terakhir).',
+      'Arahkan kursor ke titik untuk melihat angkanya. Titik tidak bisa diklik.',
+    ],
+  },
+  kepatuhan: {
+    apa: 'Pembagian peraturan menurut Status Kepatuhan, yang dihitung dari Pemenuhan (%): Comply (100 atau lebih), Partial (70 sampai 99), Gap (di bawah 70), Belum Dinilai (Pemenuhan kosong).',
+    baca: [
+      'Tiap irisan adalah satu status. Hijau Comply, kuning Partial, merah Gap, abu-abu Belum Dinilai.',
+      'Makin besar irisan, makin banyak peraturan di status itu. Status tanpa data tidak ditampilkan.',
+      'Arahkan kursor untuk melihat jumlahnya. Klik irisan untuk membuka tab Table terfilter menurut Status Kepatuhan itu.',
+    ],
+  },
+  pemenuhan: {
+    apa: 'Rata-rata Pemenuhan (%) per Kategori, dihitung hanya dari peraturan yang sudah punya nilai Pemenuhan. Kategori tanpa peraturan yang dinilai tampil 0.',
+    baca: [
+      'Sumbu X: Kategori (dari Master Data). Sumbu Y: rata-rata Pemenuhan dalam persen, dibulatkan.',
+      'Makin tinggi batang, makin patuh kategori itu. Angka 0 bisa berarti belum ada yang dinilai.',
+      'Arahkan kursor untuk melihat nama kategori dan rata-ratanya. Batang tidak bisa diklik.',
+    ],
+  },
+  umur: {
+    apa: 'Jumlah peraturan yang Tingkat Dampaknya masih kosong (belum dinilai), dikelompokkan menurut lama sejak Tanggal Dicatat dalam hari kalender.',
+    baca: [
+      'Sumbu X (Hari): kelompok lama sejak dicatat, yaitu 0-10, 11-20, dan lebih dari 20 hari. Sumbu Y: jumlah peraturan.',
+      'Makin banyak di kelompok kanan, makin lama peraturan menunggu penilaian.',
+      'Alert email "Belum dinilai" memakai hari kerja lebih dari 10, sehingga angkanya bisa sedikit berbeda dari grafik ini.',
+      'Batang tidak bisa diklik.',
+    ],
+  },
+  belum: {
+    apa: 'Daftar peraturan yang Tingkat Dampaknya masih kosong (belum dinilai).',
+    baca: [
+      'Kolom: No (urutan baris), Peraturan, Dicatat (Tanggal Dicatat), dan Umur (hari kalender sejak dicatat).',
+      'Klik satu baris untuk membuka Detail peraturan. Tabel dibagi per 5 baris.',
+    ],
+  },
+  unit: {
+    apa: 'Jumlah peraturan berstatus Partial dan Gap per unit kerja terdampak. Satu peraturan dihitung di setiap unit yang tercantum pada Unit Kerja Terdampak.',
+    baca: [
+      'Sumbu Y: unit kerja. Sumbu X: jumlah peraturan.',
+      'Kuning = Partial. Merah = Gap. Panjang batang = total Partial ditambah Gap unit itu.',
+      'Klik batang untuk membuka tab Table terfilter menurut Unit Kerja Terdampak tersebut.',
+    ],
+  },
+  agenda: {
+    apa: 'Agenda tanggal penting: peraturan dengan Tanggal Berlaku dalam 90 hari ke depan (jenis Berlaku), dan imbauan yang perlu dijawab tetapi belum ada Tanggal Dijawab (jenis Imbauan, termasuk yang batasnya sudah lewat).',
+    baca: [
+      'Diurutkan dari tanggal paling awal. Kolom Tanggal = Tanggal Berlaku atau Batas Waktu Jawaban.',
+      'Kolom Sisa waktu: kuning atau merah. Merah bila Berlaku tinggal 7 hari atau kurang, atau Imbauan tinggal 1 hari atau kurang atau sudah lewat.',
+      'Klik satu baris untuk membuka Detail peraturan. Tabel dibagi per 5 baris.',
+    ],
+  },
 }
 
 const JENIS = ['PBI', 'PADG', 'UU', 'Permen', 'Peraturan BSSN', 'Surat Edaran', 'Surat Imbauan']
@@ -186,7 +257,7 @@ function seed(today: string): Reg[] {
 const cfg: PageConfig<Reg> = {
   module: 'regchange', title: 'Regulatory Change', noun: 'Peraturan', exportPrefix: 'Daftar_Peraturan',
   name: (r) => label(r),
-  seed, fields, columns, filters, alerts, cancelStatus: 'Dibatalkan',
+  seed, fields, columns, filters, alerts, cancelStatus: 'Dibatalkan', guide: REGCHANGE_GUIDE,
   blank: () => ({
     status: 'Berlaku', jenis: '', nomor: '', tahun: '', regulator: '', tentang: '', kategori: '', jp: '', tglTerbit: '', tglBerlaku: '', tglDicatat: todayStr(), diubah: '',
     dampak: '', dampakUraian: '', dept: [], pemenuhan: '', tindak: '', perluJawab: '', jawabBatas: '', jawabTgl: '', tglSosialisasi: '', sopList: [], lampiran: null,
@@ -220,19 +291,19 @@ const cfg: PageConfig<Reg> = {
     return (
       <div className="space-y-3">
         <div className="grid gap-3 lg:grid-cols-2">
-          <BarCard title="Peraturan per regulator dan jenis perubahan" stacked data={REGULATOR.map((g) => ({ name: g, ...Object.fromEntries(JP.map((j) => [j, rows.filter((r) => regB(r) === g && r.jp === j).length])) }))} keys={JP} colors={['#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6']} onClick={(row) => drill({ regulator: row.name })} />
-          <LineCard title="Tren peraturan baru dan perubahan per bulan" toolbar={rg.toolbar} data={mons.map((m) => ({ name: m, Baru: allRows.filter((r) => r.tglDicatat.startsWith(m) && r.jp === 'Baru').length, Perubahan: allRows.filter((r) => r.tglDicatat.startsWith(m) && r.jp === 'Perubahan').length }))} keys={['Baru', 'Perubahan']} colors={['#3b82f6', '#f59e0b']} />
-          <DonutCard title="Status kepatuhan" data={KEP.map((k) => ({ name: k, value: n(k), color: KEP_COLOR[k] }))} onClick={(name) => drill({ kepatuhan: name })} />
-          <BarCard title="Rata-rata pemenuhan per kategori (%)" data={c.master.kategoriRegulasi.map((k) => { const x = rated.filter((r) => r.kategori === k); const sum = x.reduce((a, r) => a + Number(r.pemenuhan), 0); return { name: k, Pemenuhan: x.length ? Math.round(sum / x.length) : 0 } })} keys={['Pemenuhan']}
+          <BarCard title="Peraturan per regulator dan jenis perubahan" info={INFO.regulator} stacked data={REGULATOR.map((g) => ({ name: g, ...Object.fromEntries(JP.map((j) => [j, rows.filter((r) => regB(r) === g && r.jp === j).length])) }))} keys={JP} colors={['#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6']} onClick={(row) => drill({ regulator: row.name })} />
+          <LineCard title="Tren peraturan baru dan perubahan per bulan" info={INFO.tren} toolbar={rg.toolbar} data={mons.map((m) => ({ name: m, Baru: allRows.filter((r) => r.tglDicatat.startsWith(m) && r.jp === 'Baru').length, Perubahan: allRows.filter((r) => r.tglDicatat.startsWith(m) && r.jp === 'Perubahan').length }))} keys={['Baru', 'Perubahan']} colors={['#3b82f6', '#f59e0b']} />
+          <DonutCard title="Status kepatuhan" info={INFO.kepatuhan} data={KEP.map((k) => ({ name: k, value: n(k), color: KEP_COLOR[k] }))} onClick={(name) => drill({ kepatuhan: name })} />
+          <BarCard title="Rata-rata pemenuhan per kategori (%)" info={INFO.pemenuhan} data={c.master.kategoriRegulasi.map((k) => { const x = rated.filter((r) => r.kategori === k); const sum = x.reduce((a, r) => a + Number(r.pemenuhan), 0); return { name: k, Pemenuhan: x.length ? Math.round(sum / x.length) : 0 } })} keys={['Pemenuhan']}
             tip={(d) => <><div className="mb-1 font-semibold text-slate-800">{String(d.name)}</div><div>Rata-rata pemenuhan: {d.Pemenuhan}%</div></>} />
           <div className="space-y-3">
-            <BarCard title="Belum dinilai menurut lama sejak dicatat (hari)" data={ageBuckets(edges).map((b) => ({ name: b, Jumlah: un.filter((r) => ageBucket(age(r), edges) === b).length }))} keys={['Jumlah']} colors={['#f59e0b']} catLabel="Hari" />
-            <MiniTable title="Peraturan belum dinilai" rows={un} onRow={(r) => open(r.id)} empty="Semua sudah dinilai"
+            <BarCard title="Belum dinilai menurut lama sejak dicatat (hari)" info={INFO.umur} data={ageBuckets(edges).map((b) => ({ name: b, Jumlah: un.filter((r) => ageBucket(age(r), edges) === b).length }))} keys={['Jumlah']} colors={['#f59e0b']} catLabel="Hari" />
+            <MiniTable title="Peraturan belum dinilai" info={INFO.belum} rows={un} onRow={(r) => open(r.id)} empty="Semua sudah dinilai"
               cols={[{ label: 'No', get: (r) => r.no }, { label: 'Peraturan', get: label }, { label: 'Dicatat', get: (r) => fmtDate(r.tglDicatat) }, { label: 'Umur (hari)', get: (r) => age(r) }]} />
           </div>
-          <BarCard title="Peraturan Partial dan Gap per unit kerja terdampak" horizontal stacked data={gapByDept} keys={['Partial', 'Gap']} colors={{ Partial: KEP_COLOR.Partial, Gap: KEP_COLOR.Gap }} onClick={(row) => drill({ dept: row.name })} />
+          <BarCard title="Peraturan Partial dan Gap per unit kerja terdampak" info={INFO.unit} horizontal stacked data={gapByDept} keys={['Partial', 'Gap']} colors={{ Partial: KEP_COLOR.Partial, Gap: KEP_COLOR.Gap }} onClick={(row) => drill({ dept: row.name })} />
         </div>
-        <MiniTable title="Berlaku dalam 90 hari dan imbauan perlu dijawab" rows={agenda} onRow={(x) => open(x.r.id)} empty="Tidak ada agenda"
+        <MiniTable title="Berlaku dalam 90 hari dan imbauan perlu dijawab" info={INFO.agenda} rows={agenda} onRow={(x) => open(x.r.id)} empty="Tidak ada agenda"
           cols={[
             { label: 'No', get: () => '' }, { label: 'Tanggal', get: (x) => fmtDate(x.tgl) }, { label: 'Jenis', get: (x) => x.jenis }, { label: 'Peraturan', get: (x) => label(x.r) }, { label: 'Tentang', get: (x) => x.r.tentang },
             { label: 'Sisa waktu', get: (x) => <StatusPill s={x.d < 0 ? `Lewat ${-x.d} hari` : `${x.d} hari lagi`} tone={warn(x)} /> },

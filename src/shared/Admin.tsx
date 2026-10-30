@@ -6,6 +6,8 @@ import { ACTIONS, PERM_KEYS, ROLES } from '../kit/perms'
 import type { Account, Action, PermKey, Role } from '../kit/types'
 import { Badge, Modal } from '../ui'
 import { usePaged } from './Pager'
+import PageGuide from '../kit/PageGuide'
+import { AKUN_GUIDE, PERMISSION_GUIDE } from '../guides/shared'
 
 function AccountForm({ init, onClose }: { init: Account | null; onClose: () => void }) {
   const { store, log } = useApp()
@@ -50,6 +52,7 @@ export function Akun() {
   }
   return (
     <div className="rounded-lg border border-slate-200 bg-white">
+      <PageGuide name="Akun" items={AKUN_GUIDE} />
       <div className="flex flex-wrap items-center gap-2 border-b p-3">
         <div className="relative w-64"><Search size={14} className="absolute left-2.5 top-2.5 text-slate-400" /><input className="inp !pl-8" placeholder="Cari nama, email, peran" value={q} onChange={(e) => { setQ(e.target.value); reset() }} /></div>
         {can('admin', 'Tambah') && <button className="btn btn-primary ml-auto" onClick={() => setForm('new')}><Plus size={14} />Tambah</button>}
@@ -88,6 +91,7 @@ export function Permission() {
   }
   return (
     <div className="rounded-lg border border-slate-200 bg-white">
+      <PageGuide name="Permission" items={PERMISSION_GUIDE} />
       <div className="flex items-center gap-3 border-b p-3">
         <label className="lbl !mb-0">Peran</label>
         <select className="inp !w-56" value={role} onChange={(e) => setRole(e.target.value as Role)}>{ROLES.map((r) => <option key={r}>{r}</option>)}</select>

@@ -1,7 +1,9 @@
 import { REGULATORS, addDays, diffDays, fmtDate, fmtTime } from '../lib'
 import { CAT, Item, itemOf, nearest, periodeOf } from './laporan.shared'
 import PageShell from '../kit/PageShell'
+import { REPORTING_GUIDE } from '../guides/reporting'
 import { BarCard, CalendarCard, LineCard, MiniTable, useMonthRange } from '../kit/charts'
+import type { ChartInfo } from '../kit/charts'
 import { monthKey } from '../kit/dates'
 import { StatusPill, statusTone } from '../kit/fmt'
 import type { AlertDef, BaseRec, Column, Ctx, Field, FilterDef, PageConfig } from '../kit/types'
@@ -14,6 +16,53 @@ interface Laporan extends BaseRec {
   tglSubmit: string; picPenyusun: string; picReviewer: string
   bukti: FileMeta | null; noTerima: string; dasar: string; alasan: string
 }
+// Teks info (i) tiap kartu dashboard
+const INFO: Record<string, ChartInfo> = {
+  kalender: {
+    apa: 'Kalender laporan menurut Batas Waktu. Tiap titik adalah satu laporan pada tanggal Batas Waktunya (laporan Dibatalkan tidak ditampilkan).',
+    baca: [
+      'Ganti tampilan Hari, Minggu, atau Bulan dengan tombol di kanan atas, dan geser dengan tanda panah. Hari ini diberi warna biru.',
+      'Warna titik mengikuti Status: hijau Terkirim; kuning Belum Disiapkan, Disusun, atau Review; merah Terlambat.',
+      'Arahkan kursor ke titik untuk melihat nama laporan. Klik titik untuk membuka Detail laporan.',
+      'Tampilan Bulan menampilkan 3 titik per hari, sisanya tertulis "+N lagi".',
+    ],
+  },
+  tepat: {
+    apa: 'Persentase laporan Terkirim yang dikirim tepat waktu, per jenis periode dan per regulator. Hanya laporan Terkirim yang punya Tanggal Submit yang dihitung. Tepat waktu berarti tanggal submit tidak melewati Batas Waktu.',
+    baca: [
+      'Sumbu Y: kelompok ("Jenis: ..." berwarna biru, "Regulator: ..." berwarna hijau). Sumbu X: persen tepat waktu (0 sampai 100).',
+      'Batang kosong (0) bisa berarti belum ada laporan Terkirim di kelompok itu atau semuanya terlambat. Cek rinciannya di hover.',
+      'Arahkan kursor untuk melihat persen dan rincian "tepat/total".',
+      'Klik batang untuk membuka tab Table terfilter menurut jenis periode atau regulator yang diklik.',
+    ],
+  },
+  beban: {
+    apa: 'Jumlah laporan per Jenis Periode menurut kondisinya: Terkirim, Dalam proses (belum Terkirim dan belum Terlambat), dan Terlambat.',
+    baca: [
+      'Sumbu X: Jenis Periode (Harian sampai Insidental). Sumbu Y: jumlah laporan.',
+      'Hijau = Terkirim. Kuning = Dalam proses. Merah = Terlambat. Tinggi tumpukan = total laporan jenis itu.',
+      'Klik batang (warna mana pun) untuk membuka tab Table terfilter menurut jenis periode tersebut.',
+    ],
+  },
+  tren: {
+    apa: 'Jumlah laporan yang terlambat per bulan Batas Waktu. Dihitung laporan berstatus Terlambat atau yang Tanggal Submit-nya melewati Batas Waktu. Memakai semua data, tidak ikut Periode Batas Waktu.',
+    baca: [
+      'Sumbu X: bulan Batas Waktu. Sumbu Y: jumlah laporan terlambat.',
+      'Garis naik berarti makin banyak laporan terlambat pada bulan itu.',
+      'Filter bulan di atas grafik berlaku untuk kartu ini saja (default 12 bulan terakhir).',
+      'Arahkan kursor ke titik untuk melihat angkanya. Titik tidak bisa diklik.',
+    ],
+  },
+  soon: {
+    apa: 'Laporan yang belum Terkirim dan belum Terlambat dengan Batas Waktu dari hari ini sampai 7 hari ke depan, diurutkan dari yang paling dekat.',
+    baca: [
+      'Kolom: Nama Laporan, Batas, PIC (penyusun), dan Status. Kolom No adalah urutan baris.',
+      'Klik satu baris untuk membuka Detail laporan.',
+      'Tabel dibagi per 5 baris. Bila kosong, tidak ada laporan jatuh tempo dalam 7 hari.',
+    ],
+  },
+}
+
 const REG = [...REGULATORS] // BI, PPATK, Komdigi, BSSN, Pemerintah-DPR
 const JENIS = ['Harian', 'Mingguan', 'Bulanan', 'Triwulanan', 'Tahunan', '3 Tahun Sekali', 'Insidental']
 const STATUS = ['Belum Disiapkan', 'Disusun', 'Review', 'Terkirim', 'Terlambat'] // Terlambat otomatis (normalize) dan boleh dipilih manual hanya bila Batas Waktu sudah lewat (validate)
@@ -159,12 +208,12 @@ function TrenTerlambat({ rows }: { rows: Laporan[] }) {
   const rg = useMonthRange('12')
   const late = rows.filter((r) => wasLate(r) && r.batas)
   const tren = rg.months(late.map((r) => monthKey(r.batas))).map((m) => ({ name: m, Terlambat: late.filter((r) => monthKey(r.batas) === m).length }))
-  return <LineCard title="Tren laporan terlambat per bulan" data={tren} keys={['Terlambat']} colors={{ Terlambat: '#ef4444' }} toolbar={rg.toolbar} />
+  return <LineCard title="Tren laporan terlambat per bulan" data={tren} keys={['Terlambat']} colors={{ Terlambat: '#ef4444' }} toolbar={rg.toolbar} info={INFO.tren} />
 }
 function SoonTable({ rows, open }: { rows: Laporan[]; open: (id: string) => void }) {
   // MiniTable sudah punya pager sendiri (5 baris); jangan paging dua kali dan jangan beri warna khusus
   return (
-    <MiniTable title="Jatuh tempo 7 hari ke depan" rows={rows} onRow={(r) => open(r.id)}
+    <MiniTable title="Jatuh tempo 7 hari ke depan" info={INFO.soon} rows={rows} onRow={(r) => open(r.id)}
       cols={[{ label: 'Nama Laporan', get: (r) => r.nama }, { label: 'Batas', get: (r) => fmtDate(dOf(r.batas)) }, { label: 'PIC', get: (r) => r.picPenyusun }, { label: 'Status', get: (r) => <StatusPill s={r.status} /> }]} />
   )
 }
@@ -175,7 +224,7 @@ const cfg: PageConfig<Laporan> = {
   seed, fields, columns, filters,
   blank: () => ({ nama: '', regulator: '', jenis: '', periode: '', batas: '', siber: '', waktuKejadian: '', waktuNotif: '', tglSubmit: '', status: 'Belum Disiapkan', picPenyusun: '', picReviewer: '', bukti: null, noTerima: '', dasar: '', alasan: '' }),
   search: (r) => `${r.no} ${r.nama} ${r.regulator} ${r.picPenyusun} ${r.picReviewer}`, searchPlaceholder: 'Cari nama laporan, regulator, PIC',
-  alerts, cancelStatus: 'Dibatalkan',
+  alerts, cancelStatus: 'Dibatalkan', guide: REPORTING_GUIDE,
   normalize: (r, c) => {
     if (r.cancelled) return r
     const past = !!r.batas && dOf(r.batas) < c.today
@@ -208,13 +257,13 @@ const cfg: PageConfig<Laporan> = {
     const soon = rows.filter((r) => !SENT(r) && r.status !== 'Terlambat' && r.batas && dOf(r.batas) >= c.today && dOf(r.batas) <= addDays(c.today, 7)).sort((a, b) => a.batas.localeCompare(b.batas))
     return (
       <div className="space-y-3">
-        <CalendarCard title="Kalender pelaporan (batas waktu)" views={['hari', 'minggu', 'bulan']} onEvent={open}
+        <CalendarCard title="Kalender pelaporan (batas waktu)" info={INFO.kalender} views={['hari', 'minggu', 'bulan']} onEvent={open}
           events={rows.map((r) => ({ date: dOf(r.batas), label: r.nama, tone: statusTone(r.status), id: r.id }))} />
         <div className="grid gap-3 lg:grid-cols-2">
-          <BarCard title="Ketepatan waktu: jenis periode dan regulator (% tepat waktu)" horizontal data={tepatData} keys={['Tepat Waktu (%)']} cellColors={tepatColors}
+          <BarCard title="Ketepatan waktu: jenis periode dan regulator (% tepat waktu)" info={INFO.tepat} horizontal data={tepatData} keys={['Tepat Waktu (%)']} cellColors={tepatColors}
             tip={(d) => <><div className="mb-1 font-semibold text-slate-800">{String(d.name)}</div><div>Tepat waktu %: {d['Tepat Waktu (%)']}</div><div>Rincian: {d.ok}/{d.total}</div></>}
             onClick={(row) => { const n = String(row.name); if (n.startsWith('Jenis: ')) drill({ jenis: n.slice(7) }); else drill({ regulator: n.slice(11) }) }} />
-          <BarCard title="Beban laporan per jenis periode" stacked data={beban} keys={['Terkirim', 'Dalam proses', 'Terlambat']} colors={{ Terkirim: '#10b981', 'Dalam proses': '#f59e0b', Terlambat: '#ef4444' }}
+          <BarCard title="Beban laporan per jenis periode" info={INFO.beban} stacked data={beban} keys={['Terkirim', 'Dalam proses', 'Terlambat']} colors={{ Terkirim: '#10b981', 'Dalam proses': '#f59e0b', Terlambat: '#ef4444' }}
             onClick={(row) => drill({ jenis: String(row.name) })} />
           <TrenTerlambat rows={allRows} />
           <SoonTable rows={soon} open={open} />

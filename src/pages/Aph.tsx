@@ -1,5 +1,6 @@
 import { addDays, diffDays, fmtDate } from '../lib'
 import PageShell from '../kit/PageShell'
+import { AphGuide } from '../guides/aph'
 import { sameName } from '../kit/perms'
 import { BarCard, Breakdown, CalendarCard, countBy, DonutCard, LineCard, MiniTable, StatCards, Card, useMonthRange } from '../kit/charts'
 import { ageBucket, ageBuckets, monthKey } from '../kit/dates'
@@ -138,7 +139,7 @@ const cfg: PageConfig<Aph> = {
   seed, fields, columns, filters,
   blank: () => ({ tglTerima: '', nomorSurat: '', tglSurat: '', pengirim: '', perihalJenis: '', perihalTeks: '', kasus: '', merchant: '', groupMerchant: '', unit: '', namaPenyidik: '', noTelp: '', bapTgl: '', bapUlang: '', bapTempat: '', status: 'Active', hold: '', danaTaktis: '', tglBatas: '', pic: '', tglJawab: '' }),
   search: (r) => `${r.nomorSurat} ${r.merchant} ${r.groupMerchant} ${r.perihalJenis} ${r.perihalTeks}`, searchPlaceholder: 'Cari nomor surat, merchant, group, perihal',
-  alerts, cancelStatus: 'Dibatalkan',
+  alerts, cancelStatus: 'Dibatalkan', guide: AphGuide,
   validate: (r) => {
     const e: Record<string, string> = {}
     if (r.tglBatas && r.tglTerima && r.tglBatas < r.tglTerima) e.tglBatas = 'Batas waktu tidak boleh sebelum tanggal terima'
@@ -165,19 +166,40 @@ const cfg: PageConfig<Aph> = {
     })
     return (
       <div className="space-y-3">
-        <StatCards items={[
+        <StatCards title="Status permintaan" info={{
+          apa: 'Jumlah permintaan APH menurut status. Data Dibatalkan tidak dihitung.',
+          baca: ['Active (kuning bila ada, abu-abu bila nol): permintaan yang masih berjalan.', 'Done (hijau): permintaan yang sudah dijawab.', 'Klik kartu untuk membuka tab Table terfilter Status.'],
+        }} items={[
           { label: 'Active', value: act.length, tone: act.length ? 'yellow' : 'gray', onClick: () => drill({ status: 'Active' }) },
           { label: 'Done', value: done, tone: 'green', onClick: () => drill({ status: 'Done' }) },
         ]} />
         <div className="grid gap-3 lg:grid-cols-2">
-          <LineCard title="Surat masuk per bulan" toolbar={rg.toolbar} data={months.map((m) => ({ name: m, Surat: allRows.filter((r) => monthKey(r.tglTerima) === m).length }))} keys={['Surat']}
+          <LineCard title="Surat masuk per bulan" info={{
+            apa: 'Jumlah surat permintaan menurut bulan Tanggal Terima Surat, semua status kecuali Dibatalkan. Tidak ikut filter Periode halaman.',
+            baca: ['Sumbu horizontal: bulan (tahun-bulan). Sumbu vertikal: jumlah surat.', 'Filter Periode di atas grafik mengatur rentang bulan: 3, 6, 9, 12 bulan terakhir, Seluruh Waktu, atau Custom. Bawaan 12 bulan terakhir.', 'Arahkan kursor ke titik untuk melihat jumlah surat dan rinciannya per instansi pengirim.'],
+          }} toolbar={rg.toolbar} data={months.map((m) => ({ name: m, Surat: allRows.filter((r) => monthKey(r.tglTerima) === m).length }))} keys={['Surat']}
             tip={(d) => <Breakdown title={`${d.name}: ${d.Surat} surat`} sub="Per instansi pengirim" items={countBy(allRows.filter((r) => monthKey(r.tglTerima) === d.name), (r) => r.pengirim)} />} />
-          <BarCard title="Instansi pengirim terbanyak" horizontal data={count((r) => r.pengirim, PENGIRIM).sort((a, b) => b.Jumlah - a.Jumlah)} keys={['Jumlah']} onClick={(row) => drill({ pengirim: row.name })} />
-          <DonutCard title="Permintaan per kasus" data={KASUS.map((k) => ({ name: k, value: rows.filter((r) => r.kasus === k).length }))} onClick={(name) => drill({ kasus: name })}
+          <BarCard title="Instansi pengirim terbanyak" info={{
+            apa: 'Jumlah permintaan menurut instansi pengirim (Active dan Done, tanpa Dibatalkan), dalam Periode Tanggal Terima yang dipilih.',
+            baca: ['Sumbu vertikal: instansi pengirim, urut terbanyak di atas. Sumbu horizontal: jumlah permintaan.', 'Isian teks bebas pada Lainnya belum dihitung.', 'Klik batang untuk membuka tab Table terfilter Pengirim.'],
+          }} horizontal data={count((r) => r.pengirim, PENGIRIM).sort((a, b) => b.Jumlah - a.Jumlah)} keys={['Jumlah']} onClick={(row) => drill({ pengirim: row.name })} />
+          <DonutCard title="Permintaan per kasus" info={{
+            apa: 'Proporsi permintaan menurut Kasus (Active dan Done, tanpa Dibatalkan), dalam Periode Tanggal Terima yang dipilih.',
+            baca: ['Tiap irisan adalah satu Kasus. Makin besar irisan, makin banyak permintaan. Kasus tanpa data tidak tampil.', 'Arahkan kursor ke irisan untuk melihat jumlah dan rinciannya per instansi pengirim.', 'Isian teks bebas pada Lainnya belum dihitung.', 'Klik irisan untuk membuka tab Table terfilter Kasus.'],
+          }} data={KASUS.map((k) => ({ name: k, value: rows.filter((r) => r.kasus === k).length }))} onClick={(name) => drill({ kasus: name })}
             tip={(name, value) => <Breakdown title={`${name}: ${value} permintaan`} sub="Per instansi pengirim" items={countBy(rows.filter((r) => r.kasus === name), (r) => r.pengirim)} />} />
-          <BarCard title="Group merchant paling banyak disebut" data={top((r) => r.groupMerchant, 6)} keys={['Jumlah']} onClick={(row) => drill({ groupMerchant: row.name })} />
-          <CalendarCard title="Jadwal BAP 30 hari ke depan" rangeDays={30} events={events} onEvent={open} />
-          <Card title="Permintaan Active menurut umur sejak surat diterima (hari)">
+          <BarCard title="Group merchant paling banyak disebut" info={{
+            apa: 'Enam Group Merchant yang paling sering muncul pada permintaan (Active dan Done, tanpa Dibatalkan), dalam Periode Tanggal Terima yang dipilih.',
+            baca: ['Sumbu horizontal: Group Merchant, urut terbanyak di kiri. Sumbu vertikal: jumlah permintaan.', 'Klik batang untuk membuka tab Table terfilter Group Merchant.'],
+          }} data={top((r) => r.groupMerchant, 6)} keys={['Jumlah']} onClick={(row) => drill({ groupMerchant: row.name })} />
+          <CalendarCard title="Jadwal BAP 30 hari ke depan" info={{
+            apa: 'Kalender 30 hari mulai hari ini. Menampilkan jadwal BAP permintaan berstatus Active. Bila ada Tanggal Jadwal Ulang BAP, tanggal itu yang dipakai.',
+            baca: ['Tiap sel adalah satu hari. Titik berwarna dengan nama "BAP [merchant]" adalah satu jadwal.', 'Merah: BAP 2 hari atau kurang dari hari ini. Kuning: 3 sampai 7 hari. Biru: lebih dari 7 hari.', 'Sel hari ini diberi warna biru muda. Sel dengan lebih dari 3 jadwal menampilkan "+N lagi".', 'Klik jadwal untuk membuka Detail permintaan.'],
+          }} rangeDays={30} events={events} onEvent={open} />
+          <Card title="Permintaan Active menurut umur sejak surat diterima (hari)" info={{
+            apa: 'Permintaan berstatus Active dikelompokkan menurut umur sejak Tanggal Terima Surat. Tabel di bawah batang mendaftar permintaan Active.',
+            baca: ['Sumbu horizontal: rentang umur dalam hari (0-7, 8-14, 15-30, lebih dari 30). Sumbu vertikal: jumlah permintaan.', 'Batang merah: ada permintaan di rentang itu yang sudah lewat Batas Waktu Jawaban. Batang kuning: belum ada yang lewat.', 'Tabel: tertua dulu, 5 baris per halaman. Tanggal Batas merah berarti sudah lewat.', 'Klik baris tabel untuk membuka Detail.'],
+          }}>
             <BarCard title="" data={umur.map(({ name, Jumlah }) => ({ name, Jumlah }))} keys={['Jumlah']} catLabel="Hari" cellColors={umur.map((u) => (u.merah ? '#ef4444' : '#f59e0b'))} />
             <MiniTable cols={[
               { label: 'Nomor Surat', get: (r: Aph) => r.nomorSurat },

@@ -1,5 +1,6 @@
 import { addDays, diffDays, fmtDate, todayStr } from '../lib'
 import PageShell from '../kit/PageShell'
+import { PerizinanGuide } from '../guides/perizinan'
 import { sameName } from '../kit/perms'
 import { DonutCard, MiniTable, StatCards } from '../kit/charts'
 import { StatusPill } from '../kit/fmt'
@@ -144,7 +145,7 @@ const cfg: PageConfig<Izin> = {
   seed, fields, columns, filters,
   blank: () => ({ kategori: '', nama: '', nomor: '', penerbit: '', tglTerbit: '', tglBerlaku: '', tglKedaluwarsa: '', tglReview: '', kewajiban: '', pic: '', status: 'Aktif', versi: 1, file: null, perpanjang: '', versiLama: [] }),
   search: (r) => `${r.nama} ${r.nomor} ${r.penerbit}`, searchPlaceholder: 'Cari nama dokumen, nomor, penerbit',
-  alerts, cancelStatus: 'Tidak Berlaku',
+  alerts, cancelStatus: 'Tidak Berlaku', guide: PerizinanGuide,
   canEditRow: (r, c) => r.status !== 'Tidak Berlaku' && (c.role !== 'PIC' || sameName(r.pic, c.user.name)),
   normalize: (r, c) => (LIVE(r) && r.status === 'Aktif' && r.tglKedaluwarsa && r.tglKedaluwarsa < c.today ? { ...r, status: 'Kedaluwarsa' } : r),
   beforeSave: (old, next) => {
@@ -172,10 +173,19 @@ const cfg: PageConfig<Izin> = {
     const list = [...withExp].sort((a, b) => a.tglKedaluwarsa.localeCompare(b.tglKedaluwarsa))
     return (
       <div className="space-y-3">
-        <StatCards items={[{ label: 'Izin kedaluwarsa dalam 180 hari', value: soon.length, tone: red ? 'red' : soon.length ? 'yellow' : 'gray', onClick: () => drill({ masa: SOON180 }) }]} />
+        <StatCards title="Izin yang perlu diperpanjang" info={{
+          apa: 'Jumlah dokumen yang masih berlaku dengan sisa 0 sampai 180 hari sampai Tanggal Kedaluwarsa dan belum berstatus Kedaluwarsa. Dokumen Tidak Berlaku tidak dihitung.',
+          baca: ['Merah: ada dokumen dengan sisa 90 hari atau kurang. Kuning: ada dokumen dengan sisa 91 sampai 180 hari. Abu-abu: tidak ada.', 'Klik kartu untuk membuka tab Table terfilter Kelompok Masa Berlaku "180 hari atau kurang".'],
+        }} items={[{ label: 'Izin kedaluwarsa dalam 180 hari', value: soon.length, tone: red ? 'red' : soon.length ? 'yellow' : 'gray', onClick: () => drill({ masa: SOON180 }) }]} />
         <div className="grid gap-3 lg:grid-cols-2">
-          <DonutCard title="Dokumen per kategori" data={KAT.map((k) => ({ name: k, value: live.filter((r) => r.kategori === k).length }))} onClick={(name) => drill({ kategori: name })} />
-          <MiniTable<Izin> title="Daftar izin dan tanggal kedaluwarsa" rows={list} onRow={(r) => open(r.id)} cols={[
+          <DonutCard title="Dokumen per kategori" info={{
+            apa: 'Proporsi dokumen menurut Kategori Dokumen: Akta + SK, Izin, dan Legalitas Lainnya. Dokumen Tidak Berlaku tidak dihitung, dokumen Kedaluwarsa tetap dihitung.',
+            baca: ['Tiap irisan adalah satu kategori. Makin besar irisan, makin banyak dokumen.', 'Arahkan kursor ke irisan untuk melihat jumlah.', 'Klik irisan untuk membuka tab Table terfilter Kategori.'],
+          }} data={KAT.map((k) => ({ name: k, value: live.filter((r) => r.kategori === k).length }))} onClick={(name) => drill({ kategori: name })} />
+          <MiniTable<Izin> title="Daftar izin dan tanggal kedaluwarsa" info={{
+            apa: 'Dokumen yang punya Tanggal Kedaluwarsa, diurut dari tanggal kedaluwarsa paling awal. Dokumen Tidak Berlaku tidak ikut.',
+            baca: ['Dokumen yang sudah lewat tanggalnya tampil paling atas.', 'Kolom Sisa hari berwarna: merah bila 90 hari atau kurang atau sudah lewat ("Lewat N hari"), kuning bila 91 sampai 180 hari, hijau bila lebih dari 180 hari.', 'Tabel menampilkan 5 baris per halaman.', 'Klik baris untuk membuka Detail dokumen.'],
+          }} rows={list} onRow={(r) => open(r.id)} cols={[
             { label: 'Nama', get: (r) => r.nama },
             { label: 'Kategori', get: (r) => r.kategori },
             { label: 'Kedaluwarsa', get: (r) => fmtDate(r.tglKedaluwarsa) },

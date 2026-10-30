@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   Bell, ChevronDown, ChevronRight, ClipboardCheck, Database, FileSignature, FileText, Gavel, GitBranch, History, KeyRound, LayoutDashboard, ListChecks, LogOut, Menu, RotateCcw,
   Scale, ScrollText, ShieldAlert, ShieldCheck, Siren, Tag, UserCog, Users,
 } from 'lucide-react'
 import { KEY as DB_KEY, Role as TrackerRole, useDB } from './lib'
+import { GuideSlots } from './kit/PageGuide'
 import { APP_KEY, pushLog, setSession, useApp, useSession } from './kit/store'
 import type { PermKey, Role } from './kit/types'
 import Tracker from './Tracker'
@@ -107,6 +108,9 @@ function Shell() {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
   const [side, setSide] = useState(true)
   const [menu, setMenu] = useState(false)
+  const [btnEl, setBtnEl] = useState<HTMLElement | null>(null)
+  const [panelEl, setPanelEl] = useState<HTMLElement | null>(null)
+  const slots = useMemo(() => ({ btn: btnEl, panel: panelEl }), [btnEl, panelEl])
   useEffect(() => {
     const h = () => setRoute(hashRoute())
     addEventListener('hashchange', h)
@@ -207,8 +211,9 @@ function Shell() {
         )}
         <main className="min-w-0 flex-1 bg-page p-6">
           <div className="mb-1 text-xs text-slate-400">home / {groupOf(route) ? `${groupOf(route)} / ` : ''}{labelOf(route)}</div>
-          <h1 className="mb-4 text-xl font-semibold text-slate-800">{labelOf(route)}</h1>
-          {content}
+          <div className="mb-4 flex flex-wrap items-center gap-3"><h1 className="text-xl font-semibold text-slate-800">{labelOf(route)}</h1><div ref={setBtnEl} /></div>
+          <div ref={setPanelEl} />
+          <GuideSlots.Provider value={slots}>{content}</GuideSlots.Provider>
         </main>
       </div>
     </div>

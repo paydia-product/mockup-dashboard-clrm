@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { setStore, useApp } from '../kit/store'
+import PageGuide from '../kit/PageGuide'
+import { PASSWORD_GUIDE, PIN_GUIDE } from '../guides/shared'
 
 export default function Profile({ kind }: { kind: 'password' | 'pin' }) {
   const { ctx, log } = useApp()
@@ -20,6 +22,7 @@ export default function Profile({ kind }: { kind: 'password' | 'pin' }) {
   const row = (k: keyof typeof f, l: string) => <div><label className="lbl">{l} *</label><input type="password" className="inp" value={f[k]} onChange={(e) => setF({ ...f, [k]: e.target.value })} maxLength={pw ? undefined : 6} /></div>
   return (
     <div className="max-w-md space-y-3 rounded-lg border border-slate-200 bg-white p-5">
+      <PageGuide name={pw ? 'Ganti Password' : 'Ganti PIN'} items={pw ? PASSWORD_GUIDE : PIN_GUIDE} />
       {row('old', `${label} lama`)}{row('next', `${label} baru`)}{row('conf', `Konfirmasi ${label} baru`)}
       {err && <p className="err">{err}</p>}
       {ok && <p className="text-xs text-green-700">{label} berhasil diganti.</p>}

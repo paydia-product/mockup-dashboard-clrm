@@ -8,3 +8,6 @@ body { @apply bg-page text-slate-700 antialiased text-[13px]; }
 .inp { @apply w-full rounded border border-slate-300 bg-white px-2.5 py-1.5 text-[13px] outline-none focus:border-brand disabled:bg-slate-100 disabled:text-slate-500; }
 .lbl { @apply mb-1 block text-xs font-medium text-slate-500; }
 .err { @apply mt-0.5 text-xs text-red-600; }
+.guide-body ol { @apply list-decimal space-y-0.5 pl-5; }
+.guide-body ul { @apply list-disc space-y-0.5 pl-5; }
+.guide-body p, .guide-body ol, .guide-body ul { @apply mb-2 last:mb-0; }

@@ -11,6 +11,8 @@ import type { Action } from './kit/types'
 import Dashboard from './Dashboard'
 import Drawer, { Acts } from './Drawer'
 import Form from './Form'
+import PageGuide from './kit/PageGuide'
+import { TRACKER_GUIDE } from './guides/tracker'
 import TrackerImport from './TrackerImport'
 import { Modal, ReasonModal, RiskBadge, StatusBadge } from './ui'
 
@@ -169,6 +171,7 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
 
   return (
     <div>
+      <PageGuide name="Regulatory Findings Tracker" items={TRACKER_GUIDE} />
       <div className="mb-3 flex gap-1 border-b border-slate-200">
         {(['dashboard', 'table'] as const).map((t) => (
           <button key={t} onClick={() => setTab(t)} className={`border-b-2 px-4 py-2 text-sm font-medium ${tab === t ? 'border-brand text-brand' : 'border-transparent text-slate-500'}`}>{t === 'table' ? 'Table' : 'Dashboard'}</button>

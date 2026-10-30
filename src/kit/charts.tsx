@@ -4,6 +4,9 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { addDays, fmtDate, todayStr } from '../lib'
 import { useDashPaged } from '../shared/Pager'
 import type { Tone } from '../ui'
+import InfoTip, { ChartInfo } from './InfoTip'
+
+export type { ChartInfo }
 
 export const PALETTE = ['#1f2ab5', '#3b82f6', '#06b6d4', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#64748b']
 export const TONE_HEX: Record<Tone, string> = { red: '#ef4444', yellow: '#f59e0b', green: '#10b981', blue: '#3b82f6', gray: '#94a3b8' }
@@ -52,9 +55,9 @@ export const Breakdown = ({ title, sub, items }: { title: string; sub: string; i
   <div><div className="font-semibold">{title}</div><div className="mb-1 text-slate-500">{sub}</div>{items.map(([k, v]) => <div key={k} className="flex justify-between gap-4"><span>{k}</span><span className="font-medium">{v}</span></div>)}{!items.length && <div className="text-slate-400">Tidak ada data</div>}</div>
 )
 
-export const Card = ({ title, children, className = '', toolbar }: { title?: string; children: ReactNode; className?: string; toolbar?: ReactNode }) => (
+export const Card = ({ title, children, className = '', toolbar, info }: { title?: string; children: ReactNode; className?: string; toolbar?: ReactNode; info?: ChartInfo }) => (
   <div className={`rounded-lg border border-slate-200 bg-white p-4 ${className}`}>
-    {title && <h3 className="mb-3 text-sm font-semibold text-slate-800">{title}</h3>}
+    {title && <h3 className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-slate-800">{title}{info && <InfoTip info={info} label={title} />}</h3>}
     {toolbar && <div className="mb-3">{toolbar}</div>}
     {children}
   </div>
@@ -62,8 +65,8 @@ export const Card = ({ title, children, className = '', toolbar }: { title?: str
 const Empty = () => <div className="py-10 text-center text-xs text-slate-400">Tidak ada data</div>
 const hasData = (data: Row[], keys: string[], monthly?: boolean) => (monthly ? data.length > 0 : data.some((d) => keys.some((k) => Number(d[k]) > 0))) // grafik bulanan (punya toolbar periode): bulan kosong tetap tampil sebagai nol
 
-export function StatCards({ items }: { items: { label: string; value: string | number; tone?: Tone; onClick?: () => void }[] }) {
-  return (
+export function StatCards({ items, info, title = 'Ringkasan' }: { items: { label: string; value: string | number; tone?: Tone; onClick?: () => void }[]; info?: ChartInfo; title?: string }) {
+  const grid = (
     <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${Math.min(items.length, 6)}, minmax(0, 1fr))` }}>
       {items.map((it) => (
         <div key={it.label} onClick={it.onClick} className={`rounded-lg border border-l-4 border-slate-200 bg-white p-4 ${TILE[it.tone ?? 'gray']} ${it.onClick ? 'cursor-pointer hover:bg-slate-50' : ''}`}>
@@ -73,16 +76,18 @@ export function StatCards({ items }: { items: { label: string; value: string | n
       ))}
     </div>
   )
+  return info ? <div><div className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-slate-600">{title}<InfoTip info={info} label={title} /></div>{grid}</div> : grid
 }
 
 // data: [{ name, <key1>, <key2> ... }]; cellColors mewarnai tiap batang (hanya untuk satu seri)
-export function BarCard({ title, data, keys, stacked, horizontal, colors, cellColors, xKey = 'name', onClick, height = 240, className, tip, toolbar, unit, catLabel }: {
+export function BarCard({ title, data, keys, stacked, horizontal, colors, cellColors, xKey = 'name', onClick, height = 240, className, tip, toolbar, unit, catLabel, info }: {
+  info?: ChartInfo;
   unit?: string; catLabel?: string; // unit = satuan sumbu angka (mis. 'Hari': label sumbu + tooltip 'N hari'); catLabel = label sumbu kategori
   title: string; toolbar?: ReactNode; data: Row[]; keys: string[]; stacked?: boolean; horizontal?: boolean; colors?: Colors; cellColors?: string[]; xKey?: string; tip?: (row: Row) => ReactNode
   onClick?: (row: Row, key: string) => void; height?: number; className?: string
 }) {
   return (
-    <Card title={title} className={className} toolbar={toolbar}>
+    <Card title={title} className={className} toolbar={toolbar} info={info}>
       {!hasData(data, keys, !!toolbar) ? <Empty /> : (
         <ResponsiveContainer width="100%" height={horizontal ? Math.max(height, data.length * 28 + 40) : height}>
           <BarChart data={data} layout={horizontal ? 'vertical' : 'horizontal'} margin={{ left: horizontal ? 20 : 0 }}>
@@ -104,10 +109,10 @@ export function BarCard({ title, data, keys, stacked, horizontal, colors, cellCo
   )
 }
 
-export function DonutCard({ title, data, onClick, className, tip }: { title: string; data: { name: string; value: number; color?: string }[]; onClick?: (name: string) => void; className?: string; tip?: (name: string, value: number) => ReactNode }) {
+export function DonutCard({ title, data, onClick, className, tip, info }: { info?: ChartInfo; title: string; data: { name: string; value: number; color?: string }[]; onClick?: (name: string) => void; className?: string; tip?: (name: string, value: number) => ReactNode }) {
   const d = data.filter((x) => x.value > 0)
   return (
-    <Card title={title} className={className}>
+    <Card title={title} className={className} info={info}>
       {!d.length ? <Empty /> : (
         <ResponsiveContainer width="100%" height={240}>
           <PieChart>
@@ -122,9 +127,9 @@ export function DonutCard({ title, data, onClick, className, tip }: { title: str
   )
 }
 
-export function LineCard({ title, data, keys, colors, xKey = 'name', height = 240, className, toolbar, tip }: { title: string; data: Row[]; keys: string[]; colors?: Colors; xKey?: string; height?: number; className?: string; toolbar?: ReactNode; tip?: (row: Row) => ReactNode }) {
+export function LineCard({ title, data, keys, colors, xKey = 'name', height = 240, className, toolbar, tip, info }: { info?: ChartInfo; title: string; data: Row[]; keys: string[]; colors?: Colors; xKey?: string; height?: number; className?: string; toolbar?: ReactNode; tip?: (row: Row) => ReactNode }) {
   return (
-    <Card title={title} className={className} toolbar={toolbar}>
+    <Card title={title} className={className} toolbar={toolbar} info={info}>
       {!hasData(data, keys, !!toolbar) ? <Empty /> : (
         <ResponsiveContainer width="100%" height={height}>
           <LineChart data={data}>
@@ -138,10 +143,10 @@ export function LineCard({ title, data, keys, colors, xKey = 'name', height = 24
   )
 }
 
-export function ComboCard({ title, data, bars, lines, colors, xKey = 'name', height = 260, className, toolbar }: { title: string; toolbar?: ReactNode; data: Row[]; bars: string[]; lines: string[]; colors?: Colors; xKey?: string; height?: number; className?: string }) {
+export function ComboCard({ title, data, bars, lines, colors, xKey = 'name', height = 260, className, toolbar, info }: { info?: ChartInfo; title: string; toolbar?: ReactNode; data: Row[]; bars: string[]; lines: string[]; colors?: Colors; xKey?: string; height?: number; className?: string }) {
   const all = [...bars, ...lines]
   return (
-    <Card title={title} className={className} toolbar={toolbar}>
+    <Card title={title} className={className} toolbar={toolbar} info={info}>
       {!hasData(data, all, !!toolbar) ? <Empty /> : (
         <ResponsiveContainer width="100%" height={height}>
           <ComposedChart data={data}>
@@ -155,7 +160,7 @@ export function ComboCard({ title, data, bars, lines, colors, xKey = 'name', hei
   )
 }
 
-export function MiniTable<T>({ title, cols: cols0, rows, onRow, empty = 'Tidak ada data', className }: { title?: string; cols: { label: string; get: (r: T) => ReactNode }[]; rows: T[]; onRow?: (r: T) => void; empty?: string; className?: string }) {
+export function MiniTable<T>({ title, cols: cols0, rows, onRow, empty = 'Tidak ada data', className, info }: { info?: ChartInfo; title?: string; cols: { label: string; get: (r: T) => ReactNode }[]; rows: T[]; onRow?: (r: T) => void; empty?: string; className?: string }) {
   const { slice, pager, offset } = useDashPaged(rows)
   const cols = [{ label: 'No', get: () => '' as ReactNode }, ...cols0.filter((c) => c.label !== 'No')] // kolom No = posisi baris (lanjut di halaman berikut), selalu ada
   const body = (
@@ -172,13 +177,13 @@ export function MiniTable<T>({ title, cols: cols0, rows, onRow, empty = 'Tidak a
     {rows.length > 0 && pager}
     </div>
   )
-  return title ? <Card title={title} className={className}>{body}</Card> : body
+  return title ? <Card title={title} className={className} info={info}>{body}</Card> : body
 }
 
 // Kalender: tampilan hari/minggu/bulan, titik berwarna per event
 type View = 'hari' | 'minggu' | 'bulan'
 // rangeDays: tampilan rentang tetap mulai hari ini (tanpa paging), mis. 30 hari ke depan
-export function CalendarCard({ title, events, views = ['bulan'], onEvent, className, rangeDays }: { title: string; events: { date: string; label: string; tone: Tone; id?: string }[]; views?: View[]; onEvent?: (id: string) => void; className?: string; rangeDays?: number }) {
+export function CalendarCard({ title, events, views = ['bulan'], onEvent, className, rangeDays, info }: { info?: ChartInfo; title: string; events: { date: string; label: string; tone: Tone; id?: string }[]; views?: View[]; onEvent?: (id: string) => void; className?: string; rangeDays?: number }) {
   const [view, setView] = useState<View>(views[0])
   const [anchor, setAnchor] = useState(todayStr)
   const dayOf = (s: string) => new Date(s + 'T00:00:00').getDay()
@@ -195,7 +200,7 @@ export function CalendarCard({ title, events, views = ['bulan'], onEvent, classN
   const ev = (d: string) => events.filter((e) => e.date.slice(0, 10) === d)
   const head = rangeDays ? `${fmtDate(days[0])} - ${fmtDate(days[n - 1])}` : view === 'bulan' ? new Date(anchor + 'T00:00:00').toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }) : view === 'minggu' ? `${fmtDate(days[0])} - ${fmtDate(days[6])}` : fmtDate(anchor)
   return (
-    <Card title={title} className={className}>
+    <Card title={title} className={className} info={info}>
       <div className="mb-2 flex items-center gap-2 text-xs">
         {!rangeDays && <button className="btn !px-1.5 !py-1" onClick={() => move(-1)} aria-label="Sebelumnya"><ChevronLeft size={14} /></button>}
         <span className="min-w-[130px] text-center font-medium capitalize">{head}</span>

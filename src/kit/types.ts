@@ -1,5 +1,6 @@
 import type { ElementType, ReactNode } from 'react'
 import type { FileMeta } from '../lib'
+import type { GuideItem } from './PageGuide'
 
 export type { FileMeta }
 export type ModuleId = 'tracker' | 'reporting' | 'regchange' | 'sop' | 'risk' | 'kajian' | 'fraud' | 'kontrak' | 'aph' | 'perizinan' | 'layanan'
@@ -72,6 +73,7 @@ export interface PageConfig<T extends BaseRec> {
   name?: (r: T) => string // label data yang tampil ke user (pengganti nomor internal) di judul modal, log, approval, email
   approvals?: ApprovalRule<T>[]
   rowActions?: RowAction<T>[]
+  guide: GuideItem[] // isi tombol Panduan Halaman di samping judul (HTML statis)
   dashDate?: { get: (r: T) => string; label: string } // tanggal utama untuk filter Periode di atas dashboard
   // rows = sudah difilter Periode halaman; allRows = tidak difilter (untuk grafik bulanan dengan filter bulan sendiri)
   Dashboard: (p: { rows: T[]; allRows: T[]; c: Ctx; open: (id: string) => void; drill: (filter: Record<string, unknown>) => void }) => JSX.Element

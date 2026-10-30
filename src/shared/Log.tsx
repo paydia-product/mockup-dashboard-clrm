@@ -5,6 +5,8 @@ import { downloadXlsx } from '../kit/exportXlsx'
 import { useApp } from '../kit/store'
 import type { LogEntry } from '../kit/types'
 import { usePaged } from './Pager'
+import PageGuide from '../kit/PageGuide'
+import { LOG_GUIDE } from '../guides/shared'
 
 const TRACKER = 'Regulatory Findings Tracker'
 export function useAllLogs(tdb: DB): LogEntry[] {
@@ -32,6 +34,7 @@ export default function Log({ tdb }: { tdb: DB }) {
   }
   return (
     <div className="rounded-lg border border-slate-200 bg-white">
+      <PageGuide name="Log" items={LOG_GUIDE} />
       <div className="flex flex-wrap items-center gap-2 border-b p-3">
         <input type="date" className="inp !w-auto" aria-label="Dari" value={f.from} onChange={(e) => upd({ from: e.target.value })} /><span>-</span>
         <input type="date" className="inp !w-auto" aria-label="Sampai" value={f.to} onChange={(e) => upd({ to: e.target.value })} />

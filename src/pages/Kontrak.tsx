@@ -2,6 +2,7 @@ import { addDays, diffDays, fmtDate, todayStr } from '../lib'
 import { monthKey } from '../kit/dates'
 import { sameName } from '../kit/perms'
 import PageShell from '../kit/PageShell'
+import { KontrakGuide } from '../guides/kontrak'
 import { BarCard, LineCard, MiniTable, StatCards, useMonthRange } from '../kit/charts'
 import { StatusPill } from '../kit/fmt'
 import type { AlertDef, BaseRec, Column, Ctx, Field, FilterDef, PageConfig } from '../kit/types'
@@ -159,7 +160,7 @@ const cfg: PageConfig<Kontrak> = {
   seed, fields, columns, filters,
   blank: () => ({ jenisHubungan: '', mitra: '', merchant: '', nomor: '', jenisDok: '', mulai: '', berakhir: '', perpanjangan: '', lamaBulan: '', status: 'Draft', bidang: '', pic: '', dept: '', induk: '', kelengkapan: {}, file: null }),
   search: (r) => `${nm(r)} ${r.nomor} ${r.jenisDok}`, searchPlaceholder: 'Cari mitra, nomor, jenis dokumen',
-  alerts, cancelStatus: 'Dibatalkan',
+  alerts, cancelStatus: 'Dibatalkan', guide: KontrakGuide,
   normalize: (r, c) => {
     if (!LIVE(r) || !r.berakhir) return r
     const s = diffDays(r.berakhir, c.today)
@@ -187,16 +188,36 @@ const cfg: PageConfig<Kontrak> = {
     const bulan = rg.months(allRows.map((r) => monthKey(r.mulai)))
     return (
       <div className="space-y-3">
-        <StatCards items={[
+        <StatCards title="Masa berlaku kontrak" info={{
+          apa: 'Enam kartu yang mengelompokkan kontrak menurut sisa hari sampai Tanggal Berakhir. Hanya kontrak berstatus Aktif atau Akan Berakhir yang masuk kelompok hari. Data Dibatalkan tidak dihitung.',
+          baca: [
+            'Aktif > 90 hari (hijau): sisa lebih dari 90 hari.',
+            'Berakhir 60 sampai 90 hari (kuning): sisa 61 sampai 90 hari. Berakhir 30 sampai 60 hari (kuning): sisa 31 sampai 60 hari.',
+            'Berakhir < 30 hari (merah): sisa 0 sampai 30 hari.',
+            'Expired (merah): status Expired, Tanggal Berakhir sudah lewat.',
+            'Tanggal Berakhir Kosong (kuning): kontrak tanpa Tanggal Berakhir, kecuali status Berakhir atau Dibatalkan.',
+            'Kontrak berstatus Draft, Review, Diperpanjang, atau Berakhir yang punya Tanggal Berakhir tidak masuk kartu mana pun.',
+            'Klik kartu untuk membuka tab Table dengan filter Kelompok masa berlaku yang sama.',
+          ],
+        }} items={[
           card('Kontrak Aktif > 90 hari', G.over, 'green'), card('Kontrak Berakhir 60–90 hari', G.d90, 'yellow'), card('Kontrak Berakhir 30–60 hari', G.d60, 'yellow'),
           card('Kontrak Berakhir < 30 hari', G.d30, 'red'), card('Kontrak Expired', G.exp, 'red'), card('Kontrak Tanggal Berakhir Kosong', G.empty, 'yellow'),
         ]} />
         <div className="grid gap-3 lg:grid-cols-2">
-          <BarCard title="Kontrak per jenis dokumen" horizontal data={JENIS_DOK.map((j) => ({ name: j, Jumlah: rows.filter((r) => r.jenisDok === j).length }))} keys={['Jumlah']} onClick={(row) => drill({ jenisDok: row.name })} />
-          <LineCard title="Kontrak baru per bulan" toolbar={rg.toolbar} data={bulan.map((m) => ({ name: m, 'Kontrak baru': allRows.filter((r) => monthKey(r.mulai) === m).length }))} keys={['Kontrak baru']} />
+          <BarCard title="Kontrak per jenis dokumen" info={{
+            apa: 'Jumlah kontrak menurut Jenis Dokumen, semua status kecuali Dibatalkan, dalam Periode Tanggal Mulai yang dipilih.',
+            baca: ['Sumbu vertikal: Jenis Dokumen. Sumbu horizontal: jumlah kontrak.', 'Arahkan kursor ke batang untuk melihat jumlahnya.', 'Klik batang untuk membuka tab Table terfilter Jenis Dokumen.', 'Isian teks bebas pada Lainnya belum dihitung.'],
+          }} horizontal data={JENIS_DOK.map((j) => ({ name: j, Jumlah: rows.filter((r) => r.jenisDok === j).length }))} keys={['Jumlah']} onClick={(row) => drill({ jenisDok: row.name })} />
+          <LineCard title="Kontrak baru per bulan" info={{
+            apa: 'Jumlah kontrak baru menurut bulan Tanggal Mulai, semua status kecuali Dibatalkan. Tidak ikut filter Periode halaman.',
+            baca: ['Sumbu horizontal: bulan (tahun-bulan). Sumbu vertikal: jumlah kontrak.', 'Filter Periode di atas grafik mengatur rentang bulan: 3, 6, 9, 12 bulan terakhir, Seluruh Waktu, atau Custom. Bawaan 12 bulan terakhir.', 'Bulan tanpa kontrak tampil sebagai nol.', 'Arahkan kursor ke titik untuk melihat bulan dan jumlahnya.'],
+          }} toolbar={rg.toolbar} data={bulan.map((m) => ({ name: m, 'Kontrak baru': allRows.filter((r) => monthKey(r.mulai) === m).length }))} keys={['Kontrak baru']} />
         </div>
         <MiniTable
-          title="Kontrak berakhir dalam 90 hari (terdekat dulu)" rows={dekat} onRow={(r) => open(r.id)}
+          title="Kontrak berakhir dalam 90 hari (terdekat dulu)" info={{
+            apa: 'Daftar kontrak Aktif atau Akan Berakhir yang Tanggal Berakhirnya 0 sampai 90 hari dari hari ini, dalam Periode Tanggal Mulai yang dipilih.',
+            baca: ['Urutan: Tanggal Berakhir terdekat paling atas.', 'Kolom Sisa hari menunjukkan hari sampai berakhir.', 'Tabel menampilkan 5 baris per halaman. Gunakan pager di bawah tabel.', 'Klik baris untuk membuka Detail kontrak.'],
+          }} rows={dekat} onRow={(r) => open(r.id)}
           cols={[
             { label: 'Mitra / Merchant', get: nm }, { label: 'Nomor PKS / NDA', get: (r) => r.nomor }, { label: 'Jenis Dokumen', get: (r) => r.jenisDok },
             { label: 'Berakhir', get: (r) => fmtDate(r.berakhir) }, { label: 'Sisa hari', get: (r) => sisa(r, c.today) },

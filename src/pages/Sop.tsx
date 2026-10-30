@@ -5,6 +5,7 @@ import { StatusPill } from '../kit/fmt'
 import { sameName } from '../kit/perms'
 import type { AlertDef, Column, Ctx, Field, FilterDef, PageConfig } from '../kit/types'
 import { SopRec, seedSop } from './sop.shared'
+import { SopGuide } from '../guides/sop'
 
 const STATUS = ['Aktif', 'Dalam Review', 'Dicabut']
 const UMUR = ['< 1 tahun', '1-2 tahun', '> 2 tahun']
@@ -95,6 +96,7 @@ const alerts: AlertDef<SopRec>[] = [
 const cfg: PageConfig<SopRec> = {
   module: 'sop', title: 'SOP & Dokumen Kontrol', noun: 'SOP', exportPrefix: 'Daftar_SOP',
   name: (r) => r.judul,
+  guide: SopGuide,
   seed: seedSop, fields, columns, filters, alerts, cancelStatus: 'Dicabut',
   blank: () => ({ noDok: '', judul: '', ringkasan: '', pemilik: '', tglBerlaku: '', tglUbah: '', noRevisi: '', retensi: '', klasifikasi: '', file: null, tglReview: '', pic: '', status: 'Aktif' }),
   search: (r) => `${r.noDok} ${r.judul} ${r.ringkasan}`, searchPlaceholder: 'Cari no dokumen, judul, ringkasan',
@@ -115,17 +117,17 @@ const cfg: PageConfig<SopRec> = {
     const statusData = [...STATUS, ''].map((s) => ({ name: s || 'Belum diisi', value: rows.filter((r) => r.status === s).length })).filter((d) => d.value)
     return (
       <div className="space-y-3">
-        <StatCards items={[
+        <StatCards info={{ apa: 'Empat angka ringkas dari SOP pada Periode yang dipilih (SOP Dibatalkan tidak dihitung).', baca: ['Total SOP: semua SOP pada periode, apa pun statusnya.', 'Aktif: SOP berstatus Aktif. Klik kartu ini untuk membuka Table terfilter status Aktif.', 'Harus direview (<= 30 hari): SOP belum Dicabut dengan Tanggal Review Berikutnya 0 sampai 30 hari lagi (kuning bila ada).', 'Review terlewat: SOP belum Dicabut dengan Tanggal Review Berikutnya sudah lewat (merah bila ada).'] }} items={[
           { label: 'Total SOP', value: rows.length, tone: 'blue' },
           { label: 'Aktif', value: rows.filter((r) => r.status === 'Aktif').length, tone: 'green', onClick: () => drill({ status: 'Aktif' }) },
           { label: 'Harus direview (<= 30 hari)', value: due.length, tone: due.length ? 'yellow' : 'gray' },
           { label: 'Review terlewat', value: over.length, tone: over.length ? 'red' : 'gray' },
         ]} />
         <div className="grid gap-3 lg:grid-cols-2">
-          <BarCard title="SOP per unit kerja pemilik" horizontal data={c.master.unitKerja.map((d) => ({ name: d, Jumlah: rows.filter((r) => r.pemilik === d).length }))} keys={['Jumlah']} onClick={(row) => drill({ pemilik: row.name })} />
-          <DonutCard title="SOP per status" data={statusData} tip={(name) => unitTip(name, rows.filter((r) => r.status === (name === 'Belum diisi' ? '' : name)))} onClick={(name) => name !== 'Belum diisi' && drill({ status: name })} />
-          <BarCard title="Umur dokumen (sejak Tanggal Berlaku)" data={UMUR.map((u) => ({ name: u, Jumlah: rows.filter((r) => umurBucket(r, c.today) === u).length }))} keys={['Jumlah']} cellColors={['#22c55e', '#f59e0b', '#ef4444']} tip={(d) => unitTip(String(d.name), rows.filter((r) => umurBucket(r, c.today) === d.name))} onClick={(row) => drill({ umur: row.name })} />
-          <MiniTable<SopRec> title="SOP yang harus direview (<= 30 hari atau lewat)" rows={review} onRow={(r) => open(r.id)}
+          <BarCard info={{ apa: 'Jumlah SOP per Unit Kerja pemilik dokumen. Semua Unit Kerja dari Master Data ditampilkan, termasuk yang berjumlah nol.', baca: ['Sumbu Y: Unit Kerja pemilik. Sumbu X: jumlah SOP.', 'Arahkan kursor ke batang untuk melihat jumlahnya.', 'Klik batang untuk membuka Table terfilter Pemilik Dokumen tersebut.'] }} title="SOP per unit kerja pemilik" horizontal data={c.master.unitKerja.map((d) => ({ name: d, Jumlah: rows.filter((r) => r.pemilik === d).length }))} keys={['Jumlah']} onClick={(row) => drill({ pemilik: row.name })} />
+          <DonutCard info={{ apa: 'Komposisi SOP menurut Status (Aktif, Dalam Review, Dicabut). Irisan "Belum diisi" muncul bila Status kosong.', baca: ['Tiap irisan = satu status; ukuran irisan = jumlah SOP.', 'Arahkan kursor ke irisan untuk melihat jumlah dan rincian per Unit Kerja pemilik.', 'Klik irisan untuk membuka Table terfilter status tersebut (irisan "Belum diisi" tidak bisa diklik).'] }} title="SOP per status" data={statusData} tip={(name) => unitTip(name, rows.filter((r) => r.status === (name === 'Belum diisi' ? '' : name)))} onClick={(name) => name !== 'Belum diisi' && drill({ status: name })} />
+          <BarCard info={{ apa: 'Umur dokumen dihitung dari Tanggal Berlaku sampai hari ini, lalu dikelompokkan: kurang dari 1 tahun (di bawah 365 hari), 1-2 tahun (365 sampai 730 hari), dan lebih dari 2 tahun.', baca: ['Sumbu X: kelompok umur. Sumbu Y: jumlah SOP.', 'Warna: hijau = kurang dari 1 tahun, kuning = 1-2 tahun, merah = lebih dari 2 tahun.', 'Arahkan kursor ke batang untuk melihat jumlah per Unit Kerja pemilik.', 'Klik batang untuk membuka Table terfilter Umur Dokumen tersebut.'] }} title="Umur dokumen (sejak Tanggal Berlaku)" data={UMUR.map((u) => ({ name: u, Jumlah: rows.filter((r) => umurBucket(r, c.today) === u).length }))} keys={['Jumlah']} cellColors={['#22c55e', '#f59e0b', '#ef4444']} tip={(d) => unitTip(String(d.name), rows.filter((r) => umurBucket(r, c.today) === d.name))} onClick={(row) => drill({ umur: row.name })} />
+          <MiniTable<SopRec> info={{ apa: 'Daftar SOP belum Dicabut yang Tanggal Review Berikutnya-nya sudah lewat atau tinggal 30 hari atau kurang. Urut dari tanggal review paling awal.', baca: ['Kolom Sisa: merah "Lewat N hari" bila review terlewat, kuning "N hari" bila masih akan datang.', 'Klik baris untuk membuka Detail SOP.', 'Tabel menampilkan 5 baris per halaman.'] }} title="SOP yang harus direview (<= 30 hari atau lewat)" rows={review} onRow={(r) => open(r.id)}
             cols={[
               { label: 'No Dokumen', get: (r) => r.noDok },
               { label: 'Judul', get: (r) => r.judul },
