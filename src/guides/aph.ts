@@ -16,7 +16,7 @@ export const AphGuide: GuideItem[] = [
 <li><b>Surat masuk per bulan</b>: garis jumlah surat menurut bulan Tanggal Terima. Punya filter <b>Periode</b> sendiri (bawaan 12 bulan terakhir), tidak ikut Periode halaman. Arahkan kursor ke titik untuk rincian per instansi pengirim.</li>
 <li><b>Instansi pengirim terbanyak</b>: batang mendatar, urut terbanyak. Klik batang untuk membuka Table terfilter Pengirim.</li>
 <li><b>Permintaan per kasus</b>: diagram donat. Arahkan kursor untuk rincian per instansi pengirim. Klik irisan untuk membuka Table terfilter Kasus.</li>
-<li><b>Group merchant paling banyak disebut</b>: 5 group teratas. Klik batang untuk membuka Table terfilter Group Merchant.</li>
+<li><b>Top 5 Group merchant paling banyak disebut</b>: 5 group teratas. Klik batang untuk membuka Table terfilter Group Merchant.</li>
 <li><b>Jadwal BAP 30 hari ke depan</b>: kalender permintaan Active yang punya jadwal BAP. Klik acara untuk membuka Detail.</li>
 <li><b>Permintaan Active menurut umur</b>: batang umur sejak surat diterima dan tabel permintaan Active (5 baris per halaman, tertua dulu). Klik baris untuk membuka Detail.</li>
 </ul>` },

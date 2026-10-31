@@ -184,7 +184,7 @@ const cfg: PageConfig<Aph> = {
             baca: ['Tiap irisan adalah satu Kasus. Makin besar irisan, makin banyak permintaan. Kasus tanpa data tidak tampil.', 'Arahkan kursor ke irisan untuk melihat jumlah dan rinciannya per instansi pengirim.', 'Isian teks bebas di luar daftar dihitung di irisan Lainnya.', 'Klik irisan untuk membuka tab Table terfilter Kasus.'],
           }} data={KASUS.map((k) => ({ name: k, value: rows.filter((r) => showLainnya(r.kasus, KASUS) === k).length }))} onClick={(name) => drill({ kasus: name })}
             tip={(name, value) => <Breakdown title={`${name}: ${value} permintaan`} sub="Per instansi pengirim" items={countBy(rows.filter((r) => showLainnya(r.kasus, KASUS) === name), (r) => r.pengirim)} />} />
-          <BarCard title="Group merchant paling banyak disebut" info={{
+          <BarCard title="Top 5 Group merchant paling banyak disebut" info={{
             apa: 'Lima Group Merchant yang paling sering muncul pada permintaan (Active dan Done, tanpa Dibatalkan), dalam Periode Tanggal Terima yang dipilih.',
             baca: ['Sumbu horizontal: Group Merchant, urut terbanyak di kiri. Sumbu vertikal: jumlah permintaan.', 'Klik batang untuk membuka tab Table terfilter Group Merchant.'],
           }} data={top((r) => r.groupMerchant, 5)} keys={['Jumlah']} onClick={(row) => drill({ groupMerchant: row.name })} />

@@ -11,6 +11,20 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
+    v: '2.13.10',
+    date: '2026-10-31',
+    deployed: true,
+    title: 'Ikon mata Super Admin, judul Top 5 APH, kolom skor Risk',
+    prompt: 'Tombol uncensor Fraud tidak terlihat; judul chart Top 5 APH; hapus residual dan perjelas kolom D K Skor di Risk Register',
+    tokens: 25000,
+    changes: [
+      'Fraud: Super Admin kini punya ikon mata untuk membuka Nama Terlapor dan RRN (selain Head CLRM dan Fraud Investigator)',
+      'APH: judul chart menjadi "Top 5 Group merchant paling banyak disebut"',
+      'Risk Register: tombol dan teks "Setelah kontrol (residual)" dihapus dari heatmap dan panduan',
+      'Risk Register: kolom tabel D, K, Skor menjadi Skor Dampak, Skor Kemungkinan, Skor Total',
+    ],
+  },
+  {
     v: '2.13.9',
     date: '2026-10-31',
     deployed: true,

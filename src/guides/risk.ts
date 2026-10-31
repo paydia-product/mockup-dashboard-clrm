@@ -21,7 +21,6 @@ export const RiskGuide: GuideItem[] = [
   { h: 'Rumus Level Risiko', b: `<ul>
 <li><b>Skor Total</b> = Skor Dampak x Skor Kemungkinan (masing-masing 1-3).</li>
 <li><b>Level Risiko Awal (Inherent)</b>: skor 1-2 = <b>Low</b>, skor 3-4 = <b>Medium</b>, skor 6-9 = <b>High</b>.</li>
-<li>Tombol heatmap <b>Setelah kontrol (residual)</b> belum dipakai.</li>
 </ul>` },
   { h: 'Tabel, cari, filter', b: `<ul>
 <li>Kolom <b>Nomor</b> adalah urutan baris, bukan ID data.</li>

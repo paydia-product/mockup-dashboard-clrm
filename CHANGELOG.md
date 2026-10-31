@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 2.13.10 | 2026-10-31 | ~25k |
 | 2.13.9 | 2026-10-31 | ~10k |
 | 2.13.8 | 2026-10-31 | ~20k |
 | 2.13.7 | 2026-10-31 | ~40k |
@@ -54,6 +55,14 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [2.13.10] - 2026-10-31
+
+### Diubah
+- Fraud: Super Admin kini punya ikon mata untuk membuka Nama Terlapor dan RRN (selain Head CLRM dan Fraud Investigator)
+- APH: judul chart menjadi "Top 5 Group merchant paling banyak disebut"
+- Risk Register: tombol dan teks "Setelah kontrol (residual)" dihapus dari heatmap dan panduan
+- Risk Register: kolom tabel D, K, Skor menjadi Skor Dampak, Skor Kemungkinan, Skor Total
 
 ## [2.13.9] - 2026-10-31
 

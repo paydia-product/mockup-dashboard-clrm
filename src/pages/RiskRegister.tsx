@@ -44,9 +44,9 @@ const columns: Column<Risk>[] = [
   { label: 'No', get: (r) => r.no },
   { label: 'Risk Event', get: (r) => r.event },
   { label: 'Domain', get: (r) => r.domain },
-  { label: 'D', get: (r) => r.dampak },
-  { label: 'K', get: (r) => r.kemungkinan },
-  { label: 'Skor', get: (r) => skor(r) },
+  { label: 'Skor Dampak', get: (r) => r.dampak },
+  { label: 'Skor Kemungkinan', get: (r) => r.kemungkinan },
+  { label: 'Skor Total', get: (r) => skor(r) },
   { label: 'Level', get: (r) => level(r), render: (r) => <StatusPill s={level(r)} tone={LV_TONE[level(r)]} /> },
   { label: 'Unit Kerja', get: (r) => r.dept },
   { label: 'Respon', get: (r) => r.respon },
@@ -101,12 +101,7 @@ function Heatmap({ rows, open }: { rows: Risk[]; open: (id: string) => void }) {
   const [sel, setSel] = useState<[number, number] | null>(null)
   const list = sel ? rows.filter((r) => r.dampak === sel[0] && r.kemungkinan === sel[1]) : []
   return (
-    <Card title="Heatmap risiko (Dampak x Kemungkinan)" info={{ apa: 'Peta 3 x 3 yang menempatkan tiap risiko menurut Skor Dampak dan Skor Kemungkinan (level awal / inherent), pada Periode yang dipilih.', baca: ['Sumbu horizontal: Dampak (Rendah, Sedang, Tinggi). Sumbu vertikal: Kemungkinan.', 'Isi kotak: Level dan Skor (Dampak x Kemungkinan), serta jumlah risiko di kotak itu.', 'Warna: hijau = Low (skor 1-2), kuning = Medium (skor 3-4), merah = High (skor 6-9).', 'Klik kotak untuk menampilkan daftar risikonya di bawah heatmap.', 'Tombol Setelah kontrol (residual) belum dipakai.'] }}>
-      <div className="mb-3 flex items-center gap-2 text-xs">
-        <button className="rounded border border-blue-600 bg-blue-600 px-2.5 py-1 text-white">Awal (inherent)</button>
-        <button disabled title="belum dipakai" className="cursor-not-allowed rounded border border-slate-200 bg-slate-100 px-2.5 py-1 text-slate-400">Setelah kontrol (residual)</button>
-        <span className="text-slate-400">Setelah kontrol: belum dipakai</span>
-      </div>
+    <Card title="Heatmap risiko (Dampak x Kemungkinan)" info={{ apa: 'Peta 3 x 3 yang menempatkan tiap risiko menurut Skor Dampak dan Skor Kemungkinan (level awal / inherent), pada Periode yang dipilih.', baca: ['Sumbu horizontal: Dampak (Rendah, Sedang, Tinggi). Sumbu vertikal: Kemungkinan.', 'Isi kotak: Level dan Skor (Dampak x Kemungkinan), serta jumlah risiko di kotak itu.', 'Warna: hijau = Low (skor 1-2), kuning = Medium (skor 3-4), merah = High (skor 6-9).', 'Klik kotak untuk menampilkan daftar risikonya di bawah heatmap.'] }}>
       <div className="grid grid-cols-[auto_repeat(3,minmax(0,1fr))] gap-1.5">
         {[3, 2, 1].map((k) => [
           <div key={`l${k}`} className="flex items-center pr-2 text-xs text-slate-500">Kemungkinan {AXIS[k]}</div>,

@@ -39,9 +39,9 @@ const age = (r: Fraud, today: string) => diffDays(today, r.tglTerima)
 const batasEdd1 = (r: Fraud) => (r.tglTerima ? addWorkDays(r.tglTerima, 3) : '')
 const batasEdd = (r: Fraud) => (r.edd1 ? addDays(r.edd1, 7) : batasEdd1(r))
 const holdAge = (r: Fraud, today: string) => (r.holdTgl ? diffDays(today, r.holdTgl) : 0)
-// Terlapor dan RRN: peran lain selalu tersamar (tanpa tombol mata). Head CLRM dan Fraud Investigator boleh membuka sensor lewat tombol mata;
+// Terlapor dan RRN: peran lain selalu tersamar (tanpa tombol mata). Super Admin, Head CLRM, dan Fraud Investigator boleh membuka sensor lewat tombol mata;
 // bawaan tampilan (tabel, Detail, form Ubah) tetap tersamar sampai tombol dibuka. c.reveal[key] diisi permukaan tampilan.
-const isMasked = (c: Ctx) => c.role !== 'Head CLRM' && c.role !== 'Fraud Investigator'
+const isMasked = (c: Ctx) => !['Super Admin', 'Head CLRM', 'Fraud Investigator'].includes(c.role)
 const canReveal = (c: Ctx) => !isMasked(c)
 const mask = (s: string, c: Ctx, key?: string) => (s && (isMasked(c) || !(key && c.reveal?.[key])) ? maskStr(s) : s)
 const laporList = (r: Fraud): [string, string, number][] => [['Komdigi', r.lapKomdigi, LAPOR_MAX.Komdigi], ['BI', r.lapBi, LAPOR_MAX.BI], ['PPATK', r.lapPpatk, LAPOR_MAX.PPATK]]
