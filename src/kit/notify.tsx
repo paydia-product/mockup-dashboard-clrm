@@ -38,23 +38,24 @@ const SOURCES: { route: string; cfg: PageConfig<any>; ref?: (r: R) => string }[]
 export const TRACKER_ROUTE = 'compliance/regulatory-findings-tracker'
 
 // ---- Redaksi per jenis alert: [judul, pesan(subjek, detail alert, rekaman, hari ini)] ----
-const lc = (s: string) => (/^(?!High|Open|Hold)[A-Z][a-z]/.test(s) ? s.charAt(0).toLowerCase() + s.slice(1) : s) // singkatan (BAP, EDD) dibiarkan
+const lc = (s: string) => (/^(?!High|Open|Hold|Comply|Dicabut)[A-Z][a-z]/.test(s) ? s.charAt(0).toLowerCase() + s.slice(1) : s) // singkatan (BAP, EDD) dibiarkan
 const zero = (d: string) => d.replace(/\b0 hari lagi sampai batas jawaban/, 'batas jawaban hari ini').replace(/\b0 hari( kerja)? lagi/, 'hari ini') // "0 hari lagi" -> "hari ini"
 const subj = (noun: string, name: string) => (name.toLowerCase().startsWith(noun.toLowerCase()) ? name : `${noun} ${name}`.trim())
+const lap = (r: R) => `${subj('Laporan', r.nama)} (periode ${lc(String(r.periode))})` // nama laporan + periode dari data, mis. "Laporan Dana Float (periode hari lalu)"
 type Word = [string, (s: string, d: string, r: R, today: string) => string]
 const WORDS: Record<string, Word> = {
   'tracker.near': ['Temuan hampir jatuh tempo', (s, d) => `${s} jatuh tempo ${d}. Segera selesaikan tindak lanjutnya.`],
   'tracker.overdue': ['Temuan lewat batas waktu', (s, d) => `${s} sudah melewati batas waktu (${lc(d)}). Segera tindak lanjuti.`],
   'tracker.stale': ['Menunggu validasi terlalu lama', (s, d) => `${s} menunggu validasi ulang (${d}, batas 7 hari). Mohon segera divalidasi.`],
-  'reporting.near': ['Laporan hampir jatuh tempo', (s, d) => `${s} belum terkirim: ${d}. Siapkan dan kirim sebelum batas waktu.`],
-  'reporting.late': ['Laporan terlambat', (s, d) => `${s} belum terkirim. ${d}. Segera kirim dan isi alasan keterlambatan.`],
-  'reporting.siber': ['Batas pelaporan insiden siber berjalan', (s, d) => `${s}: ${d}.`],
-  'reporting.nobukti': ['Laporan terkirim tanpa bukti', (s) => `${s} berstatus Terkirim tetapi file bukti dan nomor tanda terima belum diisi. Lengkapi bukti submit.`],
+  'reporting.near': ['Laporan hampir jatuh tempo', (_s, d, r) => `${lap(r)} belum terkirim, ${d}. Siapkan dan kirim sebelum batas waktu.`],
+  'reporting.late': ['Laporan terlambat', (_s, d, r) => `${lap(r)} belum terkirim dan ${lc(d)}. Segera kirim dan isi alasan keterlambatan.`],
+  'reporting.siber': ['Batas pelaporan insiden siber berjalan', (_s, d, r) => `Insiden siber "${String(r.periode).replace(/^Insiden /i, '')}" ${d.replace(/^Kejadian (.+?): /, '(kejadian $1) — ').replace(/TERLEWAT/g, 'terlewat')}.`],
+  'reporting.nobukti': ['Laporan terkirim tanpa bukti', (_s, _d, r) => `${lap(r)} berstatus Terkirim tetapi file bukti dan nomor tanda terima belum diisi. Lengkapi bukti submit.`],
   'regchange.unrated': ['Peraturan belum dinilai', (s, d) => `${s} belum dinilai dampaknya (${d}). Mohon lakukan penilaian dampak.`],
-  'regchange.effective': ['Peraturan akan berlaku, kepatuhan belum Comply', (s, d) => `${s}: ${d}. Percepat pemenuhan sebelum tanggal berlaku.`],
-  'regchange.reply': ['Imbauan harus dijawab', (s, d) => `${s}: ${d}.`],
+  'regchange.effective': ['Peraturan akan berlaku, kepatuhan belum terpenuhi', (s, d) => `${s} ${d.replace(/^Berlaku (.+?), status kepatuhan (.+)$/, 'berlaku $1. Status kepatuhan: $2')}. Percepat pemenuhan sebelum tanggal berlaku.`],
+  'regchange.reply': ['Imbauan harus dijawab', (s, d) => `${s}: ${lc(d)}.`],
   'regchange.sop': ['SOP terkait peraturan dicabut perlu ditinjau', (s, _d, r) => `${s} dicabut sejak ${fmtDate(r.tglBerlaku)}; ${r.sopList.length} SOP terkait perlu diperbarui. Perbarui SOP lalu hapus dari daftar.`],
-  'regchange.high': ['Peraturan baru berdampak Tinggi', (s, d) => `${s}: ${d}. Perlu perhatian segera.`],
+  'regchange.high': ['Peraturan baru berdampak Tinggi', (s, d) => `${s}: ${lc(d)}. Perlu perhatian segera.`],
   'sop.due': ['Review SOP jatuh tempo', (s, _d, r, t) => `${s} perlu direview sebelum ${fmtDate(r.tglReview)} (${diffDays(r.tglReview, t) === 0 ? 'hari ini' : `H-${diffDays(r.tglReview, t)}`}).`],
   'sop.overdue': ['Review SOP terlewat', (s, _d, r, t) => `${s} melewati tanggal review ${fmtDate(r.tglReview)} (${diffDays(t, r.tglReview)} hari). Segera lakukan review.`],
   'sop.incomplete': ['Data SOP belum lengkap', (s, d) => `${s} belum lengkap — ${d.replace(/^Belum diisi: /, '')} belum diisi. Lengkapi datanya.`],
@@ -62,21 +63,21 @@ const WORDS: Record<string, Word> = {
   'kajian.overdue': ['Kajian lewat batas waktu', (s, d) => `${s} belum selesai dan ${lc(d)} dari batas waktu.`],
   'kajian.near': ['Kajian hampir jatuh tempo', (s, d) => `${s} jatuh tempo ${d}.`],
   'kajian.nohasil': ['Kajian selesai tanpa hasil', (s) => `${s} berstatus Selesai tetapi Hasil / Opini belum diisi.`],
-  'kajian.mitra': ['Jadwal due diligence mitra', (s, d) => `${s}: jadwal due diligence atau evaluasi mitra ${lc(d)}.`],
-  'fraud.nopic': ['Kasus belum ditangani', (s, d) => `${s} masih Open: ${d}. Tetapkan PIC dan tindakan.`],
+  'kajian.mitra': ['Jadwal due diligence mitra', (s, d) => (/^Lewat/.test(d) ? `${s}: jadwal due diligence atau evaluasi mitra terlewat ${lc(d).replace(/^lewat /, '')}.` : `${s}: jadwal due diligence atau evaluasi mitra jatuh tempo ${d}.`)],
+  'fraud.nopic': ['Kasus belum ditangani', (s, d) => `${s} masih Open (${d}). Tetapkan PIC dan tindakan.`],
   'fraud.edd': ['EDD lewat batas waktu', (s, d) => `${s}: ${lc(d)} dan Hasil EDD belum diisi.`],
   'fraud.hold': ['Hold settlement lebih dari 30 hari', (s, d) => `${s}: ${lc(d)} tanpa Released atau Blokir. Tinjau kelanjutannya.`],
   'fraud.lapor': ['Lapor regulator terlambat', (s, d) => `${s}: ${lc(d)}. Segera laporkan ke regulator.`],
   'fraud.old': ['Kasus Open lebih dari 90 hari', (s, d) => `${s}: ${lc(d)}. Tinjau dan percepat penyelesaian.`],
   'fraud.kosong': ['Data penting kasus kosong', (s, d) => `${s} belum lengkap — ${d.replace(/^Kosong: /, '')} kosong. Lengkapi datanya.`],
   'kontrak.hmin': ['Kontrak hampir berakhir', (s, d) => `${s}: ${lc(d)}. Siapkan perpanjangan atau penggantian.`],
-  'kontrak.expired': ['Kontrak expired belum diperpanjang', (s, d) => `${s}: ${lc(d)}. Segera perpanjang atau tutup kontrak.`],
-  'kontrak.kosong': ['Tanggal berakhir kontrak kosong', (s) => `${s}: Tanggal Berakhir belum diisi. Lengkapi datanya.`],
+  'kontrak.expired': ['Kontrak kedaluwarsa belum diperpanjang', (s, d) => `${s} ${(n => (n ? `kedaluwarsa ${n[1]} hari lalu` : 'sudah kedaluwarsa'))(d.match(/(\d+) hari/))}. Segera perpanjang atau tutup kontrak.`],
+  'kontrak.kosong': ['Tanggal berakhir kontrak kosong', (s) => `${s} belum memiliki Tanggal Berakhir. Lengkapi datanya.`],
   'aph.bap': ['Jadwal BAP mendekat', (s, d) => `${s}: ${lc(d)}. Siapkan kehadiran dan dokumen.`],
-  'aph.overdue': ['Jawaban APH lewat batas waktu', (s, d) => `${s} belum dijawab: ${lc(d)} dari batas waktu jawaban.`],
+  'aph.overdue': ['Jawaban APH lewat batas waktu', (s, d) => `${s} belum dijawab dan ${lc(d)} dari batas waktu jawaban.`],
   'aph.kosong': ['Data permintaan APH belum lengkap', (s, d) => `${s} belum lengkap — ${d.replace(/^Kosong: /, '')} kosong. Lengkapi datanya.`],
   'perizinan.akan': ['Izin akan kedaluwarsa', (s, d) => `${s}: ${lc(d)}. Siapkan perpanjangan.`],
-  'perizinan.lewat': ['Izin kedaluwarsa belum diperpanjang', (s, d) => `${s} sudah kedaluwarsa: ${lc(d)}. Segera proses perpanjangan.`],
+  'perizinan.lewat': ['Izin kedaluwarsa belum diperpanjang', (s, d) => `${s} sudah kedaluwarsa (${lc(d)}). Segera proses perpanjangan.`],
   'layanan.overdue': ['Permintaan layanan hukum lewat batas waktu', (s, d) => `${s} belum selesai dan ${lc(d)} dari batas waktu.`],
   'layanan.near': ['Permintaan layanan hukum hampir jatuh tempo', (s, d) => `${s} jatuh tempo ${d}.`],
   'layanan.nopic': ['Permintaan layanan hukum belum punya PIC', (s, d) => `${s}: ${d}. Tetapkan PIC.`],
@@ -121,7 +122,7 @@ export function buildNotifs(ctx: Ctx, db: DB, perms: Parameters<typeof canPerm>[
       for (const a of cfg.alerts) {
         const hit = a.check(r as never, ctx)
         if (!hit) continue
-        const w = WORDS[`${cfg.module}.${a.key}`] ?? [a.label, (s: string, d: string) => `${s}: ${d}`]
+        const w = WORDS[`${cfg.module}.${a.key}`] ?? [a.label, (s: string, d: string) => `${s}: ${lc(d)}`]
         add({ id: `${cfg.module}:${r.id}:${a.key}`, module: cfg.module, route, page: cfg.title, recordId: r.id, ref: ref?.(r) ?? name, color: hit.color, title: w[0], message: w[1](cfg.module === 'regchange' ? name : subj(cfg.noun, name), zero(hit.detail), r, ctx.today), to: hit.to })
       }
     }

@@ -11,6 +11,22 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
+    v: '2.13.2',
+    date: '2026-10-31',
+    deployed: true,
+    title: 'Rapikan kalimat notifikasi',
+    prompt: 'Rapikan kalimat notifikasi: insiden siber, huruf kecil setelah titik dua, kedaluwarsa, nama laporan dan periode, kepatuhan',
+    tokens: 40000,
+    changes: [
+      'Pesan notifikasi insiden siber: tanpa kata Insiden ganda, satu titik dua, contoh: Insiden siber "akses tidak sah" (kejadian 31/10/2026 08:00) — notifikasi awal ...',
+      'Huruf kecil setelah titik dua di semua pesan notifikasi (kecuali nama status seperti High, Open, Hold, Comply, Dicabut)',
+      'Notifikasi Kontrak memakai kata kedaluwarsa, bukan expired',
+      'Notifikasi Regulatory Reporting: nama laporan dan periode dirangkai wajar, mis. Laporan Dana Float (periode hari lalu) belum terkirim',
+      'Notifikasi Regulatory Change: judul kepatuhan belum terpenuhi, pesan Status kepatuhan: Belum Dinilai',
+      'Rapikan redaksi Kontrak, Permintaan APH, Perizinan, Kajian mitra, dan Fraud (tanpa titik dua ganda atau kalimat janggal)',
+    ],
+  },
+  {
     v: '2.13.1',
     date: '2026-10-31',
     deployed: true,

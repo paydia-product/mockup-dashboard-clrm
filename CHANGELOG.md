@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 2.13.2 | 2026-10-31 | ~40k |
 | 2.13.1 | 2026-10-31 | ~60k |
 | 2.13.0 | 2026-10-31 | ~450k |
 | 2.12.1 | 2026-10-30 | ~150k |
@@ -46,6 +47,16 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [2.13.2] - 2026-10-31
+
+### Diperbaiki
+- Pesan notifikasi insiden siber: tanpa kata Insiden ganda, satu titik dua, contoh: Insiden siber "akses tidak sah" (kejadian 31/10/2026 08:00) — notifikasi awal ...
+- Huruf kecil setelah titik dua di semua pesan notifikasi (kecuali nama status seperti High, Open, Hold, Comply, Dicabut)
+- Notifikasi Kontrak memakai kata kedaluwarsa, bukan expired
+- Notifikasi Regulatory Reporting: nama laporan dan periode dirangkai wajar, mis. Laporan Dana Float (periode hari lalu) belum terkirim
+- Notifikasi Regulatory Change: judul kepatuhan belum terpenuhi, pesan Status kepatuhan: Belum Dinilai
+- Rapikan redaksi Kontrak, Permintaan APH, Perizinan, Kajian mitra, dan Fraud (tanpa titik dua ganda atau kalimat janggal)
 
 ## [2.13.1] - 2026-10-31
 
