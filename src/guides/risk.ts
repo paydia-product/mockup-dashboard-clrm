@@ -5,7 +5,7 @@ export const RiskGuide: GuideItem[] = [
 <li>Buka tab <b>Dashboard</b>. Atur <b>Periode Tanggal Register</b> bila perlu.</li>
 <li>Klik kartu, kotak heatmap, atau batang grafik untuk melihat risikonya. Sebagian membuka tab <b>Table</b> terfilter.</li>
 <li>Di tab <b>Table</b>, cari atau filter risiko.</li>
-<li>Klik <b>Tambah</b>. Isi field wajib, pilih Skor Dampak dan Skor Kemungkinan, lalu <b>Simpan</b>. Skor dan Level terhitung otomatis.</li>
+<li>Klik <b>Tambah</b>. Lengkapi isian wajib, pilih Skor Dampak dan Skor Kemungkinan, lalu <b>Simpan</b>. Skor dan Level terhitung otomatis.</li>
 <li>Klik <b>Edit</b>. Bila Level Risiko berubah dan Anda bukan Risk Officer, perubahan skor menunggu <b>approval Risk Officer</b>.</li>
 <li>Head CLRM dapat <b>Batalkan</b> dan <b>Kembalikan</b>.</li>
 <li>Klik <b>Export Excel</b>.</li>
@@ -31,7 +31,7 @@ export const RiskGuide: GuideItem[] = [
 <li><b>Pagination</b>: 10, 25, atau 50 baris per halaman.</li>
 <li>Risiko yang dibatalkan tetap tampil di Table dengan teks abu-abu.</li>
 </ul>` },
-  { h: 'Tambah & Edit', b: `<p><b>Field wajib</b>: Konteks, Risk Event, Domain Risiko, Skor Dampak, Skor Kemungkinan, Respon, Kontrol / Mitigasi, Unit Pemilik Risiko, dan Tanggal Register. <b>Produk</b> dan <b>Vendor / Mitra</b> boleh kosong.</p>
+  { h: 'Tambah & Edit', b: `<p><b>Isian wajib</b>: Konteks, Risk Event, Domain Risiko, Skor Dampak, Skor Kemungkinan, Respon, Kontrol / Mitigasi, Unit Pemilik Risiko, dan Tanggal Register. <b>Produk</b> dan <b>Vendor / Mitra</b> boleh kosong.</p>
 <ul>
 <li><b>Domain Risiko</b>: 10 domain risiko. <b>Respon</b>: Avoid, Control, Transfer, atau Accept.</li>
 <li><b>Skor Dampak</b>: 1 Rendah, 2 Sedang, 3 Tinggi. <b>Skor Kemungkinan</b>: 1-3.</li>
@@ -56,7 +56,7 @@ export const RiskGuide: GuideItem[] = [
 </ul>` },
   { h: 'Detail & Log Perubahan', b: `<p><b>Lihat Detail</b> menampilkan semua isian, termasuk skor, level, dan badge alert aktif.</p>
 <p><b>Log Perubahan</b> mencatat: data dibuat, perubahan data (sebelum dan sesudah, siapa, kapan, alasan), pengajuan approval (pengaju, approver, perubahan, alasan), keputusan Approve atau Reject beserta catatan, pembatalan, dan pengembalian.</p>` },
-  { h: 'Notifikasi', b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon lonceng pada header. Notifikasi hanya tampil bagi penerima yang tercantum. Klik notifikasi untuk membuka Detail datanya. Hanya ada satu jenis notifikasi:</p>
+  { h: 'Notifikasi', b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah. Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Gunakan "Tandai semua dibaca" untuk mengosongkan penghitung. Hanya ada satu jenis notifikasi:</p>
 <ul>
 <li><b>Risiko High baru / naik ke High</b> (merah): Level High dan tanggal register atau kenaikan level dalam 7 hari terakhir. Penerima: Risk Officer, Head CLRM, Risk Owner (Unit Kerja risiko).</li>
 </ul>

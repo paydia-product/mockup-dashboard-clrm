@@ -5,7 +5,7 @@ export const LayananGuide: GuideItem[] = [
 <li>Buka tab <b>Dashboard</b>. Lihat jumlah permintaan Baru, Proses, Selesai, dan yang lewat batas, serta grafik umur dan unit kerja.</li>
 <li>Atur <b>Periode Tanggal Masuk</b> bila perlu. Kosongkan kedua tanggal untuk melihat semua data.</li>
 <li>Klik kartu atau grafik untuk membuka tab <b>Table</b> yang sudah terfilter. Atau buka tab <b>Table</b> langsung.</li>
-<li>Klik <b>Tambah</b>, isi field wajib, lalu <b>Simpan</b>. Tanggal Batas terhitung otomatis.</li>
+<li>Klik <b>Tambah</b>, lengkapi isian wajib, lalu <b>Simpan</b>. Tanggal Batas terhitung otomatis.</li>
 <li>Legal Officer klik <b>Edit</b> untuk mengisi PIC dan mengubah status. Saat Selesai, isi Tanggal Selesai dan Nomor Memo.</li>
 <li>Head CLRM dapat <b>Batalkan</b> permintaan yang salah (alasan wajib) dan <b>Kembalikan</b> bila perlu.</li>
 <li>Klik <b>Export Excel</b> untuk mengunduh baris yang tampil di tabel.</li>
@@ -26,7 +26,7 @@ export const LayananGuide: GuideItem[] = [
 <li>Tabel menampilkan data Dibatalkan (teks abu-abu). Dashboard dan alert tidak menghitungnya.</li>
 <li>Pagination: 10, 25, atau 50 baris per halaman. Mengubah pencarian atau filter mengembalikan ke halaman 1.</li>
 </ul>` },
-  { h: 'Tambah & Edit', b: `<p><b>Field wajib</b> (bertanda *): Unit Kerja Pemohon (dropdown master Unit Kerja), Jenis, Tanggal Masuk, SLA (hari kalender), Status, dan Prioritas.</p>
+  { h: 'Tambah & Edit', b: `<p><b>Isian wajib</b> (bertanda *): Unit Kerja Pemohon (dropdown master Unit Kerja), Jenis, Tanggal Masuk, SLA (hari kalender), Status, dan Prioritas.</p>
 <ul>
 <li><b>PIC</b> boleh kosong saat dibuat. PIC yang kosong lebih dari 1 hari kerja memicu alert.</li>
 <li><b>Tanggal Batas</b> terisi otomatis: Tanggal Masuk ditambah SLA hari kalender.</li>
@@ -50,7 +50,7 @@ export const LayananGuide: GuideItem[] = [
 <li>Bagian <b>Log Perubahan</b> mencatat: data dibuat, perubahan data (kolom sebelum dan sesudah), pembatalan, dan pengembalian. Setiap entri memuat siapa, kapan, dan alasan bila diisi.</li>
 <li>Terbaru di atas.</li>
 </ul>` },
-  { h: 'Notifikasi', b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah. Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Tombol "Tandai semua dibaca" menandai semuanya sudah dibaca. Notifikasi hanya muncul untuk permintaan berstatus Baru atau Proses. Hari kerja dihitung Senin sampai Jumat, tanpa libur nasional.</p>
+  { h: 'Notifikasi', b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah. Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Gunakan "Tandai semua dibaca" untuk mengosongkan penghitung. Notifikasi hanya muncul untuk permintaan berstatus Baru atau Proses. Hari kerja dihitung Senin sampai Jumat, tanpa libur nasional.</p>
 <ul>
 <li><b>Lewat batas waktu</b>: muncul bila Tanggal Batas sudah terlewat. <b>Merah</b>. Penerima: PIC permintaan dan Head CLRM.</li>
 <li><b>Hampir jatuh tempo</b>: muncul bila Tanggal Batas tinggal 2 hari kerja atau kurang (belum lewat). <b>Kuning</b>. Penerima: PIC permintaan.</li>

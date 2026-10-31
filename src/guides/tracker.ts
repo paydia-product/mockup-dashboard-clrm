@@ -42,7 +42,7 @@ export const TRACKER_GUIDE: GuideItem[] = [
   },
   {
     h: 'Tambah & Edit',
-    b: `<p><b>Tambah</b> (Compliance Officer dan Super Admin). Semua field wajib kecuali file upload:</p>
+    b: `<p><b>Tambah</b> (Compliance Officer dan Super Admin). Semua isian wajib kecuali file upload:</p>
 <ul>
 <li>Regulator, Tanggal Temuan, Area Temuan, Penyebab Utama (Root Cause), Jenis Penyebab, PIC, Batas Waktu, Status, Unit Kerja, Tingkat Risiko.</li>
 <li>Rencana Tindak Lanjut. <b>File bukti</b> tindak lanjut dan <b>Bukti Surat Regulator</b> tidak wajib.</li>
@@ -102,7 +102,7 @@ export const TRACKER_GUIDE: GuideItem[] = [
   },
   {
     h: 'Notifikasi',
-    b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah. Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Tombol "Tandai semua dibaca" menandai semuanya sudah dibaca. Hanya temuan yang belum Selesai dan tidak Dibatalkan yang memicu notifikasi.</p>
+    b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah. Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Gunakan "Tandai semua dibaca" untuk mengosongkan penghitung. Hanya temuan yang belum Selesai dan tidak Dibatalkan yang memicu notifikasi.</p>
 <ul>
 <li><b>Temuan hampir jatuh tempo</b> (kuning). Muncul bila Batas Waktu tinggal 7 hari atau kurang dan belum terlewat. Penerima: <b>PIC</b> temuan.</li>
 <li><b>Temuan lewat batas waktu</b> (merah). Muncul bila Batas Waktu sudah terlewat. Penerima: <b>PIC</b> dan <b>Head CLRM</b>. Bila terlambat lebih dari 7 hari, <b>Direktur terkait</b> ikut menerima.</li>

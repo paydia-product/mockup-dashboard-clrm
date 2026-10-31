@@ -5,7 +5,7 @@ export const FraudGuide: GuideItem[] = [
 <li>Buka tab <b>Dashboard</b>. Atur <b>Periode Tanggal Terima</b> bila perlu.</li>
 <li>Klik kartu atau grafik untuk membuka tab <b>Table</b> terfilter.</li>
 <li>Di tab <b>Table</b>, cari atau filter kasus.</li>
-<li>Klik <b>Tambah</b>. Isi field wajib. Bukti boleh dikosongkan. Kasus baru selalu berstatus Open. Klik <b>Simpan</b>.</li>
+<li>Klik <b>Tambah</b>. Lengkapi isian wajib. Bukti boleh dikosongkan. Kasus baru selalu berstatus Open. Klik <b>Simpan</b>.</li>
 <li>Klik <b>Edit</b> untuk melengkapi kasus (tindakan, hold, blokir, laporan regulator). Perubahan data yang sudah terisi wajib disertai alasan.</li>
 <li>Untuk menutup kasus, ubah Status menjadi <b>Closed</b>. Penutupan menunggu <b>approval Head CLRM</b>.</li>
 <li>Head CLRM dapat <b>Batalkan</b> dan <b>Kembalikan</b>.</li>
@@ -26,7 +26,7 @@ export const FraudGuide: GuideItem[] = [
 <li><b>Pagination</b>: 10, 25, atau 50 baris per halaman.</li>
 <li>Nama Terlapor dan RRN <b>disamarkan</b> (contoh B*** S******) di tabel, Detail, dan form Edit. Head CLRM dan Fraud Investigator melihat <b>ikon mata</b> (di header kolom tabel, di samping label pada Detail, dan di samping label pada form Edit): klik untuk membuka nilai asli, klik lagi untuk menyamarkan lagi. Bawaan selalu tersamar. Peran lain tidak punya tombol mata dan nilainya tetap tersamar (juga di Export).</li>
 </ul>` },
-  { h: 'Tambah & Edit', b: `<p><b>Field wajib saat Tambah</b>: Tanggal Terima Tugas, Kategori Pelapor, Media, Nama Terlapor, Jenis Pengguna, Jenis Dugaan, Hasil Asesmen Awal, dan Alasan Asesmen. Bukti tidak wajib. Status Open diberikan otomatis.</p>
+  { h: 'Tambah & Edit', b: `<p><b>Isian wajib saat Tambah</b>: Tanggal Terima Tugas, Kategori Pelapor, Media, Nama Terlapor, Jenis Pengguna, Jenis Dugaan, Hasil Asesmen Awal, dan Alasan Asesmen. Bukti tidak wajib. Status Open diberikan otomatis.</p>
 <p><b>Wajib bersyarat saat status Closed</b>: Uraian, Nominal Korban, Tindakan, Tanggal Email Resolved, dan PIC Investigator.</p>
 <ul>
 <li>Bila Tindakan = <b>Blokir</b>: Saldo Tertahan wajib. Saat Closed, Tanggal Lapor Komdigi, BI, dan PPATK juga wajib.</li>
@@ -56,11 +56,11 @@ export const FraudGuide: GuideItem[] = [
 </ul>` },
   { h: 'Detail & Log Perubahan', b: `<p><b>Lihat Detail</b> menampilkan semua isian, badge alert aktif, dan keterangan pembatalan.</p>
 <p><b>Log Perubahan</b> mencatat: data dibuat, perubahan data (sebelum dan sesudah, siapa, kapan, alasan), pengajuan penutupan (pengaju, approver, perubahan, alasan), keputusan Approve atau Reject beserta catatan, pembatalan, dan pengembalian.</p>` },
-  { h: 'Notifikasi', b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah. Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Tombol "Tandai semua dibaca" menandai semuanya sudah dibaca.</p>
+  { h: 'Notifikasi', b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah. Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Gunakan "Tandai semua dibaca" untuk mengosongkan penghitung.</p>
 <ul>
 <li><b>Belum ada PIC / tanpa EDD atau tindakan</b> (merah): kasus Open lebih dari 2 hari kerja sejak Tanggal Terima, dengan PIC kosong atau dengan Tindakan dan Tanggal EDD 1 sama-sama kosong. Penerima: Head CLRM, Fraud Investigator.</li>
 <li><b>EDD lewat batas waktu</b> (merah): asesmen Dilanjutkan, kasus Open, Hasil EDD kosong, dan Batas Waktu EDD terlewat. Penerima: PIC, Head CLRM.</li>
-<li><b>Hold &gt; 30 hari</b> (kuning): kasus Open dengan Tanggal Hold lebih dari 30 hari lalu, tanpa Released dan tanpa Blokir. Penerima: PIC, Head CLRM.</li>
+<li><b>Hold &gt; 30 hari</b> (kuning): kasus Open dengan Tanggal Hold lebih dari 30 hari lalu, belum dilepas (Released) dan tidak diblokir. Penerima: PIC, Head CLRM.</li>
 <li><b>Lapor regulator terlambat</b> (merah): setelah Tanggal Blokir, Tanggal Lapor masih kosong melewati batas Komdigi 7 hari, BI 14 hari, atau PPATK 30 hari. Penerima: Compliance Officer, Head CLRM.</li>
 <li><b>Open &gt; 90 hari</b> (kuning): kasus Open lebih dari 90 hari sejak Tanggal Terima. Penerima: PIC, Head CLRM.</li>
 <li><b>Data penting kosong</b> (kuning): kasus Open tanpa Uraian, Nominal Korban, Jenis Dugaan, atau Kategori Pelapor. Penerima: Compliance Officer.</li>

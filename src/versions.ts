@@ -11,6 +11,22 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
+    v: '2.13.4',
+    date: '2026-10-31',
+    deployed: true,
+    title: 'Rapikan sisa kalimat notifikasi dan panduan',
+    prompt: 'Rapikan sisa kalimat notifikasi dan panduan halaman',
+    tokens: 40000,
+    changes: [
+      'Fraud: pesan kasus belum ditangani sesuai kekurangannya (tanpa PIC, tanpa tindakan atau EDD, atau keduanya)',
+      'Notifikasi: level High ditulis dengan level High, Lengkapi bukti pengiriman, Segera validasi, Segera lakukan penilaian dampak, belum dilepas (Released) atau diblokir',
+      'Peninjauan SOP: judul dan pesan memakai peninjauan dan ditinjau',
+      'Judul notifikasi mitra dipisah: Jadwal evaluasi mitra terlewat dan Jadwal evaluasi mitra mendekat',
+      'Label kolom Bukti Submit menjadi Bukti Pengiriman (form, tabel, Detail, export, panduan)',
+      'Panduan: Isian wajib menggantikan Field wajib, Insiden siber dengan jam berjalan, kalimat Tandai semua dibaca diganti, paragraf Notifikasi Risk Register disamakan',
+    ],
+  },
+  {
     v: '2.13.3',
     date: '2026-10-31',
     deployed: true,

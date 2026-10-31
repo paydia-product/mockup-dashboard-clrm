@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 2.13.4 | 2026-10-31 | ~40k |
 | 2.13.3 | 2026-10-31 | ~80k |
 | 2.13.2 | 2026-10-31 | ~40k |
 | 2.13.1 | 2026-10-31 | ~60k |
@@ -48,6 +49,16 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [2.13.4] - 2026-10-31
+
+### Diperbaiki
+- Fraud: pesan kasus belum ditangani sesuai kekurangannya (tanpa PIC, tanpa tindakan atau EDD, atau keduanya)
+- Notifikasi: level High ditulis dengan level High, Lengkapi bukti pengiriman, Segera validasi, Segera lakukan penilaian dampak, belum dilepas (Released) atau diblokir
+- Peninjauan SOP: judul dan pesan memakai peninjauan dan ditinjau
+- Judul notifikasi mitra dipisah: Jadwal evaluasi mitra terlewat dan Jadwal evaluasi mitra mendekat
+- Label kolom Bukti Submit menjadi Bukti Pengiriman (form, tabel, Detail, export, panduan)
+- Panduan: Isian wajib menggantikan Field wajib, Insiden siber dengan jam berjalan, kalimat Tandai semua dibaca diganti, paragraf Notifikasi Risk Register disamakan
 
 ## [2.13.3] - 2026-10-31
 

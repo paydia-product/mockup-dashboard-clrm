@@ -39,7 +39,7 @@ export const REGCHANGE_GUIDE: GuideItem[] = [
   },
   {
     h: 'Tambah & Edit',
-    b: `<p><b>Field wajib</b>: Jenis Peraturan / Surat, Nomor, Tahun, Regulator / Penerbit, Tentang, Kategori, Jenis Perubahan, Status Peraturan, Tanggal Terbit, Tanggal Dicatat CLRM, Tingkat Dampak, Uraian Dampak, Unit Kerja Terdampak, Tanggal Sosialisasi Internal, dan Lampiran / Bukti.</p>
+    b: `<p><b>Isian wajib</b>: Jenis Peraturan / Surat, Nomor, Tahun, Regulator / Penerbit, Tentang, Kategori, Jenis Perubahan, Status Peraturan, Tanggal Terbit, Tanggal Dicatat CLRM, Tingkat Dampak, Uraian Dampak, Unit Kerja Terdampak, Tanggal Sosialisasi Internal, dan Lampiran / Bukti.</p>
 <p><b>Wajib bersyarat</b>:</p>
 <ul>
 <li><b>Tanggal Berlaku</b>: wajib kecuali Jenis Perubahan <b>Imbauan</b>.</li>
@@ -94,7 +94,7 @@ export const REGCHANGE_GUIDE: GuideItem[] = [
   },
   {
     h: 'Notifikasi',
-    b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah. Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Tombol "Tandai semua dibaca" menandai semuanya sudah dibaca.</p>
+    b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah. Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Gunakan "Tandai semua dibaca" untuk mengosongkan penghitung.</p>
 <ul>
 <li><b>Belum dinilai &gt; 10 hari kerja</b> (kuning). Tingkat Dampak masih kosong dan sudah lebih dari 10 hari kerja sejak Tanggal Dicatat. Penerima: <b>Compliance Officer</b> dan <b>Head CLRM</b>.</li>
 <li><b>Akan berlaku, kepatuhan belum Comply</b> (kuning, merah saat 7 hari atau kurang). Tanggal Berlaku dalam 90 hari ke depan dan Status Kepatuhan bukan Comply. Tahapnya H-90, H-60, H-30, dan H-7. Penerima: <b>PIC unit terdampak</b> dan <b>Head CLRM</b>.</li>

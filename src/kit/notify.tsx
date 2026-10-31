@@ -48,11 +48,11 @@ const subj = (noun: string, name: string) => (name.toLowerCase().startsWith(noun
 const insiden = (r: R) => String(r.periode).replace(/^Insiden /i, '')
 const lap = (r: R) => `${subj('Laporan', r.nama)} (${r.jenis === 'Insidental' ? insiden(r) : `periode ${r.periode}`})` // mis. "Laporan Dana Float (periode 28/10/2026)"
 const when = (n: number) => (n === 0 ? 'hari ini' : n === 1 ? 'besok' : `${n} hari lagi`)
-type Word = [string, (s: string, d: string, r: R, today: string) => string]
+type Word = [string | ((d: string) => string), (s: string, d: string, r: R, today: string) => string]
 const WORDS: Record<string, Word> = {
   'tracker.near': ['Temuan hampir jatuh tempo', (s, d) => `${s} jatuh tempo ${d}. Segera selesaikan tindak lanjutnya.`],
   'tracker.overdue': ['Temuan lewat batas waktu', (s, d) => `${s} melewati batas waktu ${lewat(d)}. Segera tindak lanjuti.`],
-  'tracker.stale': ['Menunggu validasi terlalu lama', (s, d) => `${s} menunggu validasi ulang selama ${d.replace(/ menunggu$/, '')} (batas 7 hari). Mohon segera divalidasi.`],
+  'tracker.stale': ['Menunggu validasi terlalu lama', (s, d) => `${s} menunggu validasi ulang selama ${d.replace(/ menunggu$/, '')} (batas 7 hari). Segera validasi.`],
   'reporting.near': ['Laporan hampir jatuh tempo', (_s, d, r) => {
     const m = d.match(/^H-(\d+) batas waktu \((.+)\)$/)
     return m ? `${lap(r)} belum terkirim. Batas waktu ${m[2]} (${when(Number(m[1]))}). Siapkan dan kirim tepat waktu.` : `${lap(r)} belum terkirim (${d}). Siapkan dan kirim tepat waktu.`
@@ -63,8 +63,8 @@ const WORDS: Record<string, Word> = {
     const low = (x: string) => x.replace(/TERLEWAT/g, 'terlewat')
     return m ? `Insiden siber "${insiden(r)}" terjadi pada ${m[1]}. Notifikasi awal: ${low(m[2])}. Laporan lengkap: ${low(m[3])}.` : `Insiden siber "${insiden(r)}": ${low(d)}.`
   }],
-  'reporting.nobukti': ['Laporan terkirim tanpa bukti', (_s, _d, r) => `${lap(r)} berstatus Terkirim, tetapi file bukti dan nomor tanda terima belum diisi. Lengkapi bukti submit.`],
-  'regchange.unrated': ['Peraturan belum dinilai', (s, d) => `${s} belum dinilai dampaknya, sudah ${d}. Mohon lakukan penilaian dampak.`],
+  'reporting.nobukti': ['Laporan terkirim tanpa bukti', (_s, _d, r) => `${lap(r)} berstatus Terkirim, tetapi file bukti dan nomor tanda terima belum diisi. Lengkapi bukti pengiriman.`],
+  'regchange.unrated': ['Peraturan belum dinilai', (s, d) => `${s} belum dinilai dampaknya, sudah ${d}. Segera lakukan penilaian dampak.`],
   'regchange.effective': ['Peraturan akan berlaku, kepatuhan belum terpenuhi', (s, d) => {
     const m = d.match(/^Berlaku (.+?)(?: \(tahap [^)]+\))?, status kepatuhan (.+)$/)
     return `${s} ${m ? `berlaku ${m[1]}, tetapi status kepatuhan masih ${m[2]}` : lc(d)}. Percepat pemenuhan sebelum tanggal berlaku.`
@@ -78,23 +78,27 @@ const WORDS: Record<string, Word> = {
     const m = d.match(/^Dampak (.+), dicatat (.+)$/)
     return `${s} ${m ? `berdampak ${m[1]}, dicatat ${m[2]}` : lc(d)}. Perlu perhatian segera.`
   }],
-  'sop.due': ['Review SOP jatuh tempo', (s, _d, r, t) => {
+  'sop.due': ['Peninjauan SOP jatuh tempo', (s, _d, r, t) => {
     const n = diffDays(r.tglReview, t)
-    return n === 0 ? `${s} harus direview hari ini (${fmtDate(r.tglReview)}). Segera lakukan review.` : `${s} perlu direview sebelum ${fmtDate(r.tglReview)} (${when(n)}). Jadwalkan review.`
+    return n === 0 ? `${s} harus ditinjau hari ini (${fmtDate(r.tglReview)}). Segera lakukan peninjauan.` : `${s} perlu ditinjau sebelum ${fmtDate(r.tglReview)} (${when(n)}). Jadwalkan peninjauan.`
   }],
-  'sop.overdue': ['Review SOP terlewat', (s, _d, r, t) => `${s} melewati batas review ${fmtDate(r.tglReview)} selama ${diffDays(t, r.tglReview)} hari. Segera lakukan review.`],
+  'sop.overdue': ['Peninjauan SOP terlewat', (s, _d, r, t) => `${s} melewati batas peninjauan ${fmtDate(r.tglReview)} selama ${diffDays(t, r.tglReview)} hari. Segera lakukan peninjauan.`],
   'sop.incomplete': ['Data SOP belum lengkap', (s, d) => `${s} belum lengkap: ${fields(d)} belum diisi. Lengkapi datanya.`],
   'risk.high': ['Risiko High baru', (s, d) => {
     const m = d.match(/^High sejak (.+?) \(skor (\d+)\)$/)
-    return `${s} ${m ? `berlevel High sejak ${m[1]} (skor ${m[2]})` : lc(d)}. Perlu rencana mitigasi dan eskalasi.`
+    return `${s} ${m ? `dengan level High sejak ${m[1]} (skor ${m[2]})` : lc(d)}. Perlu rencana mitigasi dan eskalasi.`
   }],
   'kajian.overdue': ['Kajian lewat batas waktu', (s, d) => `${s} belum selesai dan melewati batas waktu ${lewat(d)}. Segera selesaikan.`],
   'kajian.near': ['Kajian hampir jatuh tempo', (s, d) => `${s} jatuh tempo ${d}. Segera selesaikan.`],
   'kajian.nohasil': ['Kajian selesai tanpa hasil', (s) => `${s} berstatus Selesai, tetapi Hasil / Opini belum diisi. Lengkapi hasilnya.`],
-  'kajian.mitra': ['Jadwal due diligence atau evaluasi mitra', (s, d) => (/^Lewat/i.test(d) ? `${s}: jadwal evaluasi mitra terlewat ${lewat(d)}. Segera jadwalkan ulang.` : `${s}: jadwal evaluasi mitra jatuh tempo ${d}. Siapkan evaluasinya.`)],
-  'fraud.nopic': ['Kasus belum ditangani', (s, d) => `${s} masih Open dan sudah ${d}. Tetapkan PIC dan tindakan.`],
+  'kajian.mitra': [(d: string) => (/^Lewat/i.test(d) ? 'Jadwal evaluasi mitra terlewat' : 'Jadwal evaluasi mitra mendekat'), (s, d) => (/^Lewat/i.test(d) ? `${s}: jadwal evaluasi mitra terlewat ${lewat(d)}. Segera jadwalkan ulang.` : `${s}: jadwal evaluasi mitra jatuh tempo ${d}. Siapkan evaluasinya.`)],
+  'fraud.nopic': ['Kasus belum ditangani', (s, d, r) => {
+    const noPic = !String(r.pic ?? '').trim(), noAct = !r.edd1 && !r.tindakan
+    const days = d.replace(/ tanpa .*$/, '')
+    return noPic && noAct ? `${s} masih Open dan sudah ${days} tanpa PIC, tindakan, atau EDD. Segera tetapkan PIC dan tentukan tindakan.` : noPic ? `${s} masih Open dan sudah ${days} tanpa PIC. Segera tetapkan PIC.` : `${s} masih Open dan sudah ${days} tanpa tindakan atau EDD. Segera tentukan tindakan.`
+  }],
   'fraud.edd': ['EDD lewat batas waktu', (s, d) => `${s} melewati batas waktu ${lewat(d.replace(/^lewat batas EDD /i, ''))} dan hasil belum diisi. Segera lengkapi.`],
-  'fraud.hold': ['Hold settlement lebih dari 30 hari', (s, d) => `${s} berstatus Hold ${d.replace(/^Hold /, 'selama ')} tanpa Released atau Blokir. Tinjau kelanjutannya.`],
+  'fraud.hold': ['Hold settlement lebih dari 30 hari', (s, d) => `${s} berstatus Hold ${d.replace(/^Hold /, 'selama ')} belum dilepas (Released) atau diblokir. Tinjau kelanjutannya.`],
   'fraud.lapor': ['Lapor regulator terlambat', (s, d) => {
     const m = d.match(/^Belum lapor (.+?) \((.+)\)$/)
     return `${s} ${m ? `belum dilaporkan ke ${list(m[1].split(', '))} (${m[2]})` : lc(d)}. Segera laporkan ke regulator.`
@@ -156,7 +160,7 @@ export function buildNotifs(ctx: Ctx, db: DB, perms: Parameters<typeof canPerm>[
         const label = findingLabel(f)
         add({
           id: `tracker:${f.id}:${a.key}`, module: 'tracker', route: TRACKER_ROUTE, page: 'Regulatory Findings Tracker', recordId: f.id, ref: label, color: a.color,
-          title: w[0], message: w[1](subj('Temuan', label), zero(a.detail), f as unknown as R, ctx.today), to: a.to.map((t) => (t === 'PIC' ? `PIC (${f.pic})` : t)),
+          title: typeof w[0] === 'function' ? w[0](a.detail) : w[0], message: w[1](subj('Temuan', label), zero(a.detail), f as unknown as R, ctx.today), to: a.to.map((t) => (t === 'PIC' ? `PIC (${f.pic})` : t)),
         })
       }
     }
@@ -172,7 +176,7 @@ export function buildNotifs(ctx: Ctx, db: DB, perms: Parameters<typeof canPerm>[
         const hit = a.check(r as never, ctx)
         if (!hit) continue
         const w = WORDS[`${cfg.module}.${a.key}`] ?? [a.label, (s: string, d: string) => `${s}: ${lc(d)}`]
-        add({ id: `${cfg.module}:${r.id}:${a.key}`, module: cfg.module, route, page: cfg.title, recordId: r.id, ref: ref?.(r) ?? name, color: hit.color, title: w[0], message: w[1]((SUBJ[cfg.module] ?? ((_r, n, noun) => subj(noun, n)))(r, name, cfg.noun), zero(hit.detail), r, ctx.today), to: hit.to })
+        add({ id: `${cfg.module}:${r.id}:${a.key}`, module: cfg.module, route, page: cfg.title, recordId: r.id, ref: ref?.(r) ?? name, color: hit.color, title: typeof w[0] === 'function' ? w[0](hit.detail) : w[0], message: w[1]((SUBJ[cfg.module] ?? ((_r, n, noun) => subj(noun, n)))(r, name, cfg.noun), zero(hit.detail), r, ctx.today), to: hit.to })
       }
     }
   }

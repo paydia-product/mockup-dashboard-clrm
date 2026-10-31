@@ -5,7 +5,7 @@ export const AphGuide: GuideItem[] = [
 <li>Buka tab <b>Dashboard</b>. Lihat jumlah permintaan Active dan Done, grafik, jadwal BAP, dan daftar permintaan Active menurut umur.</li>
 <li>Atur <b>Periode Tanggal Terima Surat</b> bila perlu. Kosongkan kedua tanggal untuk melihat semua data.</li>
 <li>Klik kartu atau grafik untuk membuka tab <b>Table</b> yang sudah terfilter. Atau buka tab <b>Table</b> langsung.</li>
-<li>Klik <b>Tambah</b>, isi field wajib, lalu <b>Simpan</b>.</li>
+<li>Klik <b>Tambah</b>, lengkapi isian wajib, lalu <b>Simpan</b>.</li>
 <li>Klik <b>Edit</b> untuk memperbarui data, misalnya jadwal BAP atau status Done. Alasan perubahan boleh diisi.</li>
 <li>Head CLRM dapat <b>Batalkan</b> permintaan yang salah (alasan wajib) dan <b>Kembalikan</b> bila perlu.</li>
 <li>Klik <b>Export Excel</b> untuk mengunduh baris yang tampil di tabel.</li>
@@ -28,7 +28,7 @@ export const AphGuide: GuideItem[] = [
 <li>Tabel menampilkan data Dibatalkan (teks abu-abu). Dashboard dan alert tidak menghitungnya.</li>
 <li>Pagination: 10, 25, atau 50 baris per halaman. Mengubah pencarian atau filter mengembalikan ke halaman 1.</li>
 </ul>` },
-  { h: 'Tambah & Edit', b: `<p><b>Field wajib</b> (bertanda *): Tanggal Terima Surat, Nomor Surat, Tanggal Surat, Pengirim dan Kategori, Perihal (Jenis dan Uraian), Kasus, Nama Merchant, Group Merchant, Unit Penyidik, Status, dan PIC. <b>Batas Waktu Jawaban</b> boleh kosong (tanpa batas waktu tidak ada notifikasi keterlambatan).</p>
+  { h: 'Tambah & Edit', b: `<p><b>Isian wajib</b> (bertanda *): Tanggal Terima Surat, Nomor Surat, Tanggal Surat, Pengirim dan Kategori, Perihal (Jenis dan Uraian), Kasus, Nama Merchant, Group Merchant, Unit Penyidik, Status, dan PIC. <b>Batas Waktu Jawaban</b> boleh kosong (tanpa batas waktu tidak ada notifikasi keterlambatan).</p>
 <ul>
 <li><b>Tanggal Jawaban Dikirim</b> wajib bila Status = Done.</li>
 <li>Field opsional: Nama Penyidik, No. Telepon Penyidik, Tanggal BAP, Tanggal Jadwal Ulang BAP, Tempat BAP, Nominal Hold Settlement, dan Dana Taktis. Nama dan nomor telepon yang kosong memicu alert "Data penting kosong".</li>
@@ -50,7 +50,7 @@ export const AphGuide: GuideItem[] = [
 <li>Bagian <b>Log Perubahan</b> mencatat: data dibuat, perubahan data (kolom sebelum dan sesudah), pembatalan, dan pengembalian. Setiap entri memuat siapa, kapan, dan alasan bila diisi.</li>
 <li>Terbaru di atas.</li>
 </ul>` },
-  { h: 'Notifikasi', b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah. Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Tombol "Tandai semua dibaca" menandai semuanya sudah dibaca. Notifikasi hanya muncul untuk permintaan berstatus Active.</p>
+  { h: 'Notifikasi', b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah. Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Gunakan "Tandai semua dibaca" untuk mengosongkan penghitung. Notifikasi hanya muncul untuk permintaan berstatus Active.</p>
 <ul>
 <li><b>Jadwal BAP mendekat</b>: muncul bila BAP tinggal 0 sampai 7 hari. <b>Kuning</b> bila 3 sampai 7 hari, <b>merah</b> bila 2 hari atau kurang. Penerima: Legal Officer dan Head CLRM.</li>
 <li><b>Lewat batas waktu jawaban</b>: muncul bila Batas Waktu Jawaban terisi dan sudah lewat. <b>Merah</b>. Penerima: Legal Officer dan Head CLRM.</li>

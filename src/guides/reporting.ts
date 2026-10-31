@@ -7,7 +7,7 @@ export const REPORTING_GUIDE: GuideItem[] = [
 <li>Buka tab <b>Dashboard</b> (tab awal). Atur <b>Periode Batas Waktu</b> bila perlu. Kosong berarti semua.</li>
 <li>Buka tab <b>Table</b>. Cari atau saring laporan lewat pencarian dan tombol <b>Filter</b>.</li>
 <li>Klik <b>Tambah</b>. Isi field bertanda <b>*</b> lalu klik <b>Simpan</b>. Jadwal laporan tidak dibuat otomatis, setiap laporan ditambah manual.</li>
-<li>Saat laporan dikirim, klik <b>Edit</b>: ubah Status ke <b>Terkirim</b>, isi Tanggal Submit, lalu file Bukti Submit atau Nomor Tanda Terima.</li>
+<li>Saat laporan dikirim, klik <b>Edit</b>: ubah Status ke <b>Terkirim</b>, isi Tanggal Submit, lalu file Bukti Pengiriman atau Nomor Tanda Terima.</li>
 <li>Bila laporan telat, isi <b>Alasan Terlambat</b> lewat Edit.</li>
 <li>Head CLRM dapat <b>Batalkan</b> laporan yang salah, lalu <b>Kembalikan</b> bila perlu. Alasan wajib.</li>
 <li>Klik <b>Export Excel</b> untuk mengunduh baris yang sedang tampil.</li>
@@ -39,11 +39,11 @@ export const REPORTING_GUIDE: GuideItem[] = [
   },
   {
     h: 'Tambah & Edit',
-    b: `<p><b>Field wajib</b>: Nama Laporan, Regulator, Jenis Periode, Periode yang Dilaporkan, Batas Waktu, Status, PIC Penyusun, PIC Reviewer.</p>
+    b: `<p><b>Isian wajib</b>: Nama Laporan, Regulator, Jenis Periode, Periode yang Dilaporkan, Batas Waktu, Status, PIC Penyusun, PIC Reviewer.</p>
 <p><b>Wajib bersyarat</b>:</p>
 <ul>
 <li><b>Tanggal Submit</b>: wajib bila Status <b>Terkirim</b>.</li>
-<li><b>Bukti Submit</b> (file) dan <b>Nomor Tanda Terima</b> boleh dikosongkan. Bila Status Terkirim tanpa keduanya, muncul notifikasi pengingat "Terkirim tanpa bukti".</li>
+<li><b>Bukti Pengiriman</b> (file) dan <b>Nomor Tanda Terima</b> boleh dikosongkan. Bila Status Terkirim tanpa keduanya, muncul notifikasi pengingat "Terkirim tanpa bukti".</li>
 <li><b>Alasan Terlambat</b>: wajib bila Status Terlambat, bila Tanggal Submit melewati Batas Waktu, atau bila Batas Waktu sudah lewat dan laporan belum Terkirim.</li>
 <li><b>Laporan Insiden Siber?</b> muncul bila Jenis Periode <b>Insidental</b>. Bila dijawab <b>Ya</b>, muncul <b>Waktu Notifikasi Awal</b> dan <b>Waktu Kejadian</b> menjadi wajib.</li>
 </ul>
@@ -62,7 +62,7 @@ export const REPORTING_GUIDE: GuideItem[] = [
 <p><b>Siapa boleh</b>:</p>
 <ul>
 <li><b>Tambah</b>: Compliance Officer dan Super Admin.</li>
-<li><b>Edit</b>: Compliance Officer, PIC, dan Super Admin. CO dan PIC hanya dapat mengubah <b>Status, Tanggal Submit, Bukti Submit, Nomor Tanda Terima, dan Alasan Terlambat</b>. Field lain hanya dapat diubah Super Admin.</li>
+<li><b>Edit</b>: Compliance Officer, PIC, dan Super Admin. CO dan PIC hanya dapat mengubah <b>Status, Tanggal Submit, Bukti Pengiriman, Nomor Tanda Terima, dan Alasan Terlambat</b>. Field lain hanya dapat diubah Super Admin.</li>
 <li><b>PIC</b> hanya dapat mengedit laporan yang namanya tertulis sebagai penyusun atau reviewer.</li>
 <li>Saat Edit ada kolom <b>Alasan perubahan</b> (opsional) yang ikut masuk ke Log Perubahan.</li>
 </ul>`,
@@ -87,11 +87,11 @@ export const REPORTING_GUIDE: GuideItem[] = [
   },
   {
     h: 'Notifikasi',
-    b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah. Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Tombol "Tandai semua dibaca" menandai semuanya sudah dibaca.</p>
+    b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah. Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Gunakan "Tandai semua dibaca" untuk mengosongkan penghitung.</p>
 <ul>
 <li><b>Hampir jatuh tempo</b> (kuning). Laporan belum Terkirim dan Batas Waktu tinggal 0 sampai 7 hari. Penerima: <b>PIC</b> penyusun dan <b>Compliance Officer</b>.</li>
 <li><b>Laporan terlambat</b> (merah). Status Terlambat, yaitu Batas Waktu terlewat dan belum Terkirim. Penerima: <b>PIC</b> penyusun dan <b>Head CLRM</b>.</li>
-<li><b>Insiden siber (jam berjalan)</b> (merah). Laporan insiden siber belum Terkirim dan Waktu Kejadian terisi. Notifikasi awal paling lambat 1 jam dan laporan lengkap paling lambat 3 hari kalender sejak kejadian. Penerima: <b>Head CLRM</b> dan <b>CISO</b>.</li>
+<li><b>Insiden siber dengan jam berjalan</b> (merah). Laporan insiden siber belum Terkirim dan Waktu Kejadian terisi. Notifikasi awal paling lambat 1 jam dan laporan lengkap paling lambat 3 hari kalender sejak kejadian. Penerima: <b>Head CLRM</b> dan <b>CISO</b>.</li>
 <li><b>Terkirim tanpa bukti</b> (kuning). Status Terkirim tetapi file bukti dan Nomor Tanda Terima kosong. Penerima: <b>PIC</b> penyusun.</li>
 </ul>
 `,

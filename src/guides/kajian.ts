@@ -5,7 +5,7 @@ export const KajianGuide: GuideItem[] = [
 <li>Buka tab <b>Dashboard</b>. Atur <b>Periode Tanggal Masuk</b> bila perlu.</li>
 <li>Klik grafik untuk membuka tab <b>Table</b> terfilter, atau klik baris tabel dashboard untuk membuka Detail.</li>
 <li>Di tab <b>Table</b>, cari atau filter kajian.</li>
-<li>Klik <b>Tambah</b>. Pilih Jenis, isi field wajib, lalu <b>Simpan</b>. Bila Jenis = Vendor, isi juga data mitra.</li>
+<li>Klik <b>Tambah</b>. Pilih Jenis, lengkapi isian wajib, lalu <b>Simpan</b>. Bila Jenis = Vendor, isi juga data mitra.</li>
 <li>Klik <b>Edit</b> untuk mengubah data. Mengubah Tanggal Masuk atau SLA wajib disertai alasan.</li>
 <li>Bila kajian sudah beres, klik <b>Selesai</b> pada baris, isi Tanggal Selesai dan Hasil / Opini.</li>
 <li>Head CLRM dapat <b>Batalkan</b> dan <b>Kembalikan</b>.</li>
@@ -26,7 +26,7 @@ export const KajianGuide: GuideItem[] = [
 <li><b>Pagination</b>: 10, 25, atau 50 baris per halaman.</li>
 <li>Kolom <b>Batas</b> = Tanggal Masuk + SLA (hari kalender).</li>
 </ul>` },
-  { h: 'Tambah & Edit', b: `<p><b>Field wajib</b>: Jenis, Judul / Objek, Unit Kerja Pengusul, Tanggal Masuk, SLA (hari kalender, minimal 1), Status, dan PIC.</p>
+  { h: 'Tambah & Edit', b: `<p><b>Isian wajib</b>: Jenis, Judul / Objek, Unit Kerja Pengusul, Tanggal Masuk, SLA (hari kalender, minimal 1), Status, dan PIC.</p>
 <p><b>Wajib bersyarat (Jenis = Vendor)</b>: Nama Mitra, Status Mitra (Eksisting atau Rencana), Ada PKS?, Akses ke Sistem?, Akses Data Pengguna / Karyawan?, Akses Data Keuangan?, dan Pemantauan Berjalan?. <b>Tanggal PKS</b> muncul dan wajib hanya bila Ada PKS? = Ya. Konteks Kerja Sama dan Tanggal Due Diligence / Evaluasi boleh kosong. Field vendor tersembunyi untuk jenis lain.</p>
 <ul>
 <li>Klasifikasi Regulasi (Izin, Lapor, Tidak Perlu) boleh kosong.</li>
@@ -51,7 +51,7 @@ export const KajianGuide: GuideItem[] = [
 </ul>` },
   { h: 'Detail & Log Perubahan', b: `<p><b>Lihat Detail</b> menampilkan semua isian (field vendor hanya untuk Jenis Vendor), badge alert aktif, dan keterangan pembatalan.</p>
 <p><b>Log Perubahan</b> mencatat: data dibuat, perubahan data (sebelum dan sesudah, siapa, kapan, alasan), penyelesaian lewat aksi Selesai, pembatalan, dan pengembalian.</p>` },
-  { h: 'Notifikasi', b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah. Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Tombol "Tandai semua dibaca" menandai semuanya sudah dibaca.</p>
+  { h: 'Notifikasi', b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah. Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Gunakan "Tandai semua dibaca" untuk mengosongkan penghitung.</p>
 <ul>
 <li><b>Lewat batas waktu</b> (merah): Tanggal Batas terlewat dan status belum Selesai atau Batal. Penerima: PIC, Head CLRM.</li>
 <li><b>Hampir jatuh tempo</b> (kuning): Tanggal Batas tinggal 2 hari kerja atau kurang (Senin-Jumat) dan belum Selesai atau Batal. Penerima: PIC.</li>

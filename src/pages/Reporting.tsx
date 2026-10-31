@@ -95,7 +95,7 @@ const fields: Field<Laporan>[] = [
   { key: 'tepat', label: 'Tepat Waktu?', type: 'text', auto: (r) => tepat(r) },
   { key: 'picPenyusun', label: 'PIC Penyusun', type: 'select', options: (c) => c.master.pic, required: true, editableBy: full },
   { key: 'picReviewer', label: 'PIC Reviewer', type: 'select', options: (c) => c.master.pic, required: true, editableBy: full },
-  { key: 'bukti', label: 'Bukti Submit (file)', type: 'file', help: 'Boleh kosong. Status Terkirim tanpa file dan tanpa Nomor Tanda Terima memunculkan notifikasi pengingat.' },
+  { key: 'bukti', label: 'Bukti Pengiriman (file)', type: 'file', help: 'Boleh kosong. Status Terkirim tanpa file dan tanpa Nomor Tanda Terima memunculkan notifikasi pengingat.' },
   { key: 'noTerima', label: 'Nomor Tanda Terima', type: 'text' },
   { key: 'dasar', label: 'Dasar Ketentuan', type: 'text', editableBy: full },
   { key: 'alasan', label: 'Alasan Terlambat', type: 'textarea', wide: true, required: (r, c) => r.status === 'Terlambat' || lateBy(r) > 0 || (!SENT(r) && !!r.batas && dOf(r.batas) < c.today) },
@@ -147,7 +147,7 @@ const alerts: AlertDef<Laporan>[] = [
   },
   {
     key: 'nobukti', label: 'Terkirim tanpa bukti', rule: 'Status Terkirim tetapi file bukti dan nomor tanda terima kosong.',
-    check: (r) => (SENT(r) && !hasBukti(r) ? { color: 'yellow', detail: 'Bukti submit belum diisi', to: [toPic(r)] } : null),
+    check: (r) => (SENT(r) && !hasBukti(r) ? { color: 'yellow', detail: 'Bukti pengiriman belum diisi', to: [toPic(r)] } : null),
   },
 ]
 
