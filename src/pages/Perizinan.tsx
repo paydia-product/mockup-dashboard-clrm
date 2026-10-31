@@ -4,6 +4,7 @@ import { PerizinanGuide } from '../guides/perizinan'
 import { sameName } from '../kit/perms'
 import { DonutCard, MiniTable, StatCards } from '../kit/charts'
 import { StatusPill } from '../kit/fmt'
+import { getStore } from '../kit/store'
 import { Badge } from '../ui'
 import type { Tone } from '../ui'
 import type { AlertDef, BaseRec, Column, Ctx, Field, FileMeta, FilterDef, PageConfig } from '../kit/types'
@@ -15,7 +16,8 @@ interface Izin extends BaseRec {
   kewajiban: string; pic: string; versi: number | ''; file: FileMeta | null
   perpanjang: string; versiLama: VersiLama[]
 }
-const KAT = ['Akta + SK', 'Izin', 'Legalitas Lainnya']
+// Kategori Dokumen = master Kategori Dokumen Perizinan (tanpa Lainnya, seperti sebelumnya). Nilai lama yang sudah tidak ada di master tetap dihitung di grafik.
+const kat = (c?: Ctx) => (c?.master ?? getStore().master).kategoriPerizinan
 const STATUS = ['Aktif', 'Dalam Perpanjangan', 'Kedaluwarsa']
 const SOON180 = '180 hari atau kurang'
 const GRUP = ['Kedaluwarsa', '90 hari atau kurang', '91 sampai 180 hari', 'Lebih dari 180 hari']
@@ -32,20 +34,20 @@ const grup = (r: Izin, today: string) => {
 }
 
 const fields: Field<Izin>[] = [
-  { key: 'kategori', label: 'Kategori Dokumen', type: 'select', options: KAT, required: true },
+  { key: 'kategori', label: 'Kategori Dokumen', type: 'select', options: (c) => kat(c), required: true },
   { key: 'nama', label: 'Nama Dokumen', type: 'text', required: true, help: 'Mis. Izin QRIS, Izin Transfer Dana.' },
   { key: 'nomor', label: 'Nomor Dokumen', type: 'text', required: true },
   { key: 'penerbit', label: 'Penerbit', type: 'text', required: true },
   { key: 'tglTerbit', label: 'Tanggal Terbit', type: 'date', required: true },
   { key: 'tglBerlaku', label: 'Tanggal Berlaku', type: 'date', required: true },
-  { key: 'tglKedaluwarsa', label: 'Tanggal Kedaluwarsa', type: 'date', required: true },
+  { key: 'tglKedaluwarsa', label: 'Tanggal Kedaluwarsa', type: 'date', help: 'Boleh kosong (dokumen tanpa masa berlaku tidak memicu notifikasi kedaluwarsa).' },
   { key: 'tglReview', label: 'Tanggal Review', type: 'date', help: 'Opsional.' },
   { key: 'kewajiban', label: 'Kewajiban Pelaporan terkait Izin', type: 'textarea', wide: true, help: 'Teks bebas (tidak ada master Daftar Laporan).' },
   { key: 'pic', label: 'PIC', type: 'select', options: (c) => c.master.pic, required: true },
   { key: 'status', label: 'Status', type: 'select', options: STATUS, required: true, help: 'Kedaluwarsa terisi otomatis bila tanggal kedaluwarsa terlewat dan belum diperpanjang.' },
-  { key: 'versi', label: 'Nomor Versi', type: 'number', required: true },
+  { key: 'versi', label: 'Nomor Versi', type: 'number', help: 'Boleh kosong.' },
   { key: 'perpanjang', label: 'Perpanjang izin', type: 'yesno', inForm: 'edit', noImport: true, noExport: true, help: 'Pilih Ya untuk memperpanjang: isi tanggal berlaku/kedaluwarsa dan nomor versi baru. Versi lama disimpan.' },
-  { key: 'file', label: 'File Dokumen', type: 'file', required: true },
+  { key: 'file', label: 'File Dokumen', type: 'file' },
   { key: 'versiLama', label: 'Versi Sebelumnya', type: 'list', inForm: 'none', noImport: true, wide: true, sub: [
     { key: 'versi', label: 'Versi', type: 'number' },
     { key: 'tglBerlaku', label: 'Tanggal Berlaku', type: 'date' },
@@ -68,17 +70,12 @@ const columns: Column<Izin>[] = [
 ]
 const uniq = (rows: Izin[], g: (r: Izin) => string) => [...new Set(rows.map(g).filter(Boolean))].sort()
 const filters: FilterDef<Izin>[] = [
-  { key: 'kategori', label: 'Kategori', type: 'select', options: KAT, match: (r, v) => r.kategori === v },
+  { key: 'kategori', label: 'Kategori', type: 'select', options: (rows, c) => [...new Set([...kat(c), ...rows.map((r) => r.kategori).filter(Boolean)])], match: (r, v) => r.kategori === v },
   { key: 'status', label: 'Status', type: 'select', options: [...STATUS, 'Tidak Berlaku'], match: (r, v) => r.status === v },
   { key: 'pic', label: 'PIC', type: 'select', options: (rows) => uniq(rows, (r) => r.pic), match: (r, v) => r.pic === v },
   { key: 'masa', label: 'Kelompok Masa Berlaku', type: 'select', options: [SOON180, ...GRUP], match: (r, v) => (v === SOON180 ? [GRUP[1], GRUP[2]].includes(grup(r, todayStr())) : grup(r, todayStr()) === v) },
 ]
 
-const mk = (c: Ctx, o: Partial<Izin>): Izin => ({
-  id: 'sample', no: 99, status: 'Aktif', createdAt: c.today, createdBy: '-', kategori: 'Izin', nama: 'Izin QRIS', nomor: 'PJSP/0001/2024', penerbit: 'Bank Indonesia',
-  tglTerbit: addDays(c.today, -700), tglBerlaku: addDays(c.today, -700), tglKedaluwarsa: addDays(c.today, 150), tglReview: '', kewajiban: '', pic: 'Regie',
-  versi: 1, file: null, perpanjang: '', versiLama: [], ...o,
-})
 const alerts: AlertDef<Izin>[] = [
   {
     key: 'akan', label: 'Izin akan kedaluwarsa', rule: 'Kuning bila sisa 180 hari atau kurang; merah bila 90 hari atau kurang.',
@@ -87,7 +84,6 @@ const alerts: AlertDef<Izin>[] = [
       if (!LIVE(r) || d === null || d < 0 || d > 180 || r.status === 'Kedaluwarsa') return null
       return { color: d <= 90 ? 'red' : 'yellow', detail: `Kedaluwarsa ${d} hari lagi (${fmtDate(r.tglKedaluwarsa)})`, to: ['Legal Officer', 'Head CLRM'] }
     },
-    sample: (c) => mk(c, { tglKedaluwarsa: addDays(c.today, 75) }),
   },
   {
     key: 'lewat', label: 'Izin kedaluwarsa belum diperpanjang', rule: 'Tanggal kedaluwarsa terlewat dan status belum Dalam Perpanjangan.',
@@ -95,7 +91,6 @@ const alerts: AlertDef<Izin>[] = [
       const d = sisa(r, c.today)
       return LIVE(r) && d !== null && d < 0 && r.status !== 'Dalam Perpanjangan' ? { color: 'red', detail: `Lewat ${-d} hari`, to: ['Legal Officer', 'Head CLRM', 'Direksi'] } : null
     },
-    sample: (c) => mk(c, { tglKedaluwarsa: addDays(c.today, -20), status: 'Kedaluwarsa' }),
   },
 ]
 
@@ -159,8 +154,8 @@ const cfg: PageConfig<Izin> = {
     if (mode === 'edit' && r.perpanjang === 'Ya') {
       if (!r.tglBerlaku) e.tglBerlaku = 'Isi tanggal berlaku baru untuk perpanjangan'
       const old = (c.all('perizinan') as Izin[]).find((x) => x.id === r.id)
-      if (old && r.tglKedaluwarsa === old.tglKedaluwarsa) e.tglKedaluwarsa = 'Perpanjangan: Tanggal Kedaluwarsa harus berbeda dari yang lama'
-      if (old && Number(r.versi) === Number(old.versi)) e.versi = 'Perpanjangan: Nomor Versi harus versi baru'
+      if (old && old.tglKedaluwarsa && r.tglKedaluwarsa === old.tglKedaluwarsa) e.tglKedaluwarsa = 'Perpanjangan: Tanggal Kedaluwarsa harus berbeda dari yang lama'
+      if (old && r.versi !== '' && Number(r.versi) === Number(old.versi)) e.versi = 'Perpanjangan: Nomor Versi harus versi baru'
     }
     return e
   },
@@ -179,9 +174,9 @@ const cfg: PageConfig<Izin> = {
         }} items={[{ label: 'Izin kedaluwarsa dalam 180 hari', value: soon.length, tone: red ? 'red' : soon.length ? 'yellow' : 'gray', onClick: () => drill({ masa: SOON180 }) }]} />
         <div className="grid gap-3 lg:grid-cols-2">
           <DonutCard title="Dokumen per kategori" info={{
-            apa: 'Proporsi dokumen menurut Kategori Dokumen: Akta + SK, Izin, dan Legalitas Lainnya. Dokumen Tidak Berlaku tidak dihitung, dokumen Kedaluwarsa tetap dihitung.',
+            apa: 'Proporsi dokumen menurut Kategori Dokumen (daftar dari Master Data Kategori Dokumen Perizinan). Dokumen Tidak Berlaku tidak dihitung, dokumen Kedaluwarsa tetap dihitung.',
             baca: ['Tiap irisan adalah satu kategori. Makin besar irisan, makin banyak dokumen.', 'Arahkan kursor ke irisan untuk melihat jumlah.', 'Klik irisan untuk membuka tab Table terfilter Kategori.'],
-          }} data={KAT.map((k) => ({ name: k, value: live.filter((r) => r.kategori === k).length }))} onClick={(name) => drill({ kategori: name })} />
+          }} data={[...new Set([...kat(c), ...live.map((r) => r.kategori).filter(Boolean)])].map((k) => ({ name: k, value: live.filter((r) => r.kategori === k).length }))} onClick={(name) => drill({ kategori: name })} />
           <MiniTable<Izin> title="Daftar izin dan tanggal kedaluwarsa" info={{
             apa: 'Dokumen yang punya Tanggal Kedaluwarsa, diurut dari tanggal kedaluwarsa paling awal. Dokumen Tidak Berlaku tidak ikut.',
             baca: ['Dokumen yang sudah lewat tanggalnya tampil paling atas.', 'Kolom Sisa hari berwarna: merah bila 90 hari atau kurang atau sudah lewat ("Lewat N hari"), kuning bila 91 sampai 180 hari, hijau bila lebih dari 180 hari.', 'Tabel menampilkan 5 baris per halaman.', 'Klik baris untuk membuka Detail dokumen.'],
@@ -197,3 +192,4 @@ const cfg: PageConfig<Izin> = {
   },
 }
 export default function Perizinan() { return <PageShell config={cfg} /> }
+export { cfg as config } // dipakai pusat notifikasi (kit/notify.tsx)

@@ -5,7 +5,7 @@ export const PerizinanGuide: GuideItem[] = [
 <li>Buka tab <b>Dashboard</b>. Lihat jumlah izin yang kedaluwarsa dalam 180 hari, dokumen per kategori, dan daftar tanggal kedaluwarsa.</li>
 <li>Atur <b>Periode Tanggal Terbit</b> bila perlu. Kosongkan kedua tanggal untuk melihat semua data.</li>
 <li>Klik kartu atau irisan untuk membuka tab <b>Table</b> yang sudah terfilter. Atau buka tab <b>Table</b> langsung.</li>
-<li>Klik <b>Tambah</b>, isi field wajib, unggah <b>File Dokumen</b>, lalu <b>Simpan</b>.</li>
+<li>Klik <b>Tambah</b>, isi field wajib, lalu <b>Simpan</b>. <b>File Dokumen</b> boleh dikosongkan.</li>
 <li>Untuk memperbarui data, klik <b>Edit</b>. Untuk izin yang diperpanjang, pilih <b>Perpanjang izin = Ya</b> di form Edit.</li>
 <li>Head CLRM dapat <b>Batalkan</b> dokumen (status menjadi Tidak Berlaku, alasan wajib) dan <b>Kembalikan</b> bila perlu.</li>
 <li>Klik <b>Export Excel</b> untuk mengunduh baris yang tampil di tabel.</li>
@@ -25,7 +25,8 @@ export const PerizinanGuide: GuideItem[] = [
 <li>Tabel menampilkan data Tidak Berlaku (teks abu-abu bila dibatalkan). Dashboard dan alert tidak menghitungnya.</li>
 <li>Pagination: 10, 25, atau 50 baris per halaman. Mengubah pencarian atau filter mengembalikan ke halaman 1.</li>
 </ul>` },
-  { h: 'Tambah & Edit', b: `<p><b>Field wajib</b> (bertanda *): Kategori Dokumen, Nama Dokumen, Nomor Dokumen, Penerbit, Tanggal Terbit, Tanggal Berlaku, Tanggal Kedaluwarsa, PIC, Status, Nomor Versi, dan File Dokumen.</p>
+  { h: 'Tambah & Edit', b: `<p><b>Field wajib</b> (bertanda *): Kategori Dokumen, Nama Dokumen, Nomor Dokumen, Penerbit, Tanggal Terbit, Tanggal Berlaku, PIC, dan Status. <b>Tanggal Kedaluwarsa</b>, <b>Nomor Versi</b>, dan <b>File Dokumen</b> boleh dikosongkan (dokumen tanpa Tanggal Kedaluwarsa tidak muncul di kartu dan notifikasi kedaluwarsa).</p>
+<p><b>Kategori Dokumen</b> dipilih dari Master Data <b>Kategori Dokumen Perizinan</b>.</p>
 <ul>
 <li>Field opsional: Tanggal Review dan Kewajiban Pelaporan terkait Izin (teks bebas).</li>
 <li>Tanggal Kedaluwarsa tidak boleh sebelum Tanggal Berlaku.</li>
@@ -53,7 +54,7 @@ export const PerizinanGuide: GuideItem[] = [
 <li>Bagian <b>Log Perubahan</b> mencatat: data dibuat, perubahan data (kolom sebelum dan sesudah), pembatalan, dan pengembalian. Setiap entri memuat siapa, kapan, dan alasan bila diisi.</li>
 <li>Terbaru di atas.</li>
 </ul>` },
-  { h: 'Simulasi notifikasi email', b: `<p>Tombol <b>Simulasi notifikasi</b> menampilkan contoh isi email. Angka di tombol adalah jumlah alert yang sedang aktif. Tiap jenis alert menampilkan maksimal 3 email dari data nyata. Bila tidak ada data yang cocok, ditampilkan satu <b>contoh statis</b>. Alert hanya untuk dokumen yang tidak Tidak Berlaku.</p>
+  { h: 'Notifikasi', b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah; Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Tombol "Tandai semua dibaca" menandai semuanya sudah dibaca. Notifikasi hanya untuk dokumen yang tidak Tidak Berlaku dan yang punya Tanggal Kedaluwarsa.</p>
 <ul>
 <li><b>Izin akan kedaluwarsa</b>: muncul bila sisa 0 sampai 180 hari dan status belum Kedaluwarsa. <b>Kuning</b> bila 91 sampai 180 hari, <b>merah</b> bila 90 hari atau kurang. Penerima: Legal Officer dan Head CLRM.</li>
 <li><b>Izin kedaluwarsa belum diperpanjang</b>: muncul bila Tanggal Kedaluwarsa sudah lewat dan status bukan Dalam Perpanjangan. <b>Merah</b>. Penerima: Legal Officer, Head CLRM, dan Direksi.</li>

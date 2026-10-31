@@ -8,6 +8,15 @@ export interface SopRec extends BaseRec {
   tglReview: string; pic: string
   // status (BaseRec): 'Aktif' | 'Dalam Review' | 'Dicabut'
 }
+// Tanggal + 1 tahun kalender (29 Feb -> 28 Feb tahun berikutnya)
+export const addYear = (s: string) => {
+  const [y, m, d] = s.split('-').map(Number)
+  if (!y || !m || !d) return ''
+  const t = new Date(Date.UTC(y + 1, m - 1, d))
+  if (t.getUTCMonth() !== m - 1) t.setUTCDate(0)
+  return t.toISOString().slice(0, 10)
+}
+const subYear = (s: string) => { const [y, m, d] = s.split('-').map(Number); const t = new Date(Date.UTC(y - 1, m - 1, d)); if (t.getUTCMonth() !== m - 1) t.setUTCDate(0); return t.toISOString().slice(0, 10) }
 export const sopLabel = (s: SopRec) => `${s.noDok} - ${s.judul} - ${s.pemilik}`
 
 const TITLES: [string, string, string][] = [
@@ -40,20 +49,22 @@ const TITLES: [string, string, string][] = [
 
 // ~25 SOP. Tiga baris sengaja tidak lengkap (tanpa tgl review / PIC / status) untuk alert "data belum lengkap"
 export function seedSop(today: string): SopRec[] {
-  const reviewOff = [20, -12, 400, 15, 300, 200, -40, 25, 150, 90, 500, 10, 60, 350, 120, 28, -5, 180, 240, 75, 330, 45, 0, 0, 0]
+  const reviewOff = [20, -12, 360, 15, 300, 200, -40, 25, 150, 90, 355, 10, 60, 350, 120, 28, -5, 180, 240, 75, 330, 45, 0, 0, 0] // hari dari hari ini ke Tanggal Review; Tanggal Berlaku = Review - 1 tahun
   return TITLES.map(([judul, pemilik, ringkasan], i) => {
     const no = i + 1
     const incomplete = i >= 22
     const status = incomplete && i === 24 ? '' : i === 6 ? 'Dalam Review' : i === 11 ? 'Dicabut' : i % 9 === 4 ? 'Dalam Review' : 'Aktif'
-    const ubah = addDays(today, -(120 + ((i * 97) % 900)))
+    const review = addDays(today, reviewOff[i])
+    const berlaku = incomplete && i === 22 ? '' : subYear(review)
+    const ubah = berlaku ? addDays(berlaku, 3 + (i % 5)) : addDays(today, -(120 + ((i * 97) % 900)))
     const rev = 1 + (i % 4)
     return {
       id: `sop-${no}`, no, status, createdAt: ubah, createdBy: 'Rina Kartika',
       noDok: `SOP-${String(70 + no).padStart(3, '0')}-PAY`, judul, ringkasan, pemilik,
-      tglBerlaku: addDays(ubah, 7), tglUbah: ubah, noRevisi: `Rev.${rev}`,
-      retensi: i % 3 === 0 ? '10 Tahun' : i % 7 === 0 ? 'Permanen' : '5 Tahun', klasifikasi: i % 5 === 0 ? 'Rahasia' : i % 2 ? 'Internal' : 'Publik',
+      tglBerlaku: berlaku, tglUbah: ubah, noRevisi: `Rev.${rev}`,
+      retensi: i % 3 === 0 || i % 7 === 0 ? '10 Tahun' : '5 Tahun', klasifikasi: i % 11 === 3 ? 'Sangat Rahasia' : i % 5 === 0 ? 'Rahasia' : i % 2 ? 'Internal' : 'Publik',
       file: { name: `SOP-${String(70 + no).padStart(3, '0')}-PAY.pdf`, size: (200 + i * 37) * 1024, type: 'application/pdf' },
-      tglReview: incomplete && i === 22 ? '' : addDays(today, reviewOff[i]),
+      tglReview: berlaku ? addYear(berlaku) : '',
       pic: incomplete && i === 23 ? '' : ['Regie', 'Fakhri', 'Osama'][i % 3], // master PIC
     }
   })

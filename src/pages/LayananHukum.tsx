@@ -52,12 +52,10 @@ const filters: FilterDef<Layanan>[] = [
 ]
 
 const toPic = (r: Layanan) => (r.pic ? `PIC (${r.pic})` : 'PIC')
-const mk = (c: Ctx, o: Partial<Layanan>): Layanan => ({ id: 'sample', no: 99, status: 'Proses', createdAt: c.today, createdBy: '-', dept: 'Information Technology', jenis: 'Review', tglMasuk: addDays(c.today, -10), sla: 7, pic: 'Osama', prioritas: 'Sedang', tglSelesai: '', memo: '', ...o })
 const alerts: AlertDef<Layanan>[] = [
   {
     key: 'overdue', label: 'Lewat batas waktu', rule: 'Batas waktu terlewat dan permintaan belum Selesai.',
     check: (r, c) => { const d = lateDays(r, c.today); return d > 0 ? { color: 'red', detail: `Lewat ${d} hari`, to: [toPic(r), 'Head CLRM'] } : null },
-    sample: (c) => mk(c, { tglMasuk: addDays(c.today, -10), sla: 7 }),
   },
   {
     key: 'near', label: 'Hampir jatuh tempo', rule: 'Batas waktu tinggal 2 hari kerja atau kurang dan permintaan belum Selesai.',
@@ -66,12 +64,10 @@ const alerts: AlertDef<Layanan>[] = [
       const d = workDaysBetween(c.today, batas(r))
       return d <= 2 ? { color: 'yellow', detail: `${d} hari kerja lagi`, to: [toPic(r)] } : null
     },
-    sample: (c) => mk(c, { tglMasuk: addDays(c.today, -5), sla: 6 }),
   },
   {
     key: 'nopic', label: 'Belum ada PIC', rule: 'PIC masih kosong lebih dari 1 hari kerja sejak tanggal masuk.',
     check: (r, c) => (OPEN(r) && !r.pic.trim() && workDaysBetween(r.tglMasuk, c.today) > 1 ? { color: 'yellow', detail: `${workDaysBetween(r.tglMasuk, c.today)} hari kerja tanpa PIC`, to: ['Head CLRM'] } : null),
-    sample: (c) => mk(c, { pic: '', status: 'Baru', tglMasuk: addDays(c.today, -4), sla: 14 }),
   },
 ]
 
@@ -156,3 +152,4 @@ const cfg: PageConfig<Layanan> = {
   },
 }
 export default function LayananHukum() { return <PageShell config={cfg} /> }
+export { cfg as config } // dipakai pusat notifikasi (kit/notify.tsx)

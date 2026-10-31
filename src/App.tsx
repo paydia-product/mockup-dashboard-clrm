@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
-  Bell, ChevronDown, ChevronRight, ClipboardCheck, Database, FileSignature, FileText, Gavel, GitBranch, History, KeyRound, LayoutDashboard, ListChecks, LogOut, Menu, RotateCcw,
+  ChevronDown, ChevronRight, ClipboardCheck, Database, FileSignature, FileText, Gavel, GitBranch, History, KeyRound, LayoutDashboard, ListChecks, LogOut, Menu, RotateCcw,
   Scale, ScrollText, ShieldAlert, ShieldCheck, Siren, Tag, UserCog, Users,
 } from 'lucide-react'
 import { KEY as DB_KEY, Role as TrackerRole, useDB } from './lib'
 import { GuideSlots } from './kit/PageGuide'
+import NotifBell from './kit/notify'
 import { APP_KEY, pushLog, setSession, useApp, useSession } from './kit/store'
 import type { PermKey, Role } from './kit/types'
 import Tracker from './Tracker'
@@ -174,9 +175,9 @@ function Shell() {
           <select aria-label="Akun demo" className="w-24 rounded md:w-auto border border-white/30 bg-white/10 px-2 py-1 text-xs text-white" value={user.id} onChange={(e) => switchTo(e.target.value)}>
             {demo.map((a) => <option key={a.id} value={a.id} className="text-slate-800">Akun demo: {a.name} ({a.role})</option>)}
           </select>
+          <NotifBell db={db} />
           <VersionPicker />
           <button title="Reset data contoh" onClick={reset} className="rounded bg-white/10 p-1.5 hover:bg-white/20"><RotateCcw size={14} /></button>
-          <a href="#/approval" title="Approval" className="relative"><Bell size={18} />{pending > 0 && <span className="absolute -right-2 -top-2 rounded-full bg-red-500 px-1 text-[10px] font-semibold">{pending}</span>}</a>
           <div className="relative">
             <button className="flex items-center gap-2" onClick={() => setMenu(!menu)}><div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-xs font-semibold">{user.name[0]}</div><span className="hidden text-sm md:inline">{user.name}</span><ChevronDown size={12} /></button>
             {menu && (

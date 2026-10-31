@@ -17,6 +17,9 @@ export const MASTER_LISTS: { kind: keyof Master; slug: string; label: string }[]
   { kind: 'mitra', slug: 'mitra-vendor', label: 'Mitra Vendor' },
   { kind: 'kategoriPelapor', slug: 'kategori-pelapor', label: 'Kategori Pelapor' },
   { kind: 'mediaPelapor', slug: 'media-pelapor', label: 'Media Pelapor' },
+  { kind: 'jenisPks', slug: 'jenis-pks-kontrak', label: 'Jenis PKS Kontrak' },
+  { kind: 'instansiAph', slug: 'instansi-pengirim-aph', label: 'Instansi Pengirim APH' },
+  { kind: 'kategoriPerizinan', slug: 'kategori-dokumen-perizinan', label: 'Kategori Dokumen Perizinan' },
 ]
 
 // Validasi tambah/ubah. Hanya berlaku untuk input pengguna; nilai seed lama tidak diperiksa ulang.

@@ -134,7 +134,7 @@ const fields: Field<Reg>[] = [
   { key: 'jawabTgl', label: 'Tanggal Dijawab', type: 'date', showIf: (r) => r.perluJawab === 'Ya' },
   { key: 'tglSosialisasi', label: 'Tanggal Sosialisasi Internal', type: 'date', required: true },
   { key: 'sopList', label: 'SOP / Kebijakan yang Harus Diperbarui', type: 'multidrop', wide: true, options: () => readModule<SopRec>('sop', seedSop).map(sopLabel), help: 'Opsional. Pilih satu atau lebih SOP dari daftar SOP; hapus dari daftar bila sudah diperbarui.' },
-  { key: 'lampiran', label: 'Lampiran / Bukti', type: 'file', required: true },
+  { key: 'lampiran', label: 'Lampiran / Bukti', type: 'file' },
 ]
 
 const columns: Column<Reg>[] = [
@@ -159,23 +159,16 @@ const filters: FilterDef<Reg>[] = [
 ]
 
 // ---- Alert ----
-const mk = (c: Ctx, o: Partial<Reg>): Reg => ({
-  id: 'sample', no: 99, status: 'Berlaku', createdAt: c.today, createdBy: '-', jenis: 'PBI', nomor: '99', tahun: '2026', regulator: 'BI', tentang: 'Contoh peraturan', kategori: 'QRIS', jp: 'Baru',
-  tglTerbit: addDays(c.today, -20), tglBerlaku: addDays(c.today, 30), tglDicatat: addDays(c.today, -20), diubah: '', dampak: '', dampakUraian: '', dept: ['Compliance Legal & Risk Management'], pemenuhan: '',
-  tindak: '', perluJawab: 'Tidak', jawabBatas: '', jawabTgl: '', tglSosialisasi: '', sopList: [], lampiran: null, ...o,
-})
 const MILE = [7, 30, 60, 90]
 const mile = (r: Reg, today: string) => { if (!r.tglBerlaku) return null; const d = diffDays(r.tglBerlaku, today); if (d < 0 || d > 90) return null; return { d, m: MILE.find((m) => d <= m) as number } }
 const alerts: AlertDef<Reg>[] = [
   {
     key: 'unrated', label: 'Belum dinilai > 10 hari kerja', rule: 'Peraturan atau imbauan baru belum dinilai (dampak kosong) lebih dari 10 hari kerja sejak dicatat.',
     check: (r, c) => { const d = workDaysBetween(r.tglDicatat, c.today); return unrated(r) && d > 10 ? { color: 'yellow', detail: `${d} hari kerja sejak dicatat`, to: ['Compliance Officer', 'Head CLRM'] } : null },
-    sample: (c) => mk(c, { tglDicatat: addDays(c.today, -18) }),
   },
   {
     key: 'effective', label: 'Akan berlaku, kepatuhan belum Comply', rule: 'Status Kepatuhan bukan Comply (Pemenuhan di bawah 100% atau belum dinilai) pada H-90, 60, 30, dan 7 sebelum Tanggal Berlaku. Kuning, merah saat H-7.',
     check: (r, c) => { const x = mile(r, c.today); return x && kep(r) !== 'Comply' ? { color: x.m === 7 ? 'red' : 'yellow', detail: `Berlaku ${x.d} hari lagi (tahap H-${x.m}), status kepatuhan ${kep(r)}`, to: ['PIC unit terdampak', 'Head CLRM'] } : null },
-    sample: (c) => mk(c, { tglBerlaku: addDays(c.today, 28), pemenuhan: 50, tindak: 'Penyesuaian sistem' }),
   },
   {
     key: 'reply', label: 'Imbauan harus dijawab', rule: 'Batas jawaban imbauan kurang dari 7 hari (H-7, H-3, H-1), kuning. Merah hanya bila batas terlewat.',
@@ -184,17 +177,14 @@ const alerts: AlertDef<Reg>[] = [
       const d = diffDays(r.jawabBatas, c.today)
       return d <= 7 ? { color: d < 0 ? 'red' : 'yellow', detail: d < 0 ? `Lewat ${-d} hari dari batas jawaban` : `${d} hari lagi sampai batas jawaban`, to: ['Compliance Officer', 'Head CLRM'] } : null
     },
-    sample: (c) => mk(c, { jenis: 'Surat Imbauan', jp: 'Imbauan', tglBerlaku: '', perluJawab: 'Ya', jawabBatas: addDays(c.today, 3) }),
   },
   {
     key: 'sop', label: 'Dicabut, SOP terkait perlu ditinjau', rule: 'Status Peraturan Dicabut, Tanggal Berlaku (pencabutan) sudah lewat, dan daftar SOP / Kebijakan yang Harus Diperbarui masih berisi. Hapus SOP dari daftar bila sudah diperbarui.',
     check: (r, c) => (r.status === 'Dicabut' && r.tglBerlaku && r.tglBerlaku < c.today && r.sopList.length ? { color: 'yellow', detail: `${r.sopList.length} SOP terkait sejak pencabutan ${fmtDate(r.tglBerlaku)}`, to: ['PIC unit terdampak', 'Compliance Officer'] } : null),
-    sample: (c) => mk(c, { jp: 'Pencabutan', status: 'Dicabut', tglBerlaku: addDays(c.today, -15), sopList: [sopLabel(seedSop(c.today)[3])] }),
   },
   {
     key: 'high', label: 'Peraturan baru berdampak Tinggi', rule: 'Peraturan atau surat (jenis apa pun) dengan tingkat dampak Tinggi yang baru dicatat dalam 7 hari terakhir.',
     check: (r, c) => (r.dampak === 'Tinggi' && diffDays(c.today, r.tglDicatat) <= 7 ? { color: 'yellow', detail: `Dampak Tinggi, dicatat ${fmtDate(r.tglDicatat)}`, to: ['Head CLRM', 'Direktur terkait'] } : null),
-    sample: (c) => mk(c, { dampak: 'Tinggi', dampakUraian: 'Perubahan proses utama', tglDicatat: addDays(c.today, -5) }),
   },
 ]
 
@@ -313,3 +303,4 @@ const cfg: PageConfig<Reg> = {
   },
 }
 export default function RegChange() { return <PageShell config={cfg} /> }
+export { cfg as config } // dipakai pusat notifikasi (kit/notify.tsx)

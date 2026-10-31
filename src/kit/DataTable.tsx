@@ -1,6 +1,7 @@
 import { ReactNode, useEffect, useMemo, useState } from 'react'
 import { fmtTime } from '../lib'
 import { LAINNYA } from './Lainnya'
+import Reveal from './Reveal'
 import type { BaseRec, Ctx, PageConfig } from './types'
 
 // Tabel menampilkan "Lainnya" untuk teks bebas dari field pilihan ber-"Lainnya"; Detail dan Export tetap memakai teks aslinya.
@@ -11,8 +12,10 @@ const lain = (v: string | number, custom: Set<string>) => {
 }
 
 // Tabel utama: tanpa sort kolom. Urutan tetap Tanggal Dibuat terbaru dulu; "Nomor" = posisi baris (1..n, lanjut antar halaman).
-// Kolom 'No' bawaan konfigurasi (nomor internal) tidak ditampilkan; no tetap dipakai untuk log/approval/email.
-export default function DataTable<T extends BaseRec>({ cfg, rows, c, actions, resetKey }: { cfg: PageConfig<T>; rows: T[]; c: Ctx; actions: (r: T) => ReactNode; resetKey?: string }) {
+// Kolom 'No' bawaan konfigurasi (nomor internal) tidak ditampilkan; no tetap dipakai untuk log/approval.
+export default function DataTable<T extends BaseRec>({ cfg, rows, c: c0, actions, resetKey }: { cfg: PageConfig<T>; rows: T[]; c: Ctx; actions: (r: T) => ReactNode; resetKey?: string }) {
+  const [rev, setRev] = useState<Record<string, boolean>>({}) // tombol mata di header kolom (hanya kolom revealKey yang boleh dibuka peran ini)
+  const c: Ctx = { ...c0, reveal: rev }
   const [page, setPage] = useState(1)
   const [size, setSize] = useState(10)
   useEffect(() => setPage(1), [resetKey]) // cari/filter berubah: kembali ke halaman 1, nomor mulai dari 1
@@ -30,7 +33,7 @@ export default function DataTable<T extends BaseRec>({ cfg, rows, c, actions, re
           <thead className="bg-slate-100 text-xs text-slate-600">
             <tr>
               <th className="whitespace-nowrap px-3 py-2.5 font-semibold">Nomor</th>
-              {cols.map((col) => <th key={col.label} className="whitespace-nowrap px-3 py-2.5 font-semibold">{col.label}</th>)}
+              {cols.map((col) => { const f = col.revealKey ? cfg.fields.find((x) => x.key === col.revealKey) : undefined; return <th key={col.label} className="whitespace-nowrap px-3 py-2.5 font-semibold">{col.label}{f && !f.mask?.(c) && f.reveal?.(c) && <Reveal on={!!rev[f.key]} toggle={() => setRev((p) => ({ ...p, [f.key]: !p[f.key] }))} label={col.label} />}</th> })}
               <th className="whitespace-nowrap px-3 py-2.5 font-semibold">Tanggal Dibuat</th>
               <th className="px-3 py-2.5 font-semibold">Aksi</th>
             </tr>

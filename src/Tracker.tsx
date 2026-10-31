@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import * as XLSX from 'xlsx'
-import { Bell, ChevronDown, ChevronUp, Download, Eye, History, Pencil, Plus, RotateCcw, Search, SlidersHorizontal, Upload, XCircle } from 'lucide-react'
+import { Download, Eye, History, Pencil, Plus, RotateCcw, Search, SlidersHorizontal, Upload, XCircle } from 'lucide-react'
 import {
-  Audit, DB, EMPTY_FILTER, Filter, Finding, AlertInfo, REGULATORS, RISKS, ROLE_USER, Role, STATUSES, alertsFor, applyFilter,
-  addDays, createdOf, diffDays, fmtDate, fmtTime, fmtTimeSec, findingLabel, isPendingReq, lastDueReason, nowStr, todayStr,
+  Audit, DB, EMPTY_FILTER, Filter, Finding, REGULATORS, RISKS, Role, STATUSES, applyFilter,
+  createdOf, fmtDate, fmtTime, fmtTimeSec, findingLabel, isPendingReq, lastDueReason, nowStr, todayStr,
 } from './lib'
 import { getStore, setStore, useApp } from './kit/store'
 import { showLainnya } from './kit/Lainnya'
@@ -14,12 +14,12 @@ import Form from './Form'
 import PageGuide from './kit/PageGuide'
 import { TRACKER_GUIDE } from './guides/tracker'
 import TrackerImport from './TrackerImport'
-import { Modal, ReasonModal, RiskBadge, StatusBadge } from './ui'
+import { ReasonModal, RiskBadge, StatusBadge } from './ui'
 
 const SHOW_IMPORT = false // ponytail: disembunyikan atas permintaan user; set true untuk mengaktifkan
-// Tanpa sort kolom. Nomor = posisi baris; urutan tetap Tanggal Dibuat terbaru dulu (f.no hanya internal: log/approval/email)
+// Tanpa sort kolom. Nomor = posisi baris; urutan tetap Tanggal Dibuat terbaru dulu (f.no hanya internal: log/approval)
 const COLS = ['Nomor', 'Regulator', 'Tanggal Temuan', 'Area Temuan', 'PIC', 'Batas Waktu', 'Status', 'Tingkat Risiko', 'Tanggal Dibuat']
-type Pending = { kind: 'add' } | { kind: 'edit'; id: string } | { kind: 'reason'; title: string; danger?: boolean; run: (r: string) => void } | { kind: 'sim' } | { kind: 'import' } | null
+type Pending = { kind: 'add' } | { kind: 'edit'; id: string } | { kind: 'reason'; title: string; danger?: boolean; run: (r: string) => void } | { kind: 'import' } | null
 
 export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb: React.Dispatch<React.SetStateAction<DB>>; role: Role; user: { name: string }; can: (a: Action) => boolean }) {
   const { log: appLog, store: appStore } = useApp()
@@ -47,6 +47,19 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
   const slice = rows.slice((cur - 1) * size, cur * size)
   const upd = (p: Partial<Filter>) => { setFilter({ ...filter, ...p }); setPage(1) }
   const open = db.findings.find((f) => f.id === openId) ?? null
+  // tautan dari pusat notifikasi: #/route?open=<id> membuka Detail temuan itu, lalu parameter dibersihkan
+  useEffect(() => {
+    const go = () => {
+      const m = location.hash.match(/[?&]open=([^&]+)/)
+      if (!m) return
+      history.replaceState(null, '', location.pathname + location.search + location.hash.split('?')[0])
+      const id = decodeURIComponent(m[1])
+      if (db.findings.some((f) => f.id === id)) setOpenId(id)
+    }
+    go()
+    addEventListener('hashchange', go)
+    return () => removeEventListener('hashchange', go)
+  }, [db.findings])
 
   // ---- mutasi + audit ----
   type Ent = { aksi: string; kolom?: string; lama?: string; baru?: string; alasan?: string }
@@ -136,27 +149,6 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
     appLog('Regulatory Findings Tracker', 'Export', '', `${data.length} baris`)
   }
 
-  const sim = useMemo(() => db.findings.flatMap((f) => alertsFor(f, db.audit).map((a) => ({ f, a }))), [db])
-  const mails = useMemo(() => {
-    const t = todayStr()
-    const hitsOf = (k: AlertInfo['key']) => sim.filter((x) => x.a.key === k).slice(0, 3)
-    const sample = { id: 'sample', no: 1, regulator: 'BI', area: 'QRIS', pic: ROLE_USER.PIC.name, dueDate: addDays(t, 3), status: 'Proses' } as unknown as Finding
-    const cfg: [AlertInfo['key'], string, string, string][] = [
-      ['near', 'Temuan hampir jatuh tempo', 'yellow', 'Batas waktu tinggal 7 hari atau kurang dan temuan belum selesai.'],
-      ['overdue', 'Temuan lewat batas waktu', 'red', 'Batas waktu terlewat dan temuan belum selesai. Lewat lebih dari 7 hari juga dikirim ke Direktur terkait.'],
-      ['stale', 'Menunggu validasi terlalu lama', 'yellow', 'Status Menunggu Validasi lebih dari 7 hari.'],
-    ]
-    return cfg.flatMap(([key, label, color, rule]) => {
-      const hs = hitsOf(key)
-      const items: { f: Finding; hit?: (typeof sim)[number] }[] = hs.length ? hs.map((h) => ({ f: h.f, hit: h })) : [{ f: { ...sample, dueDate: key === 'overdue' ? addDays(t, -3) : sample.dueDate, status: key === 'stale' ? 'Menunggu Validasi' : 'Proses' } as Finding }]
-      return items.map(({ f, hit }) => {
-        const d = diffDays(f.dueDate, t)
-        const detail = hit?.a.detail ?? (key === 'near' ? `${d} hari lagi` : key === 'overdue' ? `Lewat ${-d} hari` : '9 hari menunggu')
-        const to = hit?.a.to ?? (key === 'near' ? ['PIC'] : key === 'overdue' ? ['PIC', 'Head CLRM'] : ['Compliance Officer', 'Head CLRM'])
-        return { key: `${key}-${f.id}`, label, color, rule, f, detail, to, sample: !hit }
-      })
-    })
-  }, [sim])
   const dashFilter = (nf: Filter) => setFilter({ ...EMPTY_FILTER, from: nf.from, to: nf.to })
   const editing = pending?.kind === 'edit' ? db.findings.find((f) => f.id === pending.id) : null
   const blank = (): Finding => ({
@@ -209,7 +201,6 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
               )}
             </div>
             <div className="ml-auto flex flex-wrap gap-2">
-              <button className="btn" onClick={() => setPending({ kind: 'sim' })}><Bell size={14} />Simulasi notifikasi ({sim.length})</button>
               {SHOW_IMPORT && can('Tambah') && <button className="btn" onClick={() => setPending({ kind: 'import' })}><Upload size={14} />Import Excel</button>}
               {can('Export') && <button className="btn" onClick={doExport}><Download size={14} />Export Excel</button>}
               {can('Tambah') && <button className="btn btn-primary" onClick={() => setPending({ kind: 'add' })}><Plus size={14} />Tambah</button>}
@@ -273,28 +264,6 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
       {editing && <Form mode="edit" init={editing} prevReason={lastDueReason(editing.id, db.audit)} onSave={(f, al) => saveForm(f, 'edit', al)} onClose={() => setPending(null)} />}
       {pending?.kind === 'import' && <TrackerImport blank={blank} onImport={importRows} onClose={() => setPending(null)} />}
       {pending?.kind === 'reason' && <ReasonModal title={pending.title} danger={pending.danger} onClose={() => setPending(null)} onConfirm={pending.run} />}
-      {pending?.kind === 'sim' && (
-        <Modal wide title={`Simulasi notifikasi email, hari ini ${fmtDate(todayStr())}`} onClose={() => setPending(null)}>
-          <div className="max-h-[65vh] space-y-3 overflow-auto rounded-lg bg-slate-100 p-3">
-            {mails.map((m) => (
-              <div key={m.key} className={`rounded border border-slate-200 border-l-4 bg-white p-4 text-xs leading-relaxed text-slate-800 shadow-sm ${m.color === 'red' ? '!border-l-red-500' : '!border-l-yellow-400'}`}>
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <span className={`rounded px-2 py-0.5 font-medium ${m.color === 'red' ? 'bg-red-50 text-red-600' : 'bg-yellow-50 text-yellow-700'}`}>{m.color === 'red' ? 'Merah' : 'Kuning'}</span>
-                  {m.sample && <span className="text-slate-400">Contoh statis (tidak ada temuan yang cocok hari ini)</span>}
-                </div>
-                <div><b>From:</b> noreply-clrm@paydia.co.id</div>
-                <div><b>To:</b> {m.to.map((r) => (r === 'PIC' ? `PIC (${m.f.pic})` : r)).join('; ')}</div>
-                <div className="mb-2"><b>Subject:</b> [CLRM] {m.label}: Temuan {findingLabel(m.f)}</div>
-                <div className="space-y-0.5 border-t pt-2">
-                  <div>Regulator: {m.f.regulator}</div><div>Area Temuan: {m.f.area}</div><div>PIC: {m.f.pic}</div>
-                  <div>Batas Waktu: {fmtDate(m.f.dueDate)} ({m.detail.toLowerCase()})</div><div>Status: {m.f.status}</div>
-                  <div className="pt-1 text-slate-500">Alasan notifikasi: {m.rule}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Modal>
-      )}
     </div>
   )
 }

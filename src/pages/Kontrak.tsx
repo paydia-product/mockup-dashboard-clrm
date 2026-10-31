@@ -1,5 +1,6 @@
 import { addDays, diffDays, fmtDate, todayStr } from '../lib'
-import { showLainnya } from '../kit/Lainnya'
+import { showLainnya, withLainnya } from '../kit/Lainnya'
+import { getStore } from '../kit/store'
 import { monthKey } from '../kit/dates'
 import { sameName } from '../kit/perms'
 import PageShell from '../kit/PageShell'
@@ -14,7 +15,8 @@ interface Kontrak extends BaseRec {
   kelengkapan: Record<string, boolean>; file: { name: string; size: number; type: string } | null
 }
 const HUBUNGAN = ['Merchant', 'Partner-Vendor', 'Paybuddy', 'NDA', 'Lainnya']
-const JENIS_DOK = ['PKS QRIS', 'Biller Gateway', 'Account Linkage', 'Payout', 'Program Peningkatan Transaksi', 'NDA', 'Amandemen', 'Lainnya']
+// Jenis Dokumen = master Jenis PKS Kontrak + Lainnya (teks bebas)
+const jenisDok = (c?: Ctx) => withLainnya((c?.master ?? getStore().master).jenisPks)
 const PERPANJANGAN = ['Otomatis', 'Manual', 'Sampai Diputus', 'Tidak Diperpanjang']
 const STATUS = ['Draft', 'Review', 'Aktif', 'Akan Berakhir', 'Expired', 'Diperpanjang', 'Berakhir']
 const BIDANG = ['F&B', 'Retail', 'Jasa', 'Pendidikan', 'Lainnya']
@@ -43,7 +45,7 @@ const fields: Field<Kontrak>[] = [
   { key: 'mitra', label: 'Nama Mitra', type: 'select', options: (c) => c.master.mitra, required: true, editableBy: notPic, showIf: (r) => !!r.jenisHubungan && !isMerchant(r) },
   { key: 'merchant', label: 'Nama Merchant', type: 'text', required: true, editableBy: notPic, showIf: (r) => !!r.jenisHubungan && isMerchant(r) },
   { key: 'nomor', label: 'Nomor PKS / NDA', type: 'text', required: true, editableBy: notPic, help: 'Harus unik.' },
-  { key: 'jenisDok', label: 'Jenis Dokumen', type: 'select', options: JENIS_DOK, required: true, editableBy: notPic },
+  { key: 'jenisDok', label: 'Jenis Dokumen', type: 'select', options: (c) => jenisDok(c), required: true, editableBy: notPic },
   { key: 'mulai', label: 'Tanggal Mulai', type: 'date', required: true, editableBy: notPic },
   { key: 'berakhir', label: 'Tanggal Berakhir', type: 'date', help: 'Boleh kosong (masuk kartu "Kontrak Tanggal Berakhir Kosong").' },
   { key: 'perpanjangan', label: 'Perpanjangan', type: 'select', options: PERPANJANGAN, required: true },
@@ -52,12 +54,9 @@ const fields: Field<Kontrak>[] = [
   { key: 'bidang', label: 'Bidang Usaha', type: 'select', options: BIDANG, editableBy: notPic },
   { key: 'pic', label: 'PIC', type: 'select', options: (c) => c.master.pic, required: (r) => !r.dept, editableBy: notPic, help: 'Isi PIC atau Unit Pemilik, salah satu wajib.' },
   { key: 'dept', label: 'Unit Pemilik (Unit Kerja)', type: 'select', options: (c) => c.master.unitKerja, required: (r) => !r.pic, editableBy: notPic },
-  {
-    key: 'induk', label: 'Dokumen Induk', type: 'select', required: isAmd, editableBy: notPic, help: 'Wajib untuk Amandemen.',
-    options: (c) => others(c).filter((k) => !k.cancelled && k.jenisDok !== 'Amandemen').map((k) => k.nomor),
-  },
+  { key: 'induk', label: 'Dokumen Induk', type: 'text', required: isAmd, editableBy: notPic, help: 'Teks bebas (mis. nomor PKS induk). Wajib untuk Amandemen.' },
   { key: 'kelengkapan', label: 'Kelengkapan', type: 'checklist', sub: [{ key: 'hardcopy', label: 'Hardcopy diterima', type: 'yesno' }, { key: 'ttd', label: 'Tanda tangan lengkap', type: 'yesno' }], editableBy: notPic },
-  { key: 'file', label: 'File Perjanjian', type: 'file', required: true, editableBy: notPic },
+  { key: 'file', label: 'File Perjanjian', type: 'file', editableBy: notPic },
   { key: 'sisaHari', label: 'Sisa Hari', type: 'number', auto: (r, c) => sisa(r, c.today) ?? '' },
 ]
 
@@ -78,7 +77,7 @@ const picOf = (r: Kontrak) => r.pic || r.dept
 const filters: FilterDef<Kontrak>[] = [
   { key: 'periode', label: 'Periode (Tanggal Mulai)', type: 'daterange', match: (r, v) => { const [a, b] = v as [string, string]; return (!a || r.mulai >= a) && (!b || r.mulai <= b) } },
   { key: 'jenisHubungan', label: 'Jenis Hubungan', type: 'select', options: HUBUNGAN, match: (r, v) => showLainnya(r.jenisHubungan, HUBUNGAN) === v },
-  { key: 'jenisDok', label: 'Jenis Dokumen', type: 'select', options: JENIS_DOK, match: (r, v) => showLainnya(r.jenisDok, JENIS_DOK) === v },
+  { key: 'jenisDok', label: 'Jenis Dokumen', type: 'select', options: (_, c) => jenisDok(c), match: (r, v) => showLainnya(r.jenisDok, jenisDok()) === v },
   { key: 'status', label: 'Status', type: 'select', options: [...STATUS, 'Dibatalkan'], match: (r, v) => r.status === v },
   { key: 'pic', label: 'PIC / Unit', type: 'select', options: (rows) => uniq(rows, picOf), match: (r, v) => picOf(r) === v },
   { key: 'bidang', label: 'Bidang Usaha', type: 'select', options: BIDANG, match: (r, v) => showLainnya(r.bidang, BIDANG) === v },
@@ -86,11 +85,6 @@ const filters: FilterDef<Kontrak>[] = [
 ]
 
 const toPic = (r: Kontrak) => (r.pic ? `PIC (${r.pic})` : 'PIC')
-const mk = (c: Ctx, o: Partial<Kontrak>): Kontrak => ({
-  id: 'sample', no: 99, status: 'Aktif', createdAt: c.today, createdBy: '-', jenisHubungan: 'Merchant', mitra: '', merchant: 'Kopi Senja', nomor: 'PKS/CLRM/099/2026', jenisDok: 'PKS QRIS',
-  mulai: addDays(c.today, -300), berakhir: addDays(c.today, 60), perpanjangan: 'Manual', lamaBulan: 12, bidang: 'F&B', pic: 'Regie', dept: '', induk: '',
-  kelengkapan: { hardcopy: true, ttd: true }, file: { name: 'PKS-099.pdf', size: 120000, type: 'application/pdf' }, ...o,
-})
 const alerts: AlertDef<Kontrak>[] = [
   {
     key: 'hmin', label: 'Kontrak hampir berakhir', rule: 'Pengingat H-90, H-60, H-30, H-7 sebelum Tanggal Berakhir. Kuning, merah mulai ≤30 hari.',
@@ -99,7 +93,6 @@ const alerts: AlertDef<Kontrak>[] = [
       if (!LIVE(r) || s === null || s < 0 || s > 90) return null
       return { color: s <= 30 ? 'red' : 'yellow', detail: `Berakhir ${s} hari lagi (${fmtDate(r.berakhir)})`, to: ['Legal Officer', toPic(r)] }
     },
-    sample: (c) => mk(c, { berakhir: addDays(c.today, 25), status: 'Akan Berakhir' }),
   },
   {
     key: 'expired', label: 'Kontrak expired belum diperpanjang', rule: 'Tanggal Berakhir terlewat dan kontrak belum diperpanjang. Merah.',
@@ -108,12 +101,10 @@ const alerts: AlertDef<Kontrak>[] = [
       const lewat = r.status === 'Expired' || (LIVE(r) && s !== null && s < 0)
       return lewat ? { color: 'red', detail: `Expired ${s !== null ? Math.abs(s) : '?'} hari lalu`, to: ['Legal Officer', 'Head CLRM'] } : null
     },
-    sample: (c) => mk(c, { berakhir: addDays(c.today, -12), status: 'Expired' }),
   },
   {
     key: 'kosong', label: 'Tanggal berakhir kosong', rule: 'Tanggal Berakhir belum diisi. Kuning.',
     check: (r) => (!r.berakhir && r.status !== 'Berakhir' && r.status !== 'Dibatalkan' && !r.cancelled ? { color: 'yellow', detail: 'Tanggal Berakhir belum diisi', to: ['Legal Officer'] } : null),
-    sample: (c) => mk(c, { berakhir: '', status: 'Aktif' }),
   },
 ]
 
@@ -208,7 +199,7 @@ const cfg: PageConfig<Kontrak> = {
           <BarCard title="Kontrak per jenis dokumen" info={{
             apa: 'Jumlah kontrak menurut Jenis Dokumen, semua status kecuali Dibatalkan, dalam Periode Tanggal Mulai yang dipilih.',
             baca: ['Sumbu vertikal: Jenis Dokumen. Sumbu horizontal: jumlah kontrak.', 'Arahkan kursor ke batang untuk melihat jumlahnya.', 'Klik batang untuk membuka tab Table terfilter Jenis Dokumen.', 'Isian teks bebas di luar daftar dihitung di batang Lainnya, sehingga jumlah semua batang sama dengan jumlah kontrak.'],
-          }} horizontal data={JENIS_DOK.map((j) => ({ name: j, Jumlah: rows.filter((r) => showLainnya(r.jenisDok, JENIS_DOK) === j).length }))} keys={['Jumlah']} onClick={(row) => drill({ jenisDok: row.name })} />
+          }} horizontal data={jenisDok(c).map((j) => ({ name: j, Jumlah: rows.filter((r) => showLainnya(r.jenisDok, jenisDok(c)) === j).length }))} keys={['Jumlah']} onClick={(row) => drill({ jenisDok: row.name })} />
           <LineCard title="Kontrak baru per bulan" info={{
             apa: 'Jumlah kontrak baru menurut bulan Tanggal Mulai, semua status kecuali Dibatalkan. Tidak ikut filter Periode halaman.',
             baca: ['Sumbu horizontal: bulan (tahun-bulan). Sumbu vertikal: jumlah kontrak.', 'Filter Periode di atas grafik mengatur rentang bulan: 3, 6, 9, 12 bulan terakhir, Seluruh Waktu, atau Custom. Bawaan 12 bulan terakhir.', 'Bulan tanpa kontrak tampil sebagai nol.', 'Arahkan kursor ke titik untuk melihat bulan dan jumlahnya.'],
@@ -230,3 +221,4 @@ const cfg: PageConfig<Kontrak> = {
   },
 }
 export default function KontrakPage() { return <PageShell config={cfg} /> }
+export { cfg as config } // dipakai pusat notifikasi (kit/notify.tsx)

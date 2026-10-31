@@ -43,7 +43,7 @@ export const REPORTING_GUIDE: GuideItem[] = [
 <p><b>Wajib bersyarat</b>:</p>
 <ul>
 <li><b>Tanggal Submit</b>: wajib bila Status <b>Terkirim</b>.</li>
-<li><b>Bukti Submit</b> (file) atau <b>Nomor Tanda Terima</b>: salah satu wajib bila Status Terkirim.</li>
+<li><b>Bukti Submit</b> (file) dan <b>Nomor Tanda Terima</b> boleh dikosongkan. Bila Status Terkirim tanpa keduanya, muncul notifikasi pengingat "Terkirim tanpa bukti".</li>
 <li><b>Alasan Terlambat</b>: wajib bila Status Terlambat, bila Tanggal Submit melewati Batas Waktu, atau bila Batas Waktu sudah lewat dan laporan belum Terkirim.</li>
 <li><b>Laporan Insiden Siber?</b> muncul bila Jenis Periode <b>Insidental</b>. Bila dijawab <b>Ya</b>, muncul <b>Waktu Notifikasi Awal</b> dan <b>Waktu Kejadian</b> menjadi wajib.</li>
 </ul>
@@ -58,7 +58,7 @@ export const REPORTING_GUIDE: GuideItem[] = [
 <li><b>Status Terlambat</b> terisi sendiri bila Batas Waktu lewat dan laporan belum Terkirim. Bila Batas Waktu diundur ke depan, status Terlambat kembali menjadi Belum Disiapkan.</li>
 <li><b>Tepat Waktu?</b> dihitung dari Tanggal Submit dan Batas Waktu. Submit pada hari Batas Waktu dianggap tepat waktu.</li>
 </ul>
-<p><b>Upload</b>: PDF, JPG, JPEG, atau PNG. Maksimal 25 MB dan 1 file.</p>
+<p><b>Upload</b> (tidak wajib): PDF, JPG, JPEG, atau PNG. Maksimal 25 MB dan 1 file.</p>
 <p><b>Siapa boleh</b>:</p>
 <ul>
 <li><b>Tambah</b>: Compliance Officer dan Super Admin.</li>
@@ -86,15 +86,15 @@ export const REPORTING_GUIDE: GuideItem[] = [
 </ul>`,
   },
   {
-    h: 'Simulasi notifikasi email',
-    b: `<p>Tombol <b>Simulasi notifikasi</b> menampilkan contoh email. Angka di tombol adalah <b>jumlah alert aktif</b> (laporan Dibatalkan tidak dihitung). Tiap jenis menampilkan maksimal 3 email.</p>
+    h: 'Notifikasi',
+    b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah; Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Tombol "Tandai semua dibaca" menandai semuanya sudah dibaca.</p>
 <ul>
 <li><b>Hampir jatuh tempo</b> (kuning). Laporan belum Terkirim dan Batas Waktu tinggal 0 sampai 7 hari. Penerima: <b>PIC</b> penyusun dan <b>Compliance Officer</b>.</li>
 <li><b>Laporan terlambat</b> (merah). Status Terlambat, yaitu Batas Waktu terlewat dan belum Terkirim. Penerima: <b>PIC</b> penyusun dan <b>Head CLRM</b>.</li>
 <li><b>Insiden siber (jam berjalan)</b> (merah). Laporan insiden siber belum Terkirim dan Waktu Kejadian terisi. Notifikasi awal paling lambat 1 jam dan laporan lengkap paling lambat 3 hari kalender sejak kejadian. Penerima: <b>Head CLRM</b> dan <b>CISO</b>.</li>
 <li><b>Terkirim tanpa bukti</b> (kuning). Status Terkirim tetapi file bukti dan Nomor Tanda Terima kosong. Penerima: <b>PIC</b> penyusun.</li>
 </ul>
-<p>Bila tidak ada laporan yang cocok, ditampilkan <b>contoh statis</b> (diberi tanda).</p>`,
+`,
   },
   {
     h: 'Export Excel',

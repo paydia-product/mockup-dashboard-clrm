@@ -3,6 +3,7 @@ import { Plus, Trash2, X } from 'lucide-react'
 import { FileField, Modal } from '../ui'
 import { maskStr } from './fmt'
 import { MultiOther, OTHER_ERR, SelectOther } from './Lainnya'
+import Reveal from './Reveal'
 import type { BaseRec, Ctx, Field, PageConfig } from './types'
 
 type R = Record<string, any> // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -100,6 +101,7 @@ export default function FormModal<T extends BaseRec>({ cfg, mode, init, norm, c,
   const [alasan, setAlasan] = useState('')
   const [errs, setErrs] = useState<Record<string, string>>({})
   const [pending, setPending] = useState<Record<string, boolean>>({})
+  const [rev, setRev] = useState<Record<string, boolean>>({}) // tombol mata: field reveal yang sensornya dibuka
   const pend = (k: string) => (b: boolean) => setPending((p) => (!!p[k] === b ? p : { ...p, [k]: b }))
   const edit = mode === 'edit'
   const fields = fieldsFor(cfg, mode)
@@ -108,6 +110,8 @@ export default function FormModal<T extends BaseRec>({ cfg, mode, init, norm, c,
   const editable = (f: Field<any>) => !edit || !f.editableBy || f.editableBy(c, init as T) // eslint-disable-line @typescript-eslint/no-explicit-any
   const masked = (f: Field<any>) => edit && !!f.mask?.(c) // eslint-disable-line @typescript-eslint/no-explicit-any
   const locked = (f: Field<any>) => masked(f) || !editable(f) // eslint-disable-line @typescript-eslint/no-explicit-any
+  const canRev = (f: Field<any>) => edit && !f.mask?.(c) && !!f.reveal?.(c) && editable(f) // eslint-disable-line @typescript-eslint/no-explicit-any
+  const soft = (f: Field<any>) => canRev(f) && !rev[f.key] // eslint-disable-line @typescript-eslint/no-explicit-any
   const lockedKeys = fields.filter(locked).map((f) => f.key)
   const submit = () => {
     const e = validateRecord(cfg, r, mode, c, false, lockedKeys)
@@ -135,7 +139,7 @@ export default function FormModal<T extends BaseRec>({ cfg, mode, init, norm, c,
                 </>
               ) : f.type === 'file' ? <FileField label={f.label + (req ? ' *' : '')} value={r[f.key] ?? null} onChange={(m) => set(f.key, m)} error={errs[f.key]} /> : (
                 <>
-                  <label className="lbl">{f.label}{req ? ' *' : ''}</label>
+                  <label className="lbl">{f.label}{req ? ' *' : ''}{canRev(f) && <Reveal on={!!rev[f.key]} toggle={() => setRev((p) => ({ ...p, [f.key]: !p[f.key] }))} label={f.label} />}</label>
                   {f.type === 'list' ? (
                     <div className="space-y-2">
                       {(list ?? []).map((it, i) => {
@@ -158,7 +162,7 @@ export default function FormModal<T extends BaseRec>({ cfg, mode, init, norm, c,
                       })}
                       {!(edit && f.listLocked?.(c)) && <button type="button" className="btn !py-1" onClick={() => set(f.key, [...(list ?? []), Object.fromEntries((f.sub ?? []).map((s) => [s.key, s.type === 'multiselect' ? [] : s.type === 'checklist' ? {} : s.type === 'file' ? null : '']))])}><Plus size={13} />Tambah item</button>}
                     </div>
-                  ) : <Input f={f} v={masked(f) ? maskStr(String(r[f.key] ?? '')) : r[f.key]} c={c} pend={pend(f.key)} set={(v) => set(f.key, v)} off={locked(f)} />}
+                  ) : <Input f={f} v={masked(f) || soft(f) ? maskStr(String(r[f.key] ?? '')) : r[f.key]} c={c} pend={pend(f.key)} set={(v) => set(f.key, v)} off={locked(f) || soft(f) || !!f.readOnly} />}
                   {edit && f.key === 'status' && cfg.normalize && norm && norm.status !== init.status && <p className="mt-0.5 text-xs text-amber-600">Status saat ini (otomatis): {String(norm.status)}</p>}
                   {f.help && <p className="mt-0.5 text-xs text-slate-400">{f.help}</p>}
                   {errs[f.key] && <p className="err">{errs[f.key]}</p>}

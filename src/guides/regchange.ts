@@ -58,7 +58,7 @@ export const REGCHANGE_GUIDE: GuideItem[] = [
 <p><b>Field otomatis</b>: <b>Status Kepatuhan</b> dihitung dari Pemenuhan. 100 atau lebih = Comply, 70 sampai 99 = Partial, di bawah 70 = Gap, kosong = Belum Dinilai.</p>
 <p><b>Lainnya</b>: dropdown <b>Regulator</b> dan <b>Kategori</b> punya opsi Lainnya. Bila dipilih, muncul isian teks bebas yang wajib diisi.</p>
 <p><b>Daftar SOP</b>: field opsional. Pilih SOP dari modul SOP, dan hapus dari daftar bila sudah diperbarui.</p>
-<p><b>Upload</b>: PDF, JPG, JPEG, atau PNG. Maksimal 25 MB dan 1 file.</p>
+<p><b>Upload</b> (Lampiran / Bukti tidak wajib): PDF, JPG, JPEG, atau PNG. Maksimal 25 MB dan 1 file.</p>
 <p><b>Siapa boleh</b>: Tambah oleh Compliance Officer dan Super Admin. Edit oleh Compliance Officer dan Super Admin. Peran PIC tidak dapat mengedit di halaman ini. Kolom <b>Alasan perubahan</b> di form Edit bersifat opsional dan ikut tercatat.</p>`,
   },
   {
@@ -93,8 +93,8 @@ export const REGCHANGE_GUIDE: GuideItem[] = [
 </ul>`,
   },
   {
-    h: 'Simulasi notifikasi email',
-    b: `<p>Tombol <b>Simulasi notifikasi</b> menampilkan contoh email. Angka di tombol adalah <b>jumlah alert aktif</b> (data Dibatalkan tidak dihitung). Tiap jenis menampilkan maksimal 3 email.</p>
+    h: 'Notifikasi',
+    b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah; Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Tombol "Tandai semua dibaca" menandai semuanya sudah dibaca.</p>
 <ul>
 <li><b>Belum dinilai &gt; 10 hari kerja</b> (kuning). Tingkat Dampak masih kosong dan sudah lebih dari 10 hari kerja sejak Tanggal Dicatat. Penerima: <b>Compliance Officer</b> dan <b>Head CLRM</b>.</li>
 <li><b>Akan berlaku, kepatuhan belum Comply</b> (kuning, merah saat 7 hari atau kurang). Tanggal Berlaku dalam 90 hari ke depan dan Status Kepatuhan bukan Comply. Tahapnya H-90, H-60, H-30, dan H-7. Penerima: <b>PIC unit terdampak</b> dan <b>Head CLRM</b>.</li>
@@ -102,7 +102,7 @@ export const REGCHANGE_GUIDE: GuideItem[] = [
 <li><b>Dicabut, SOP terkait perlu ditinjau</b> (kuning). Status Peraturan Dicabut, Tanggal Berlaku sudah lewat, dan daftar SOP masih berisi. Penerima: <b>PIC unit terdampak</b> dan <b>Compliance Officer</b>.</li>
 <li><b>Peraturan baru berdampak Tinggi</b> (kuning). Tingkat Dampak Tinggi dan dicatat dalam 7 hari terakhir. Penerima: <b>Head CLRM</b> dan <b>Direktur terkait</b>.</li>
 </ul>
-<p>Bila tidak ada data yang cocok, ditampilkan <b>contoh statis</b> (diberi tanda).</p>`,
+`,
   },
   {
     h: 'Export Excel',

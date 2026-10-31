@@ -72,15 +72,10 @@ const filters: FilterDef<Kajian>[] = [
 ]
 
 const toPic = (r: Kajian) => (r.pic ? `PIC (${r.pic})` : 'PIC')
-const mk = (c: Ctx, o: Partial<Kajian>): Kajian => ({
-  id: 'sample', no: 99, status: 'Proses', createdAt: c.today, createdBy: '-', jenis: 'CR', judul: 'Kajian contoh', dept: 'Information Technology', tglMasuk: addDays(c.today, -10), sla: 7, pic: 'Osama',
-  tglSelesai: '', hasil: '', klasifikasi: 'Tidak Perlu', namaMitra: '', konteks: '', statusMitra: '', adaPks: '', tglPks: '', aksesSistem: '', aksesData: '', aksesKeuangan: '', pantau: '', tglDD: '', ...o,
-})
 const alerts: AlertDef<Kajian>[] = [
   {
     key: 'overdue', label: 'Lewat batas waktu', rule: 'Batas waktu terlewat dan kajian belum Selesai.',
     check: (r, c) => { const d = lateDays(r, c.today); return d > 0 ? { color: 'red', detail: `Lewat ${d} hari`, to: [toPic(r), 'Head CLRM'] } : null },
-    sample: (c) => mk(c, { tglMasuk: addDays(c.today, -12), sla: 7 }),
   },
   {
     key: 'near', label: 'Hampir jatuh tempo', rule: 'Batas waktu tinggal 2 hari kerja atau kurang dan kajian belum Selesai.',
@@ -89,12 +84,10 @@ const alerts: AlertDef<Kajian>[] = [
       const d = workDaysBetween(c.today, batas(r))
       return d <= 2 ? { color: 'yellow', detail: `${d} hari kerja lagi`, to: [toPic(r)] } : null
     },
-    sample: (c) => mk(c, { tglMasuk: addDays(c.today, -5), sla: 6 }),
   },
   {
     key: 'nohasil', label: 'Selesai tanpa hasil', rule: 'Status Selesai tetapi Hasil / Opini kosong (umumnya dari import).',
     check: (r) => (r.status === 'Selesai' && !r.hasil ? { color: 'yellow', detail: 'Hasil / Opini kosong', to: [toPic(r), 'Risk Officer'] } : null),
-    sample: (c) => mk(c, { status: 'Selesai', tglSelesai: addDays(c.today, -2), hasil: '' }),
   },
   {
     key: 'mitra', label: 'Jadwal due diligence / evaluasi mitra', rule: 'Vendor: jadwal due diligence/evaluasi H-30 (kuning) atau sudah lewat (merah).',
@@ -104,7 +97,6 @@ const alerts: AlertDef<Kajian>[] = [
       if (d < 0) return { color: 'red', detail: `Lewat ${-d} hari`, to: [toPic(r), 'Risk Officer'] }
       return d <= 30 ? { color: 'yellow', detail: `${d} hari lagi`, to: [toPic(r), 'Risk Officer'] } : null
     },
-    sample: (c) => mk(c, { jenis: 'Vendor', namaMitra: 'PT Contoh Mitra', statusMitra: 'Eksisting', adaPks: 'Ya', pantau: 'Ya', tglDD: addDays(c.today, 20) }),
   },
 ]
 
@@ -223,3 +215,4 @@ const cfg: PageConfig<Kajian> = {
   },
 }
 export default function Kajian() { return <PageShell config={cfg} /> }
+export { cfg as config } // dipakai pusat notifikasi (kit/notify.tsx)

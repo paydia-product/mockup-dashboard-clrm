@@ -11,6 +11,25 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
+    v: '2.13.0',
+    date: '2026-10-31',
+    deployed: true,
+    title: 'Notifikasi dashboard, upload opsional, SOP ISO, Fraud EDD, master baru, hapus RAS-RT',
+    prompt: 'Upload opsional, alert jadi notifikasi, SOP klasifikasi/review/retensi, Fraud EDD/uncensor/no laporan, 3 master baru, Kontrak dokumen induk, APH top 5 & batas opsional, Perizinan opsional, hapus RAS-RT',
+    tokens: 450000,
+    changes: [
+      'Semua field upload di Tambah/Edit opsional',
+      'Alert email diganti notifikasi di dashboard: ikon lonceng dengan badge, daftar alert per penerima, tandai dibaca, klik membuka data terkait',
+      'SOP: Klasifikasi ISO (Publik, Internal, Rahasia, Sangat Rahasia); Tanggal Review Berikutnya otomatis = Tanggal Berlaku + 1 tahun dan tidak bisa diubah; status Dicabut tidak memicu review; opsi Retensi Permanen dihapus',
+      'Fraud: Tindakan EDD 1 dan EDD 2; field EDD tampil sejak awal; Jenis Data dihapus; tombol buka sensor RRN dan Nama Terlapor; No Laporan EDD otomatis EDD/tahun/bulan/nomor',
+      'Master Data baru: Jenis PKS Kontrak, Instansi Pengirim APH, Kategori Dokumen Perizinan',
+      'Kontrak: Dokumen Induk jadi teks isian',
+      'APH: chart Group merchant top 5; Batas Waktu Jawaban opsional',
+      'Perizinan: Tanggal Kedaluwarsa dan No Versi opsional',
+      'Risk Register: semua info, chart, kolom dan field RAS-RT dihapus',
+    ],
+  },
+  {
     v: '2.12.1',
     date: '2026-10-30',
     deployed: true,

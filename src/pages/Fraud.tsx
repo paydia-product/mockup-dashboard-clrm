@@ -1,4 +1,4 @@
-import { addDays, diffDays, fmtDate } from '../lib'
+import { addDays, diffDays, fmtDate, nowStr } from '../lib'
 import { showLainnya, withLainnya } from '../kit/Lainnya'
 import PageShell from '../kit/PageShell'
 import { BarCard, ComboCard, DonutCard, LineCard, StatCards, useMonthRange } from '../kit/charts'
@@ -12,7 +12,7 @@ import type { AlertDef, BaseRec, Column, Ctx, Field, FileMeta, FilterDef, PageCo
 // supaya kasus Open yang belum lengkap tetap bisa dicatat dan alert punya arti (lihat A3).
 type Money = number | ''
 interface Fraud extends BaseRec {
-  tglTerima: string; jenisData: string; pelapor: string; kategori: string; media: string
+  noLaporan: string; tglTerima: string; pelapor: string; kategori: string; media: string
   terlapor: string; jenisPengguna: string; jenis: string; rincian: string
   uraian: string; bukti: FileMeta | null; korban: Money
   rrn: string; tglTrx: string
@@ -27,10 +27,9 @@ interface Fraud extends BaseRec {
 
 const KATEGORI = ['Departemen Internal', 'Konsumen', 'Switching', 'PJP/Bank', 'Institusi Berwenang Lainnya', 'Kepolisian', 'Bank Indonesia', 'Asosiasi'] // sheet "2. Daftar Pihak Pelapor EDD"
 const MEDIA = ['Email', 'IASC', 'GO AML', 'WhatsApp', 'Lainnya']
-const JENIS_DATA = ['Fraud', 'EDD']
 const JENIS = ['Fraud', 'Judi Online', 'Transaksi Anomali']
 const HASIL = ['Tidak Respon', 'Kirim Bukti', 'Email Bouncing', 'Judi Online', 'Lainnya']
-const TINDAKAN = ['Blokir', 'Watchlist', 'Hold Settlement', 'Released', 'Terminasi', 'Blokir IP', 'Tidak Ada Tindak Lanjut', 'Redundant']
+const TINDAKAN = ['Blokir', 'Watchlist', 'Hold Settlement', 'Released', 'Terminasi', 'Blokir IP', 'Tidak Ada Tindak Lanjut', 'Redundant', 'EDD 1', 'EDD 2'] // seed memakai 8 pertama (indeks k % 8)
 const PENGGUNA = ['Merchant', 'User']
 const LAPOR_MAX = { Komdigi: 7, BI: 14, PPATK: 30 } // hari sejak blokir
 const OPEN = (r: Fraud) => r.status === 'Open'
@@ -40,40 +39,48 @@ const age = (r: Fraud, today: string) => diffDays(today, r.tglTerima)
 const batasEdd1 = (r: Fraud) => (r.tglTerima ? addWorkDays(r.tglTerima, 3) : '')
 const batasEdd = (r: Fraud) => (r.edd1 ? addDays(r.edd1, 7) : batasEdd1(r))
 const holdAge = (r: Fraud, today: string) => (r.holdTgl ? diffDays(today, r.holdTgl) : 0)
+// Terlapor dan RRN: peran lain selalu tersamar (tanpa tombol mata). Head CLRM dan Fraud Investigator boleh membuka sensor lewat tombol mata;
+// bawaan tampilan (tabel, Detail, form Ubah) tetap tersamar sampai tombol dibuka. c.reveal[key] diisi permukaan tampilan.
 const isMasked = (c: Ctx) => c.role !== 'Head CLRM' && c.role !== 'Fraud Investigator'
-const mask = (s: string, c: Ctx) => (s && isMasked(c) ? maskStr(s) : s)
+const canReveal = (c: Ctx) => !isMasked(c)
+const mask = (s: string, c: Ctx, key?: string) => (s && (isMasked(c) || !(key && c.reveal?.[key])) ? maskStr(s) : s)
 const laporList = (r: Fraud): [string, string, number][] => [['Komdigi', r.lapKomdigi, LAPOR_MAX.Komdigi], ['BI', r.lapBi, LAPOR_MAX.BI], ['PPATK', r.lapPpatk, LAPOR_MAX.PPATK]]
 const laporLate = (r: Fraud, today: string) => (r.tglBlokir ? laporList(r).filter(([, d, max]) => !d && diffDays(today, r.tglBlokir) > max).map(([n]) => n) : [])
 const firstLapor = (r: Fraud) => [r.lapKomdigi, r.lapBi, r.lapPpatk].filter(Boolean).sort()[0] ?? ''
 const isClosed = (r: Fraud) => r.status === 'Closed'
-// ponytail: field EDD hanya untuk Jenis Data = EDD (disembunyikan, tidak wajib, tidak diekspor untuk Fraud); data lama tanpa jenisData dianggap Fraud
-const isEdd = (r: Fraud) => r.jenisData === 'EDD'
-const needEdd = (r: Fraud) => isEdd(r) && r.asesmen === 'Dilanjutkan'
+// ponytail: Jenis Data dihapus; field EDD selalu tampil untuk semua kasus
+const needEdd = (r: Fraud) => r.asesmen === 'Dilanjutkan'
+// No Laporan EDD: EDD/YYYY/MM/NNNN. YYYY/MM dari Tanggal Dibuat; NNNN urut 4 digit yang mulai lagi dari 0001 tiap bulan-tahun. Dibuat saat Tambah, tidak berubah saat Ubah.
+const eddNo = (createdAt: string, all: Fraud[]) => {
+  const pre = `EDD/${createdAt.slice(0, 4)}/${createdAt.slice(5, 7)}/`
+  const max = all.reduce((m, r) => (r.noLaporan?.startsWith(pre) ? Math.max(m, Number(r.noLaporan.slice(pre.length)) || 0) : m), 0)
+  return `${pre}${String(max + 1).padStart(4, '0')}`
+}
 const blokirClosed = (r: Fraud) => r.tindakan === 'Blokir' && isClosed(r)
 
 const fields: Field<Fraud>[] = [
+  { key: 'noLaporan', label: 'No Laporan EDD', type: 'text', readOnly: true, noImport: true, help: 'Otomatis (EDD/tahun/bulan/nomor urut), terisi saat disimpan dan tidak berubah.' },
   { key: 'tglTerima', label: 'Tanggal Terima Tugas', type: 'date', required: true, reasonOnChange: true },
-  { key: 'jenisData', label: 'Jenis Data', type: 'select', options: JENIS_DATA, required: true },
   { key: 'kategori', label: 'Kategori Pelapor', type: 'select', options: (c) => c.master.kategoriPelapor, required: true },
   { key: 'media', label: 'Media', type: 'select', options: (c) => withLainnya(c.master.mediaPelapor), required: true },
-  { key: 'terlapor', label: 'Nama Terlapor', type: 'text', required: true, mask: isMasked },
+  { key: 'terlapor', label: 'Nama Terlapor', type: 'text', required: true, mask: isMasked, reveal: canReveal },
   { key: 'jenisPengguna', label: 'Jenis Pengguna', type: 'select', options: PENGGUNA, required: true },
   { key: 'jenis', label: 'Jenis Dugaan', type: 'select', options: JENIS, required: true },
   { key: 'rincian', label: 'Rincian Dugaan', type: 'text' },
   { key: 'uraian', label: 'Uraian', type: 'textarea', required: isClosed, wide: true },
-  { key: 'bukti', label: 'Bukti', type: 'file', required: true },
+  { key: 'bukti', label: 'Bukti', type: 'file' },
   { key: 'korban', label: 'Nominal Korban', type: 'money', required: isClosed, reasonOnChange: true },
-  { key: 'rrn', label: 'RRN', type: 'text', mask: isMasked },
+  { key: 'rrn', label: 'RRN', type: 'text', mask: isMasked, reveal: canReveal },
   { key: 'tglTrx', label: 'Tanggal Transaksi', type: 'date', reasonOnChange: true },
   { key: 'asesmen', label: 'Hasil Asesmen Awal', type: 'select', options: ['Dilanjutkan', 'Tidak Dilanjutkan'], required: true },
   { key: 'alasanAsesmen', label: 'Alasan Asesmen', type: 'text', required: true },
   { key: 'holdTgl', label: 'Tanggal Hold Settlement', type: 'date', reasonOnChange: true },
   { key: 'holdNom', label: 'Nominal Hold Settlement', type: 'money', reasonOnChange: true },
   { key: 'tglPpatk', label: 'Tanggal Email PPATK', type: 'date', reasonOnChange: true },
-  { key: 'edd1', label: 'Tanggal EDD 1', type: 'date', required: (r) => needEdd(r) && isClosed(r), showIf: isEdd, reasonOnChange: true },
-  { key: 'edd2', label: 'Tanggal EDD 2', type: 'date', showIf: isEdd, reasonOnChange: true },
-  { key: 'batasEdd', label: 'Batas Waktu EDD (rumus sementara)', type: 'date', auto: (r) => batasEdd(r), showIf: isEdd, help: 'Rumus sementara: EDD 1 = terima + 3 hari kerja, EDD 2 = EDD 1 + 7 hari.' },
-  { key: 'hasilEdd', label: 'Hasil EDD', type: 'select', options: HASIL, showIf: isEdd, required: (r) => isEdd(r) && isClosed(r) && (!!r.edd1 || !!r.edd2) },
+  { key: 'edd1', label: 'Tanggal EDD 1', type: 'date', required: (r) => needEdd(r) && isClosed(r), reasonOnChange: true },
+  { key: 'edd2', label: 'Tanggal EDD 2', type: 'date', reasonOnChange: true },
+  { key: 'batasEdd', label: 'Batas Waktu EDD (rumus sementara)', type: 'date', auto: (r) => batasEdd(r), help: 'Rumus sementara: EDD 1 = terima + 3 hari kerja, EDD 2 = EDD 1 + 7 hari.' },
+  { key: 'hasilEdd', label: 'Hasil EDD', type: 'select', options: HASIL, required: (r) => isClosed(r) && (!!r.edd1 || !!r.edd2) },
   { key: 'tindakan', label: 'Tindakan', type: 'select', options: TINDAKAN, required: isClosed },
   { key: 'tglBlokir', label: 'Tanggal Blokir', type: 'date', reasonOnChange: true },
   { key: 'relTgl', label: 'Tanggal Released Settlement', type: 'date', reasonOnChange: true },
@@ -95,10 +102,11 @@ const fields: Field<Fraud>[] = [
 
 const columns: Column<Fraud>[] = [
   { label: 'No', get: (r) => r.no },
+  { label: 'No Laporan EDD', get: (r) => r.noLaporan || '-' },
   { label: 'Tgl Terima', get: (r) => r.tglTerima, render: (r) => fmtDate(r.tglTerima) },
-  { label: 'Jenis Data', get: (r) => r.jenisData || '-' },
   { label: 'Kategori Pelapor', get: (r) => r.kategori },
-  { label: 'Terlapor', get: (r, c) => mask(r.terlapor, c) },
+  { label: 'Terlapor', get: (r, c) => mask(r.terlapor, c, 'terlapor'), revealKey: 'terlapor' },
+  { label: 'RRN', get: (r, c) => mask(r.rrn, c, 'rrn') || '-', revealKey: 'rrn' },
   { label: 'Jenis Dugaan', get: (r) => r.jenis },
   { label: 'Nominal', get: (r) => num(r.korban), render: (r) => (r.korban === '' ? '-' : fmtMoney(r.korban)) },
   { label: 'Tindakan', get: (r) => r.tindakan || '-' },
@@ -111,7 +119,6 @@ const filters: FilterDef<Fraud>[] = [
   { key: 'periode', label: 'Periode (Tanggal Terima)', type: 'daterange', match: (r, v) => { const [a, b] = v as [string, string]; return (!a || r.tglTerima >= a) && (!b || r.tglTerima <= b) } },
   { key: 'status', label: 'Status', type: 'select', options: ['Open', 'Closed', 'Dibatalkan'], match: (r, v) => r.status === v },
   { key: 'pic', label: 'PIC', type: 'select', options: (rows) => uniq(rows, (r) => r.pic), match: (r, v) => r.pic === v },
-  { key: 'jenisData', label: 'Jenis Data', type: 'select', options: JENIS_DATA, match: (r, v) => r.jenisData === v },
   { key: 'jenis', label: 'Jenis Dugaan', type: 'select', options: JENIS, match: (r, v) => r.jenis === v },
   { key: 'tindakan', label: 'Tindakan', type: 'select', options: TINDAKAN, match: (r, v) => r.tindakan === v },
   { key: 'kategori', label: 'Sumber (Kategori Pelapor)', type: 'select', options: (_, c) => c.master.kategoriPelapor, match: (r, v) => r.kategori === v },
@@ -121,47 +128,35 @@ const filters: FilterDef<Fraud>[] = [
 ]
 
 const toPic = (r: Fraud) => (r.pic ? `PIC (${r.pic})` : 'PIC')
-const mk = (c: Ctx, o: Partial<Fraud>): Fraud => ({
-  id: 'sample', no: 99, status: 'Open', createdAt: c.today, createdBy: '-',
-  tglTerima: addDays(c.today, -10), jenisData: 'Fraud', pelapor: 'Konsumen', kategori: 'Konsumen', media: 'Email', terlapor: 'Budi Santoso', jenisPengguna: 'Merchant', jenis: 'Fraud', rincian: 'Phishing',
-  uraian: 'Dugaan penipuan melalui merchant.', bukti: null, korban: 25_000_000, rrn: '', tglTrx: '', asesmen: 'Dilanjutkan', alasanAsesmen: 'Indikasi kuat',
-  holdTgl: '', holdNom: '', tglPpatk: '', edd1: '', edd2: '', hasilEdd: '', tindakan: '', tglBlokir: '', relTgl: '', relNom: '', saldo: '', tglQris: '', tglTutup: '',
-  lapKomdigi: '', lapBi: '', lapPpatk: '', tglResolved: '', pic: 'Regie', group: 'Toko Sejahtera', produk: 'QRIS', channel: 'Mobile', kerugian: '', ...o,
-})
 const alerts: AlertDef<Fraud>[] = [
   {
-    key: 'nopic', label: 'Belum ada PIC / tanpa EDD atau tindakan', rule: 'Kasus Open belum punya PIC, atau belum ada tindakan (dan EDD 1 untuk Jenis Data EDD) setelah 2 hari kerja sejak terima tugas.',
+    key: 'nopic', label: 'Belum ada PIC / tanpa EDD atau tindakan', rule: 'Kasus Open belum punya PIC, atau belum ada tindakan dan Tanggal EDD 1 setelah 2 hari kerja sejak terima tugas.',
     check: (r, c) => {
       const d = workDaysBetween(r.tglTerima, c.today)
       if (!OPEN(r) || d <= 2) return null
       if (!r.pic.trim()) return { color: 'red', detail: `${d} hari kerja tanpa PIC`, to: ['Head CLRM', 'Fraud Investigator'] }
-      return (!isEdd(r) || !r.edd1) && !r.tindakan ? { color: 'red', detail: `${d} hari kerja tanpa EDD/tindakan`, to: ['Head CLRM', 'Fraud Investigator'] } : null
+      return !r.edd1 && !r.tindakan ? { color: 'red', detail: `${d} hari kerja tanpa EDD/tindakan`, to: ['Head CLRM', 'Fraud Investigator'] } : null
     },
-    sample: (c) => mk(c, { pic: '', tglTerima: addDays(c.today, -6) }),
   },
   {
-    key: 'edd', label: 'EDD lewat batas', rule: 'Jenis Data EDD: Batas Waktu EDD terlewat dan Hasil EDD masih kosong pada kasus Open yang dilanjutkan.',
+    key: 'edd', label: 'EDD lewat batas', rule: 'Batas Waktu EDD terlewat dan Hasil EDD masih kosong pada kasus Open yang dilanjutkan.',
     check: (r, c) => {
-      if (!OPEN(r) || !isEdd(r) || !needEdd(r) || r.hasilEdd || !batasEdd(r)) return null
+      if (!OPEN(r) || !needEdd(r) || r.hasilEdd || !batasEdd(r)) return null
       const d = diffDays(c.today, batasEdd(r))
       return d > 0 ? { color: 'red', detail: `Lewat batas EDD ${d} hari`, to: [toPic(r), 'Head CLRM'] } : null
     },
-    sample: (c) => mk(c, { jenisData: 'EDD', tglTerima: addDays(c.today, -15), edd1: addDays(c.today, -12), tindakan: 'Watchlist' }),
   },
   {
     key: 'hold', label: 'Hold > 30 hari', rule: 'Hold Settlement lebih dari 30 hari tanpa Released atau Blokir pada kasus Open.',
     check: (r, c) => (OPEN(r) && r.holdTgl && !r.relTgl && !r.tglBlokir && holdAge(r, c.today) > 30 ? { color: 'yellow', detail: `Hold ${holdAge(r, c.today)} hari`, to: [toPic(r), 'Head CLRM'] } : null),
-    sample: (c) => mk(c, { tglTerima: addDays(c.today, -45), holdTgl: addDays(c.today, -40), holdNom: 30_000_000, tindakan: 'Hold Settlement' }),
   },
   {
     key: 'lapor', label: 'Lapor regulator terlambat', rule: 'Setelah blokir, tanggal lapor masih kosong melewati batas Komdigi 7 hari, BI 14 hari, atau PPATK 30 hari.',
     check: (r, c) => { const l = laporLate(r, c.today); return l.length && r.status !== 'Dibatalkan' ? { color: 'red', detail: `Belum lapor ${l.join(', ')} (blokir ${diffDays(c.today, r.tglBlokir)} hari lalu)`, to: ['Compliance Officer', 'Head CLRM'] } : null },
-    sample: (c) => mk(c, { tglTerima: addDays(c.today, -30), tindakan: 'Blokir', tglBlokir: addDays(c.today, -20), saldo: 18_000_000, lapKomdigi: addDays(c.today, -18) }),
   },
   {
     key: 'old', label: 'Open > 90 hari', rule: 'Kasus berstatus Open lebih dari 90 hari sejak terima tugas.',
     check: (r, c) => (OPEN(r) && age(r, c.today) > 90 ? { color: 'yellow', detail: `Open ${age(r, c.today)} hari`, to: [toPic(r), 'Head CLRM'] } : null),
-    sample: (c) => mk(c, { tglTerima: addDays(c.today, -110), tindakan: 'Watchlist' }),
   },
   {
     key: 'kosong', label: 'Data penting kosong', rule: 'Kasus Open belum punya Uraian, Nominal Korban, Jenis Dugaan, atau Kategori Pelapor.',
@@ -170,7 +165,6 @@ const alerts: AlertDef<Fraud>[] = [
       const miss = [!r.uraian.trim() && 'Uraian', r.korban === '' && 'Nominal Korban', !r.jenis && 'Jenis Dugaan', !r.kategori && 'Kategori Pelapor'].filter(Boolean)
       return miss.length ? { color: 'yellow', detail: `Kosong: ${miss.join(', ')}`, to: ['Compliance Officer'] } : null
     },
-    sample: (c) => mk(c, { uraian: '', korban: '', tglTerima: addDays(c.today, -2), tindakan: 'Watchlist' }),
   },
 ]
 
@@ -205,7 +199,7 @@ function seed(today: string): Fraud[] {
   const base = (i: number, ageDays: number): Fraud => {
     const tglTerima = d(ageDays)
     return {
-      id: `fraud-${i + 1}`, no: i + 1, status: 'Open', createdAt: tglTerima, createdBy: 'Fakhri', tglTerima, jenisData: 'EDD',
+      id: `fraud-${i + 1}`, no: i + 1, status: 'Open', createdAt: tglTerima, createdBy: 'Fakhri', tglTerima, noLaporan: '',
       pelapor: PIHAK[i % 7], kategori: KATEGORI[(i * 3) % KATEGORI.length], media: MEDIA[(i * 2) % 5],
       terlapor: NAMA[i % 8], jenisPengguna: PENGGUNA[i % 2], jenis: JENIS[i % 3], rincian: ['Phishing', 'Akun palsu', 'Pemain judi', 'Pola transaksi tidak wajar'][i % 4],
       uraian: `Laporan dugaan ${JENIS[i % 3].toLowerCase()} melalui ${GROUPS[i % 12]}.`, bukti: FILE, korban: (1 + (i % 9)) * 5_000_000,
@@ -215,8 +209,7 @@ function seed(today: string): Fraud[] {
       lapKomdigi: '', lapBi: '', lapPpatk: '', tglResolved: '', pic: PICS[i % 4], group: GROUPS[i % 12], produk: PRODUK[i % 3], channel: CHANNEL[(i + 1) % 4], kerugian: i % 5 === 0 ? 2_000_000 : '',
     }
   }
-  const FRAUD_SPECIAL = [0, 4, 6, 9, 11] // sisanya EDD
-  special.forEach(({ age: a, ...o }, i) => rows.push({ ...base(i, a), ...o, ...(FRAUD_SPECIAL.includes(i) ? { jenisData: 'Fraud' } : {}) }))
+  special.forEach(({ age: a, ...o }, i) => rows.push({ ...base(i, a), ...o }))
   // Sisanya: kasus lama, hampir semuanya Closed dan lengkap
   const rest = 45 - rows.length
   for (let k = 0; k < rest; k++) {
@@ -240,12 +233,18 @@ function seed(today: string): Fraud[] {
     }
     if (a > 45) { r.status = 'Closed'; r.tglResolved = addDays(r.tglTerima, 20 + (k % 15)) }
     if (a > 140 && k % 9 === 4) r.kerugian = 3_500_000
-    if (k % 3 === 0) r.jenisData = 'Fraud'
     rows.push(r)
   }
-  for (const r of rows) if (r.jenisData === 'Fraud') { r.edd1 = ''; r.edd2 = ''; r.hasilEdd = '' } // field EDD hanya untuk Jenis Data EDD
   rows[rows.length - 1].status = 'Dibatalkan'
   rows[rows.length - 1].cancelled = { prev: 'Closed', reason: 'Kasus duplikat', by: 'Dewi Anggraini', at: `${addDays(today, -30)}T10:15:00` }
+  // No Laporan EDD: urut per bulan-tahun menurut Tanggal Dibuat (terlama dulu)
+  const seq = new Map<string, number>()
+  for (const r of [...rows].sort((a, b) => a.createdAt.localeCompare(b.createdAt) || a.no - b.no)) {
+    const k = r.createdAt.slice(0, 7)
+    const n = (seq.get(k) ?? 0) + 1
+    seq.set(k, n)
+    r.noLaporan = `EDD/${k.slice(0, 4)}/${k.slice(5, 7)}/${String(n).padStart(4, '0')}`
+  }
   return rows
 }
 
@@ -259,16 +258,18 @@ const juta = (n: number) => Math.round(n / 1_000_000)
 
 const cfg: PageConfig<Fraud> = {
   module: 'fraud', title: 'Fraud Case Monitoring', noun: 'Kasus', exportPrefix: 'Kasus_Fraud_EDD',
-  name: (r) => `${r.kategori}, ${fmtDate(r.tglTerima)}`,
+  name: (r) => r.noLaporan || `${r.kategori}, ${fmtDate(r.tglTerima)}`,
   guide: FraudGuide,
   seed, fields, columns, filters,
   blank: () => ({
-    tglTerima: '', jenisData: '', pelapor: '', kategori: '', media: '', terlapor: '', jenisPengguna: '', jenis: '', rincian: '', uraian: '', bukti: null, korban: '', rrn: '', tglTrx: '',
+    noLaporan: '', tglTerima: '', pelapor: '', kategori: '', media: '', terlapor: '', jenisPengguna: '', jenis: '', rincian: '', uraian: '', bukti: null, korban: '', rrn: '', tglTrx: '',
     asesmen: '', alasanAsesmen: '', holdTgl: '', holdNom: '', tglPpatk: '', edd1: '', edd2: '', hasilEdd: '', tindakan: '', tglBlokir: '', relTgl: '', relNom: '', saldo: '',
     tglQris: '', tglTutup: '', lapKomdigi: '', lapBi: '', lapPpatk: '', tglResolved: '', status: 'Open', pic: '', group: '', produk: '', channel: '', kerugian: '',
   }),
   // terlapor dicari lewat nilai yang sudah disamarkan
-  search: (r, c) => `${r.no} ${mask(r.terlapor, c)} ${r.group} ${r.kategori}`, searchPlaceholder: 'Cari nomor, terlapor/merchant, kategori pelapor',
+  search: (r, c) => `${r.noLaporan} ${isMasked(c) ? maskStr(r.terlapor) : r.terlapor} ${r.group} ${r.kategori}`, searchPlaceholder: 'Cari no laporan EDD, terlapor/merchant, kategori pelapor',
+  // No Laporan EDD dibuat saat Tambah (urut per bulan-tahun dari Tanggal Dibuat) dan tidak pernah berubah saat Ubah
+  beforeSave: (old, next, c) => ({ ...next, noLaporan: old?.noLaporan || eddNo(next.createdAt || nowStr(), (c.all('fraud') as Fraud[]).filter((x) => x.id !== next.id)) }),
   alerts, cancelStatus: 'Dibatalkan',
   // PIC/Fraud Investigator hanya boleh mengubah kasus yang PIC Investigator-nya dirinya; Head CLRM, CO, Super Admin bebas
   canEditRow: (r, c) => r.status !== 'Closed' && (!['PIC', 'Fraud Investigator'].includes(c.role) || sameName(r.pic, c.user.name)),
@@ -303,7 +304,7 @@ const cfg: PageConfig<Fraud> = {
     rows.forEach((r) => r.group && group.set(r.group, (group.get(r.group) ?? 0) + 1))
     const top = [...group].sort((a, b) => b[1] - a[1]).slice(0, 10).map(([name, Kasus]) => ({ name, Kasus }))
     const span = (g: (r: Fraud) => string) => rows.map((r) => (g(r) && r.tglTerima ? diffDays(g(r), r.tglTerima) : NaN)).filter((x) => !isNaN(x))
-    const spans = [['Terima ke EDD 1', span((r) => (isEdd(r) ? r.edd1 : ''))], ['Terima ke Blokir', span((r) => r.tglBlokir)], ['Terima ke Lapor', span(firstLapor)]] as const
+    const spans = [['Terima ke EDD 1', span((r) => r.edd1)], ['Terima ke Blokir', span((r) => r.tglBlokir)], ['Terima ke Lapor', span(firstLapor)]] as const
     const blokir = rows.filter((r) => r.tglBlokir)
     const lapor = (['Komdigi', 'BI', 'PPATK'] as const).map((name) => {
       const got = (r: Fraud) => (name === 'Komdigi' ? r.lapKomdigi : name === 'BI' ? r.lapBi : r.lapPpatk)
@@ -326,7 +327,7 @@ const cfg: PageConfig<Fraud> = {
           <BarCard info={{ apa: 'Untuk tiap Tindakan: jumlah kasus dan total Saldo Tertahan (dalam juta rupiah).', baca: ['Sumbu X: jenis tindakan. Dua batang per tindakan: Kasus (jumlah kasus) dan Saldo Tertahan (juta), memakai sumbu angka yang sama.', 'Arahkan kursor ke batang untuk melihat nilainya.', 'Klik batang untuk membuka Table terfilter tindakan tersebut.'] }} title="Kasus per tindakan dan saldo tertahan (juta Rp)" data={TINDAKAN.map((x) => ({ name: x, Kasus: rows.filter((r) => r.tindakan === x).length, 'Saldo Tertahan (juta)': juta(sum(rows.filter((r) => r.tindakan === x), (r) => r.saldo)) }))} keys={['Kasus', 'Saldo Tertahan (juta)']} onClick={(row) => drill({ tindakan: row.name })} />
           <BarCard info={{ apa: 'Sepuluh Group Merchant dengan kasus terbanyak pada periode yang dipilih.', baca: ['Sumbu Y: group merchant. Sumbu X: jumlah kasus.', 'Arahkan kursor ke batang untuk melihat rincian per Jenis Dugaan.', 'Klik batang untuk membuka Table terfilter group tersebut.'] }} title="Top 10 merchant / group" horizontal data={top} keys={['Kasus']} onClick={(row) => drill({ group: row.name })} tip={(row) => <Breakdown title={`${row.name}: ${row.Kasus} kasus`} sub="Per jenis dugaan" items={countBy(rows.filter((r) => r.group === row.name), (r) => r.jenis)} />} />
           <ComboCard info={{ apa: 'Nilai uang kasus per bulan, dalam juta rupiah. Tiap nilai dihitung pada bulan Tanggal Terima kasusnya. Memakai semua kasus tidak Dibatalkan dan tidak terpengaruh Periode halaman.', baca: ['Sumbu X: bulan. Sumbu Y: juta rupiah.', 'Batang: Korban (Nominal Korban), Hold (Nominal Hold Settlement), dan Released (Nominal Released Settlement). Garis: Saldo Tertahan.', 'Filter Periode di atas grafik berlaku hanya untuk grafik ini (standar 12 bulan terakhir).', 'Arahkan kursor untuk melihat nilai tiap bulan.'] }} title="Nilai uang per bulan (juta Rp)" toolbar={rgUang.toolbar} bars={['Korban', 'Hold', 'Released']} lines={['Saldo Tertahan']} data={monthsUang.map((m) => { const x = inM(m.key); return { name: m.name, Korban: juta(sum(x, (r) => r.korban)), Hold: juta(sum(x, (r) => r.holdNom)), Released: juta(sum(x, (r) => r.relNom)), 'Saldo Tertahan': juta(sum(x, (r) => r.saldo)) } })} />
-          <BarCard info={{ apa: 'Lama proses dalam hari kalender sejak Tanggal Terima: sampai EDD 1 (hanya Jenis Data EDD), sampai Tanggal Blokir, dan sampai laporan regulator pertama (tanggal Lapor paling awal).', baca: ['Sumbu X: tahap proses. Sumbu Y: hari.', 'Rata-rata = rata-rata (dibulatkan) kasus yang tahap itu sudah terisi. Terlama = nilai terbesar.', 'Batang nol berarti belum ada data tahap itu. Grafik ini tidak bisa diklik.'] }} title="Lama proses (hari): rata-rata dan terlama" data={spans.map(([name, v]) => ({ name, 'Rata-rata': avg(v), Terlama: v.length ? Math.max(...v) : 0 }))} keys={['Rata-rata', 'Terlama']} unit="Hari" />
+          <BarCard info={{ apa: 'Lama proses dalam hari kalender sejak Tanggal Terima: sampai EDD 1, sampai Tanggal Blokir, dan sampai laporan regulator pertama (tanggal Lapor paling awal).', baca: ['Sumbu X: tahap proses. Sumbu Y: hari.', 'Rata-rata = rata-rata (dibulatkan) kasus yang tahap itu sudah terisi. Terlama = nilai terbesar.', 'Batang nol berarti belum ada data tahap itu. Grafik ini tidak bisa diklik.'] }} title="Lama proses (hari): rata-rata dan terlama" data={spans.map(([name, v]) => ({ name, 'Rata-rata': avg(v), Terlama: v.length ? Math.max(...v) : 0 }))} keys={['Rata-rata', 'Terlama']} unit="Hari" />
           <BarCard info={{ apa: 'Umur kasus yang masih Open, dihitung dari Tanggal Terima sampai hari ini, dalam hari kalender.', baca: ['Sumbu X: kelompok umur 0-30, 31-60, 61-90, dan lebih dari 90 hari. Sumbu Y: jumlah kasus.', 'Warna: hijau = 0-30 hari, kuning = 31-90 hari, merah = lebih dari 90 hari.', 'Grafik ini tidak bisa diklik.'] }} title="Umur kasus Open (hari)" data={ageBuckets(edges).map((name) => ({ name, Jumlah: open.filter((r) => ageBucket(age(r, c.today), edges) === name).length }))} keys={['Jumlah']} catLabel="Hari" cellColors={['#22c55e', '#f59e0b', '#f59e0b', '#ef4444']} />
           <BarCard info={{ apa: 'Status pelaporan ke tiap regulator untuk kasus yang sudah punya Tanggal Blokir. Batas lapor sejak blokir: Komdigi 7 hari, BI 14 hari, PPATK 30 hari.', baca: ['Sumbu X: regulator. Sumbu Y: jumlah kasus.', 'Hijau = Sudah Lapor (tanggal lapor terisi). Kuning = Belum Lapor tetapi belum lewat batas. Merah = Terlambat (belum lapor dan batas terlewat).', 'Grafik ini tidak bisa diklik.'] }} title="Lapor regulator setelah blokir" stacked data={lapor} keys={['Sudah Lapor', 'Belum Lapor', 'Terlambat']} colors={{ 'Sudah Lapor': '#10b981', 'Belum Lapor': '#f59e0b', Terlambat: '#ef4444' }} />
         </div>
@@ -335,3 +336,4 @@ const cfg: PageConfig<Fraud> = {
   },
 }
 export default function FraudPage() { return <PageShell config={cfg} /> }
+export { cfg as config } // dipakai pusat notifikasi (kit/notify.tsx)

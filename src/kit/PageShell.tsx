@@ -1,9 +1,8 @@
-import { ReactNode, useState } from 'react'
-import { Bell, Download, Eye, Pencil, Plus, RotateCcw, Search, Upload, XCircle } from 'lucide-react'
+import { ReactNode, useEffect, useState } from 'react'
+import { Download, Eye, Pencil, Plus, RotateCcw, Search, Upload, XCircle } from 'lucide-react'
 import { ReasonModal } from '../ui'
 import DataTable from './DataTable'
 import DetailModal from './DetailModal'
-import EmailSim, { alertHits } from './EmailSim'
 import { exportRows } from './exportXlsx'
 import FilterPopover from './FilterPopover'
 import FormModal from './FormModal'
@@ -12,7 +11,7 @@ import PageGuide from './PageGuide'
 import { useApp, useModule } from './store'
 import type { BaseRec, PageConfig } from './types'
 
-type Modal_ = { k: 'detail' | 'edit' | 'cancel' | 'restore'; id: string } | { k: 'add' | 'sim' | 'import' } | { k: 'extra'; node: ReactNode } | null
+type Modal_ = { k: 'detail' | 'edit' | 'cancel' | 'restore'; id: string } | { k: 'add' | 'import' } | { k: 'extra'; node: ReactNode } | null
 type Filt = Record<string, unknown>
 const SHOW_IMPORT = false // ponytail: disembunyikan atas permintaan user; set true untuk mengaktifkan
 const hasVal = (v: unknown) => (Array.isArray(v) ? !!(v[0] || v[1]) : !!v)
@@ -38,7 +37,6 @@ export default function PageShell<T extends BaseRec>({ config: cfg }: { config: 
   })
   const row = (id: string) => api.rows.find((r) => r.id === id)
   const drill = (f: Filt) => { setFilter(f); setQ(''); setTab('table') }
-  const hits = alertHits(cfg, live, c)
   const D = cfg.Dashboard
   const detail = modal && modal.k === 'detail' ? row(modal.id) : undefined
   const editing = modal && modal.k === 'edit' ? api.stored(modal.id) : undefined // form Edit mulai dari record tersimpan, bukan hasil normalize
@@ -46,6 +44,19 @@ export default function PageShell<T extends BaseRec>({ config: cfg }: { config: 
   const restoring = modal && modal.k === 'restore' ? row(modal.id) : undefined
   const canEdit = (r: T) => can(m, 'Ubah') && !r.cancelled && !api.pendingFor(r.id) && (cfg.canEditRow?.(r, c) ?? true)
   const openDetail = (id: string) => setModal({ k: 'detail', id })
+  // tautan dari pusat notifikasi: #/route?open=<id> membuka Detail data itu, lalu parameter dibersihkan
+  useEffect(() => {
+    const go = () => {
+      const m = location.hash.match(/[?&]open=([^&]+)/)
+      if (!m) return
+      history.replaceState(null, '', location.pathname + location.search + location.hash.split('?')[0])
+      const id = decodeURIComponent(m[1])
+      if (api.rows.some((r) => r.id === id)) setModal({ k: 'detail', id })
+    }
+    go()
+    addEventListener('hashchange', go)
+    return () => removeEventListener('hashchange', go)
+  }, [api.rows]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const actions = (r: T) => (
     <>
@@ -89,7 +100,6 @@ export default function PageShell<T extends BaseRec>({ config: cfg }: { config: 
               <input className="inp !pl-8" placeholder={cfg.searchPlaceholder} value={q} onChange={(e) => setQ(e.target.value)} /></div>
             <FilterPopover defs={cfg.filters} rows={api.rows} c={c} value={filter} onApply={setFilter} onClear={() => setFilter({})} />
             <div className="ml-auto flex flex-wrap gap-2">
-              <button className="btn" onClick={() => setModal({ k: 'sim' })}><Bell size={14} />Simulasi notifikasi ({hits.length})</button>
               {SHOW_IMPORT && can(m, 'Import') && <button className="btn" onClick={() => setModal({ k: 'import' })}><Upload size={14} />Import Excel</button>}
               {can(m, 'Export') && <button className="btn" onClick={() => { const n = exportRows(cfg, shown, c, c.today); log(cfg.title, 'Export', '', `${n} baris`) }}><Download size={14} />Export Excel</button>}
               {can(m, 'Tambah') && <button className="btn btn-primary" onClick={() => setModal({ k: 'add' })}><Plus size={14} />Tambah</button>}
@@ -105,7 +115,6 @@ export default function PageShell<T extends BaseRec>({ config: cfg }: { config: 
       {editing && <FormModal cfg={cfg} mode="edit" init={editing} norm={row(editing.id)} c={c} onClose={close} onSave={(r, alasan) => { api.update(editing.id, r as Partial<T>, alasan); close() }} />}
       {cancelling && <ReasonModal danger title={`Batalkan ${cfg.noun} ${cfg.name?.(cancelling) ?? ''}`.trim()} onClose={close} onConfirm={(reason) => { api.cancel(cancelling.id, reason); close() }} />}
       {restoring && <ReasonModal title={`Kembalikan ${cfg.noun} ${cfg.name?.(restoring) ?? ''}`.trim()} onClose={close} onConfirm={(reason) => { api.restore(restoring.id, reason); close() }} />}
-      {modal?.k === 'sim' && <EmailSim cfg={cfg} rows={live} c={c} onClose={close} />}
       {modal?.k === 'import' && <ImportExcel cfg={cfg} c={c} api={api} onClose={close} onDone={(ok, fail) => log(cfg.title, 'Import', '', `${ok} baris berhasil, ${fail} gagal`)} />}
       {modal?.k === 'extra' && modal.node}
     </div>

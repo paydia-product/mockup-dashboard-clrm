@@ -7,11 +7,11 @@ Ringkasan aturan yang berlaku untuk semua halaman. Detail halaman dan kontrak ki
 2. Filter berupa popover dengan Clear All dan Apply Filters. Tidak ada simpan filter (dihapus di v2.9.0). Kotak cari terpisah.
 3. Kolom Aksi: Lihat Detail, Edit (sesuai permission dan aturan baris), Batalkan atau Kembalikan (Head CLRM, alasan wajib, tanpa approval).
 4. Detail berupa Modal berjudul "Detail". Tanpa nomor urut kolom, tanpa Riwayat, tanpa tombol Ubah atau Ajukan.
-5. Simulasi notifikasi berupa modal email. Maksimal 3 email per jenis alert, lalu satu contoh statis berlabel.
-6. Upload memakai `FileField`: PDF, JPG, JPEG, PNG, maksimal 25 MB, tepat 1 file, hanya metadata.
+5. Alert tampil sebagai pusat notifikasi (ikon lonceng di header, badge belum dibaca, daftar terbaru dulu, Tandai semua dibaca, status baca di localStorage `clrm.notif.v1`). Notifikasi dihitung dari aturan alert yang sama dengan halaman, hanya tampil bagi penerima alert (Super Admin melihat semua). Tidak ada simulasi email.
+6. Upload memakai `FileField`: PDF, JPG, JPEG, PNG, maksimal 25 MB, tepat 1 file, hanya metadata. Semua field upload tidak wajib.
 7. Nomor data berupa angka urut biasa, terisi otomatis, tidak ada di form.
 8. PIC berupa teks bebas. Unit Kerja dari Master Data.
-8a. Master Data punya 8 list: Laporan, Regulator, Kategori Regulasi, Unit Kerja, Produk, Mitra Vendor, Kategori Pelapor, Media Pelapor. Tambah dan Edit lewat modal dengan field Nama (2 sampai 255 karakter, huruf/angka/spasi, unik tanpa beda huruf besar). Hapus lewat modal konfirmasi. Semua aksi masuk Log.
+8a. Master Data punya 11 list: Laporan, PIC, Kategori Regulasi, Unit Kerja, Produk, Mitra Vendor, Kategori Pelapor, Media Pelapor, Jenis PKS Kontrak, Instansi Pengirim APH, Kategori Dokumen Perizinan. Tambah dan Edit lewat modal dengan field Nama (2 sampai 255 karakter, huruf/angka/spasi, unik tanpa beda huruf besar). Hapus lewat modal konfirmasi. Semua aksi masuk Log.
 8b. Select yang punya opsi "Lainnya" menampilkan teks wajib. Teks itu yang disimpan sebagai nilai. Saat ubah, nilai di luar opsi dipilih sebagai Lainnya dan teks terisi.
 9. Export Excel berisi baris hasil filter dan cari, nama file `<Prefix>_YYYY-MM-DD.xlsx`, dicatat di Log.
 10. Pagination 10, 25, 50. Teks "x sampai y dari z data". Sort per kolom.

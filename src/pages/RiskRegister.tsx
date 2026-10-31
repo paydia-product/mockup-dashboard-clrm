@@ -6,7 +6,6 @@ import { StatusPill } from '../kit/fmt'
 import { diffDays } from '../kit/dates'
 import type { AlertDef, BaseRec, Column, Ctx, Field, FilterDef, PageConfig } from '../kit/types'
 import type { Tone } from '../ui'
-import { DOMAINS, rasOf } from './risk.ras'
 import { RiskGuide } from '../guides/risk'
 
 interface Risk extends BaseRec {
@@ -14,6 +13,7 @@ interface Risk extends BaseRec {
   respon: string; kontrol: string; dept: string; tglRegister: string; produk: string; vendor: string
   levelAt: string // tanggal level inherent terakhir naik / register (pengganti pembacaan Log, lihat usulan kit)
 }
+const DOMAINS = ['Operasional', 'Likuiditas', 'Keuangan', 'Kredit', 'Kepatuhan', 'Hukum', 'Strategis', 'Reputasi', 'Pelindungan Konsumen', 'Ketahanan dan Keamanan Siber'] // ponytail: dulu dari risk.ras.ts (RAS-RT dihapus); daftar domain tetap dipertahankan
 const RESPON = ['Avoid', 'Control', 'Transfer', 'Accept']
 const SKOR3 = ['1', '2', '3']
 const LEVELS = ['High', 'Medium', 'Low']
@@ -23,13 +23,6 @@ const RANK: Record<string, number> = { Low: 1, Medium: 2, High: 3 }
 const skor = (r: Risk) => (r.dampak !== '' && r.kemungkinan !== '' ? Number(r.dampak) * Number(r.kemungkinan) : 0)
 const levelOf = (s: number) => (!s ? '' : s <= 2 ? 'Low' : s <= 4 ? 'Medium' : 'High')
 const level = (r: Risk) => levelOf(skor(r))
-// RAS-RT otomatis dari Level Inherent (sheet "3. RAS-RT Sederhana"): Low = Risk Appetite, Medium = Risk Tolerance, High = Breach.
-const APPETITE = 'Dalam Appetite'
-const TOLERANSI = 'Dalam Toleransi'
-const BREACH = 'Breach (wajib eskalasi)'
-const POS: Record<string, string> = { Low: APPETITE, Medium: TOLERANSI, High: BREACH }
-export const rasrt = (r: Risk): string => POS[level(r)] ?? ''
-const RAS_TONE: Record<string, Tone> = { [APPETITE]: 'green', [TOLERANSI]: 'yellow', [BREACH]: 'red' }
 const AXIS: Record<number, string> = { 3: 'Tinggi', 2: 'Sedang', 1: 'Rendah' }
 
 const fields: Field<Risk>[] = [
@@ -46,11 +39,6 @@ const fields: Field<Risk>[] = [
   { key: 'tglRegister', label: 'Tanggal Register', type: 'date', required: true },
   { key: 'produk', label: 'Produk', type: 'select', options: (c) => c.master.produk },
   { key: 'vendor', label: 'Vendor / Mitra', type: 'select', options: (c) => c.master.mitra },
-  { key: 'rasrt', label: 'Posisi RAS-RT (otomatis dari Level Inherent)', type: 'text', auto: (r) => rasrt(r) },
-  // Rujukan baca-saja dari tabel RAS-RT domain terpilih (tidak diekspor)
-  { key: 'rasAppetite', label: 'Risk Appetite (Low - target ideal)', type: 'textarea', wide: true, noExport: true, auto: (r) => rasOf(r.domain)?.appetite ?? '' },
-  { key: 'rasTolerance', label: 'Risk Tolerance (Medium - batas maksimum diterima)', type: 'textarea', wide: true, noExport: true, auto: (r) => rasOf(r.domain)?.tolerance ?? '' },
-  { key: 'rasBreach', label: 'Breach (High - wajib eskalasi)', type: 'textarea', wide: true, noExport: true, auto: (r) => rasOf(r.domain)?.breach ?? '' },
 ]
 const columns: Column<Risk>[] = [
   { label: 'No', get: (r) => r.no },
@@ -60,7 +48,6 @@ const columns: Column<Risk>[] = [
   { label: 'K', get: (r) => r.kemungkinan },
   { label: 'Skor', get: (r) => skor(r) },
   { label: 'Level', get: (r) => level(r), render: (r) => <StatusPill s={level(r)} tone={LV_TONE[level(r)]} /> },
-  { label: 'Posisi RAS-RT', get: (r) => rasrt(r), render: (r) => <StatusPill s={rasrt(r)} tone={RAS_TONE[rasrt(r)]} /> },
   { label: 'Unit Kerja', get: (r) => r.dept },
   { label: 'Respon', get: (r) => r.respon },
 ]
@@ -73,25 +60,12 @@ const filters: FilterDef<Risk>[] = [
   { key: 'respon', label: 'Respon', type: 'select', options: RESPON, match: (r, v) => r.respon === v },
   { key: 'produk', label: 'Produk', type: 'select', options: (_, c) => c.master.produk, match: (r, v) => r.produk === v },
   { key: 'vendor', label: 'Vendor / Mitra', type: 'select', options: (_, c) => c.master.mitra, match: (r, v) => r.vendor === v },
-  { key: 'rasrt', label: 'Posisi RAS-RT', type: 'select', options: [APPETITE, TOLERANSI, BREACH], match: (r, v) => rasrt(r) === v },
 ]
 
-const mk = (c: Ctx, o: Partial<Risk>): Risk => ({ id: 'sample', no: 99, status: 'Aktif', createdAt: c.today, createdBy: '-', konteks: 'Settlement merchant', event: 'Settlement ke merchant terlambat', domain: 'Operasional', dampak: 3, kemungkinan: 3, respon: 'Control', kontrol: 'Rekonsiliasi harian', dept: 'Operation', tglRegister: addDays(c.today, -2), produk: 'QRIS', vendor: '', levelAt: addDays(c.today, -2), ...o })
 const alerts: AlertDef<Risk>[] = [
   {
     key: 'high', label: 'Risiko High baru / naik ke High', rule: 'Level inherent High dan register atau kenaikan level terjadi dalam 7 hari terakhir.',
     check: (r, c) => (level(r) === 'High' && r.levelAt && diffDays(c.today, r.levelAt) <= 7 ? { color: 'red', detail: `High sejak ${fmtDate(r.levelAt)} (skor ${skor(r)})`, to: ['Risk Officer', 'Head CLRM', `Risk Owner (${r.dept})`] } : null),
-    sample: (c) => mk(c, {}),
-  },
-  {
-    key: 'breach', label: 'Breach RAS-RT', rule: 'Posisi RAS-RT Breach (merah, level inherent High, wajib eskalasi).',
-    check: (r) => (rasrt(r) === BREACH ? { color: 'red', detail: 'Breach RAS-RT, wajib eskalasi', to: ['Head CLRM', 'Direksi'] } : null),
-    sample: (c) => mk(c, { domain: 'Ketahanan dan Keamanan Siber', dampak: 2, kemungkinan: 3, event: 'Akses tidak sah ke sistem pembayaran' }),
-  },
-  {
-    key: 'toleransi', label: 'Dalam Toleransi RAS-RT', rule: 'Posisi RAS-RT Dalam Toleransi (kuning, level inherent Medium).',
-    check: (r) => (rasrt(r) === TOLERANSI ? { color: 'yellow', detail: 'Dalam Toleransi RAS-RT', to: ['Head CLRM', 'Direksi'] } : null),
-    sample: (c) => mk(c, { domain: 'Operasional', dampak: 2, kemungkinan: 2, event: 'Rekonsiliasi harian terlambat' }),
   },
 ]
 
@@ -177,25 +151,23 @@ const cfg: PageConfig<Risk> = {
   dashDate: { get: (r) => r.tglRegister, label: 'Tanggal Register' },
   Dashboard: ({ rows, open, drill }) => {
     const cnt = (lv: string) => rows.filter((r) => level(r) === lv).length
-    const over = rows.filter((r) => rasrt(r) === BREACH).length
     const depts = [...new Set(rows.map((r) => r.dept))]
     return (
       <div className="space-y-3">
-        <StatCards info={{ apa: 'Jumlah risiko per Level (inherent) pada Periode yang dipilih, ditambah jumlah risiko yang Breach terhadap RAS-RT.', baca: ['High: skor 6-9. Medium: skor 3-4. Low: skor 1-2. Skor = Dampak x Kemungkinan.', 'Breach (RAS-RT): risiko dengan Posisi RAS-RT Breach, sama dengan Level High (merah bila ada).', 'Klik kartu untuk membuka Table terfilter Level atau Posisi RAS-RT tersebut.'] }} items={[
+        <StatCards info={{ apa: 'Jumlah risiko per Level (inherent) pada Periode yang dipilih, ', baca: ['High: skor 6-9. Medium: skor 3-4. Low: skor 1-2. Skor = Dampak x Kemungkinan.', 'Klik kartu untuk membuka Table terfilter Level tersebut.'] }} items={[
           { label: 'High', value: cnt('High'), tone: 'red', onClick: () => drill({ level: 'High' }) },
           { label: 'Medium', value: cnt('Medium'), tone: 'yellow', onClick: () => drill({ level: 'Medium' }) },
           { label: 'Low', value: cnt('Low'), tone: 'green', onClick: () => drill({ level: 'Low' }) },
-          { label: 'Breach (RAS-RT)', value: over, tone: over ? 'red' : 'gray', onClick: () => drill({ rasrt: BREACH }) },
         ]} />
         <Heatmap rows={rows} open={open} />
         <div className="grid gap-3 lg:grid-cols-2">
-          <BarCard info={{ apa: 'Jumlah risiko di tiap Domain Risiko (10 domain RAS-RT), ditumpuk menurut Level inherent.', baca: ['Sumbu X: domain risiko. Sumbu Y: jumlah risiko.', 'Warna tumpukan: merah = High, kuning = Medium, hijau = Low.', 'Arahkan kursor ke batang untuk melihat jumlah per level.', 'Klik batang (bagian mana pun) untuk membuka Table terfilter domain tersebut.'] }} title="Risiko per domain menurut level" stacked data={DOMAINS.map((d) => ({ name: d, High: rows.filter((r) => r.domain === d && level(r) === 'High').length, Medium: rows.filter((r) => r.domain === d && level(r) === 'Medium').length, Low: rows.filter((r) => r.domain === d && level(r) === 'Low').length }))} keys={LEVELS} colors={{ High: TONE_HEX.red, Medium: TONE_HEX.yellow, Low: TONE_HEX.green }} onClick={(row) => drill({ domain: row.name })} />
+          <BarCard info={{ apa: 'Jumlah risiko di tiap Domain Risiko (10 domain), ditumpuk menurut Level inherent.', baca: ['Sumbu X: domain risiko. Sumbu Y: jumlah risiko.', 'Warna tumpukan: merah = High, kuning = Medium, hijau = Low.', 'Arahkan kursor ke batang untuk melihat jumlah per level.', 'Klik batang (bagian mana pun) untuk membuka Table terfilter domain tersebut.'] }} title="Risiko per domain menurut level" stacked data={DOMAINS.map((d) => ({ name: d, High: rows.filter((r) => r.domain === d && level(r) === 'High').length, Medium: rows.filter((r) => r.domain === d && level(r) === 'Medium').length, Low: rows.filter((r) => r.domain === d && level(r) === 'Low').length }))} keys={LEVELS} colors={{ High: TONE_HEX.red, Medium: TONE_HEX.yellow, Low: TONE_HEX.green }} onClick={(row) => drill({ domain: row.name })} />
           <BarCard info={{ apa: 'Jumlah risiko per Unit Pemilik Risiko. Hanya Unit Kerja yang punya risiko pada periode ini yang tampil, urut dari terbanyak.', baca: ['Sumbu Y: Unit Kerja. Sumbu X: jumlah risiko.', 'Arahkan kursor ke batang untuk melihat jumlah total dan rincian High, Medium, Low.', 'Klik batang untuk membuka Table terfilter Unit Kerja tersebut.'] }} title="Risiko per unit kerja pemilik" horizontal data={depts.map((d) => ({ name: d, Jumlah: rows.filter((r) => r.dept === d).length, ...Object.fromEntries(LEVELS.map((l) => [l, rows.filter((r) => r.dept === d && level(r) === l).length])) })).sort((a, b) => b.Jumlah - a.Jumlah)} keys={['Jumlah']}
             tip={(d) => <><div className="mb-1 font-semibold text-slate-800">{String(d.name)}: {d.Jumlah}</div>{LEVELS.map((l) => <div key={l}>{l}: {d[l]}</div>)}</>} onClick={(row) => drill({ dept: row.name })} />
-          <BarCard info={{ apa: 'Jumlah risiko per domain yang berada di posisi Dalam Toleransi (Level Medium) atau Breach (Level High) menurut RAS-RT. Risiko Dalam Appetite (Low) tidak ditampilkan.', baca: ['Sumbu X: domain risiko. Sumbu Y: jumlah risiko.', 'Warna: kuning = Dalam Toleransi, merah = Breach (wajib eskalasi).', 'Arahkan kursor ke batang untuk melihat jumlahnya.', 'Grafik ini tidak bisa diklik.'] }} title="Dalam Toleransi dan Breach (RAS-RT) per domain" stacked className="lg:col-span-2" data={DOMAINS.map((d) => ({ name: d, 'Dalam Toleransi': rows.filter((r) => r.domain === d && rasrt(r) === TOLERANSI).length, Breach: rows.filter((r) => r.domain === d && rasrt(r) === BREACH).length }))} keys={['Dalam Toleransi', 'Breach']} colors={{ 'Dalam Toleransi': TONE_HEX.yellow, Breach: TONE_HEX.red }} />
         </div>
       </div>
     )
   },
 }
 export default function RiskRegister() { return <PageShell config={cfg} /> }
+export { cfg as config } // dipakai pusat notifikasi (kit/notify.tsx)

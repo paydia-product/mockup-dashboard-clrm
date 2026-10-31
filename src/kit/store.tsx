@@ -6,7 +6,7 @@ import { DEFAULT_PERMS, MODULE_LABEL, can as canPerm } from './perms'
 import type { Account, Action, ApprovalReq, ApprovalRule, BaseRec, Ctx, LogEntry, ModuleApi, ModuleId, NewRec, PageConfig, PermKey, Role, Session, Store } from './types'
 
 export type { ModuleApi }
-export const APP_KEY = 'clrm.app.v13' // ponytail: v13 = master Mitra Vendor tanpa nama merchant, load() membuang slice modul rusak; v12 = seed Kontrak (Merchant teks bebas, Mitra dari master) + seed Perizinan dengan tiga tanggal; v11 = master Mitra Vendor (seed + PT Jaringan Nusa/PT Data Aman), seed Fraud dengan Jenis Data dan Produk master, tanpa No. Rekening; v10 = seed Regulatory Change (dampak Tinggi baru, sosialisasi terisi) dan PIC seed APH terisi; v9 = master Unit Kerja/Kategori Pelapor/Laporan dari Request Product.xlsx, Regulatory Change tindak lanjut teks + SOP daftar nama, filter tersimpan dihapus (load() membuang `saved` dan mengubah bentuk lama bila ada); v8 = seed tanpa nomor internal di teks, approval simpan nama data; v7 = master PIC (Regie/Fakhri/Osama) menggantikan master Regulator, seed PIC/regulator disesuaikan, akun demo PIC = Regie; v6 = tanggal batal seed Fraud tetap; v5 = pembatal seed Fraud nama orang; v4 = createdBy nama orang + createdAt seed masa lalu + seed Fraud valid; v3 = seed tanpa 'Lainnya' + createdAt datetime; data v2 direset (load() tetap aman membaca data lama)
+export const APP_KEY = 'clrm.app.v14' // ponytail: v14 = master Jenis PKS Kontrak/Instansi Pengirim APH/Kategori Dokumen Perizinan, seed SOP (Klasifikasi Sangat Rahasia, Retensi tanpa Permanen, Review = Berlaku + 1 tahun), seed Fraud tanpa Jenis Data + No Laporan EDD, seed Risk Register tanpa RAS-RT, Kontrak Dokumen Induk teks bebas; v13 = master Mitra Vendor tanpa nama merchant, load() membuang slice modul rusak; v12 = seed Kontrak (Merchant teks bebas, Mitra dari master) + seed Perizinan dengan tiga tanggal; v11 = master Mitra Vendor (seed + PT Jaringan Nusa/PT Data Aman), seed Fraud dengan Jenis Data dan Produk master, tanpa No. Rekening; v10 = seed Regulatory Change (dampak Tinggi baru, sosialisasi terisi) dan PIC seed APH terisi; v9 = master Unit Kerja/Kategori Pelapor/Laporan dari Request Product.xlsx, Regulatory Change tindak lanjut teks + SOP daftar nama, filter tersimpan dihapus (load() membuang `saved` dan mengubah bentuk lama bila ada); v8 = seed tanpa nomor internal di teks, approval simpan nama data; v7 = master PIC (Regie/Fakhri/Osama) menggantikan master Regulator, seed PIC/regulator disesuaikan, akun demo PIC = Regie; v6 = tanggal batal seed Fraud tetap; v5 = pembatal seed Fraud nama orang; v4 = createdBy nama orang + createdAt seed masa lalu + seed Fraud valid; v3 = seed tanpa 'Lainnya' + createdAt datetime; data v2 direset (load() tetap aman membaca data lama)
 export const SESSION_KEY = 'clrm.session'
 export const DEFAULT_PASSWORD = 'Paydia123!'
 export const DEFAULT_PIN = '123456'
@@ -27,6 +27,9 @@ const defaults = (): Store => ({
     kategoriRegulasi: [...AREAS], unitKerja: [...UNITS], produk: ['UE', 'QRIS', 'Biller'],
     mitra: ['PT Telkom Biller', 'Bank Mitra Utama', 'CV Digital Kreasi', 'PT Logistik Cepat', 'PT Nusa Cloud', 'PT Data Prima', 'PT Aman Jaya Logistik', 'PT Mitra Bayar', 'PT Sentra Verifikasi', 'PT Cipta Layanan', 'PT Biller Nusantara', 'PT Arta Teknologi', 'PT Kirim Cepat', 'PT Sigma Analitik', 'PT Jaringan Nusa', 'PT Data Aman'],
     kategoriPelapor: ['Departemen Internal', 'Konsumen', 'Switching', 'PJP/Bank', 'Institusi Berwenang Lainnya', 'Kepolisian', 'Bank Indonesia', 'Asosiasi'], mediaPelapor: ['Email', 'IASC', 'GO AML', 'WhatsApp'],
+    jenisPks: ['PKS QRIS', 'Biller Gateway', 'Account Linkage', 'Payout', 'Program Peningkatan Transaksi', 'NDA', 'Amandemen'],
+    instansiAph: ['Bareskrim', 'Polda', 'Polres', 'PPATK', 'Kejaksaan'],
+    kategoriPerizinan: ['Akta + SK', 'Izin', 'Legalitas Lainnya'],
   },
 })
 
@@ -46,6 +49,15 @@ const migrateReg = (r: any) => ({
   sopList: Array.isArray(r.sopList) ? r.sopList.map((x: string | { sop?: string }) => (typeof x === 'string' ? x : x?.sop)).filter(Boolean) : [],
 })
 
+// Bentuk lama yang masih mungkin terbaca: SOP Retensi 'Permanen' -> '10 Tahun' (opsi sudah dihapus), Klasifikasi di luar daftar -> 'Internal';
+// Fraud tanpa Jenis Data; Risk Register tanpa kolom RAS-RT
+// ponytail: dipanggil per rekaman saat load(); tidak mengubah rekaman yang sudah benar
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const migrateSop = (r: any) => ({ ...r, retensi: r.retensi === 'Permanen' ? '10 Tahun' : r.retensi, klasifikasi: ['Publik', 'Internal', 'Rahasia', 'Sangat Rahasia'].includes(r.klasifikasi) ? r.klasifikasi : r.klasifikasi ? 'Internal' : r.klasifikasi })
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const migrateFraud = (r: any) => { const { jenisData: _j, ...x } = r; return x }
+const MIGRATE: Record<string, (r: unknown) => unknown> = { regchange: migrateReg, sop: migrateSop, fraud: migrateFraud }
+
 // ---- Singleton + subscribe (readModule/addRecord dipanggil di luar komponen) ----
 // Migrasi master lama: departemen -> unitKerja (nilai lama dipakai), pihakPelapor dibuang, list baru diisi seed.
 function load(): Store {
@@ -60,7 +72,7 @@ function load(): Store {
   for (const k of Object.keys(m)) if (Array.isArray(m[k])) m[k] = m[k].filter((x: unknown) => String(x).trim().toLowerCase() !== 'lainnya')
   // data rusak: slice modul yang bukan array dibuang (seed dipakai ulang), rekaman bukan objek dibuang
   const raw = s.modules && typeof s.modules === 'object' && !Array.isArray(s.modules) ? s.modules : {}
-  const modules = Object.fromEntries(Object.entries(raw).filter(([, l]) => Array.isArray(l)).map(([k, l]) => [k, (l as unknown[]).filter((x) => x && typeof x === 'object').map((x) => stamp(x as BaseRec)).map(k === 'regchange' ? migrateReg : (x) => x)]))
+  const modules = Object.fromEntries(Object.entries(raw).filter(([, l]) => Array.isArray(l)).map(([k, l]) => [k, (l as unknown[]).filter((x) => x && typeof x === 'object').map((x) => stamp(x as BaseRec)).map(MIGRATE[k] ?? ((x) => x))]))
   delete s.saved // filter tersimpan sudah dihapus
   return { ...d, ...s, modules, master: { ...d.master, ...m } } as Store
 }

@@ -8,16 +8,16 @@ export type PermKey = ModuleId | 'approval' | 'master' | 'admin' | 'log' // kunc
 export type Role = 'Super Admin' | 'Head CLRM' | 'Compliance Officer' | 'Risk Officer' | 'Legal Officer' | 'Fraud Investigator' | 'Ketua SMKI' | 'PIC' | 'Viewer'
 export type Action = 'Lihat' | 'Tambah' | 'Ubah' | 'Cancel' | 'Approve' | 'Export' | 'Import'
 export interface Cancelled { prev: string; reason: string; by: string; at: string }
-// createdAt = ISO datetime lengkap (YYYY-MM-DDTHH:mm:ss); no = nomor internal untuk log/approval/email, bukan kolom tabel
+// createdAt = ISO datetime lengkap (YYYY-MM-DDTHH:mm:ss); no = nomor internal untuk log/approval, bukan kolom tabel
 export interface BaseRec { id: string; no: number; status: string; createdAt: string; createdBy: string; cancelled?: Cancelled }
 // Data baru = semua kolom kecuali id/no/createdAt/createdBy/cancelled (status ikut, karena status adalah isian form)
 export type NewRec<T> = Omit<T, Exclude<keyof BaseRec, 'status'>>
 // Nilai per FieldType: text/textarea/select/date/datetime/yesno ('Ya'|'Tidak'|'') = string; number/money/percent = number | ''; multiselect/multidrop = string[] (multidrop = dropdown pilih banyak dengan chip);
 // checklist = Record<subKey, boolean>; file = FileMeta | null; list = Record<string, unknown>[]
 export type FieldType = 'text' | 'textarea' | 'number' | 'money' | 'percent' | 'date' | 'datetime' | 'select' | 'multiselect' | 'multidrop' | 'yesno' | 'checklist' | 'file' | 'list'
-export interface Master { laporan: string[]; pic: string[]; kategoriRegulasi: string[]; unitKerja: string[]; produk: string[]; mitra: string[]; kategoriPelapor: string[]; mediaPelapor: string[] }
+export interface Master { laporan: string[]; pic: string[]; kategoriRegulasi: string[]; unitKerja: string[]; produk: string[]; mitra: string[]; kategoriPelapor: string[]; mediaPelapor: string[]; jenisPks: string[]; instansiAph: string[]; kategoriPerizinan: string[] }
 export interface Account { id: string; name: string; email: string; role: Role; departemen: string; status: 'Aktif' | 'Nonaktif'; lastLogin: string; password: string; pin: string }
-export interface Ctx { role: Role; user: Account; today: string; master: Master; all: (m: ModuleId) => BaseRec[] }
+export interface Ctx { role: Role; user: Account; today: string; master: Master; all: (m: ModuleId) => BaseRec[]; reveal?: Record<string, boolean> } // reveal = field yang sedang dibuka sensornya (tombol mata) di permukaan tampilan ini
 export interface Field<T> {
   key: string // boleh kunci kolom otomatis yang tidak ada di T. Kunci 'no' diabaikan (kit selalu menampilkan No)
   label: string; type: FieldType
@@ -32,10 +32,12 @@ export interface Field<T> {
   reasonOnChange?: boolean
   sub?: Field<any>[]
   mask?: (c: Ctx) => boolean // true = nilai disamarkan untuk pengguna ini (tabel, detail, export)
+  reveal?: (c: Ctx) => boolean // true = pengguna ini boleh membuka sensor lewat tombol mata; bawaan tampilan (tabel, detail, form Ubah) tetap tersamar
+  readOnly?: boolean // tampil di form Tambah/Ubah tetapi nonaktif (nilai diisi otomatis lewat onChange/beforeSave)
   noExport?: boolean; noImport?: boolean
   showIf?: (r: T) => boolean; help?: string; wide?: boolean
 }
-export interface Column<T> { label: string; get: (r: T, c: Ctx) => string | number; render?: (r: T, c: Ctx) => ReactNode }
+export interface Column<T> { label: string; get: (r: T, c: Ctx) => string | number; render?: (r: T, c: Ctx) => ReactNode; revealKey?: string } // revealKey = kunci field yang punya tombol mata di header kolom
 export interface FilterDef<T> {
   key: string; label: string; type: 'select' | 'daterange'
   options?: string[] | ((rows: T[], c: Ctx) => string[])
@@ -44,7 +46,6 @@ export interface FilterDef<T> {
 export interface AlertDef<T> {
   key: string; label: string; rule: string
   check: (r: T, c: Ctx) => null | { color: 'yellow' | 'red'; detail: string; to: string[] }
-  sample: (c: Ctx) => T
 }
 export interface ApprovalRule<T> {
   jenis: string; approver: Role
@@ -70,7 +71,7 @@ export interface PageConfig<T extends BaseRec> {
   validate?: (r: T, mode: 'add' | 'edit', c: Ctx) => Record<string, string>
   onChange?: (next: T, key: string, prev: T) => T // form Tambah/Edit: dipanggil tiap satu isian berubah (mis. kosongkan isian turunan)
   canEditRow?: (r: T, c: Ctx) => boolean
-  name?: (r: T) => string // label data yang tampil ke user (pengganti nomor internal) di judul modal, log, approval, email
+  name?: (r: T) => string // label data yang tampil ke user (pengganti nomor internal) di judul modal, log, approval, notifikasi
   approvals?: ApprovalRule<T>[]
   rowActions?: RowAction<T>[]
   guide: GuideItem[] // isi tombol Panduan Halaman di samping judul (HTML statis)

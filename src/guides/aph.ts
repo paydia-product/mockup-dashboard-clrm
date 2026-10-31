@@ -16,7 +16,7 @@ export const AphGuide: GuideItem[] = [
 <li><b>Surat masuk per bulan</b>: garis jumlah surat menurut bulan Tanggal Terima. Punya filter <b>Periode</b> sendiri (bawaan 12 bulan terakhir), tidak ikut Periode halaman. Arahkan kursor ke titik untuk rincian per instansi pengirim.</li>
 <li><b>Instansi pengirim terbanyak</b>: batang mendatar, urut terbanyak. Klik batang untuk membuka Table terfilter Pengirim.</li>
 <li><b>Permintaan per kasus</b>: diagram donat. Arahkan kursor untuk rincian per instansi pengirim. Klik irisan untuk membuka Table terfilter Kasus.</li>
-<li><b>Group merchant paling banyak disebut</b>: 6 group teratas. Klik batang untuk membuka Table terfilter Group Merchant.</li>
+<li><b>Group merchant paling banyak disebut</b>: 5 group teratas. Klik batang untuk membuka Table terfilter Group Merchant.</li>
 <li><b>Jadwal BAP 30 hari ke depan</b>: kalender permintaan Active yang punya jadwal BAP. Klik acara untuk membuka Detail.</li>
 <li><b>Permintaan Active menurut umur</b>: batang umur sejak surat diterima dan tabel permintaan Active (5 baris per halaman, tertua dulu). Klik baris untuk membuka Detail.</li>
 </ul>` },
@@ -28,7 +28,7 @@ export const AphGuide: GuideItem[] = [
 <li>Tabel menampilkan data Dibatalkan (teks abu-abu). Dashboard dan alert tidak menghitungnya.</li>
 <li>Pagination: 10, 25, atau 50 baris per halaman. Mengubah pencarian atau filter mengembalikan ke halaman 1.</li>
 </ul>` },
-  { h: 'Tambah & Edit', b: `<p><b>Field wajib</b> (bertanda *): Tanggal Terima Surat, Nomor Surat, Tanggal Surat, Pengirim dan Kategori, Perihal (Jenis dan Uraian), Kasus, Nama Merchant, Group Merchant, Unit Penyidik, Status, Batas Waktu Jawaban, dan PIC.</p>
+  { h: 'Tambah & Edit', b: `<p><b>Field wajib</b> (bertanda *): Tanggal Terima Surat, Nomor Surat, Tanggal Surat, Pengirim dan Kategori, Perihal (Jenis dan Uraian), Kasus, Nama Merchant, Group Merchant, Unit Penyidik, Status, dan PIC. <b>Batas Waktu Jawaban</b> boleh kosong (tanpa batas waktu tidak ada notifikasi keterlambatan).</p>
 <ul>
 <li><b>Tanggal Jawaban Dikirim</b> wajib bila Status = Done.</li>
 <li>Field opsional: Nama Penyidik, No. Telepon Penyidik, Tanggal BAP, Tanggal Jadwal Ulang BAP, Tempat BAP, Nominal Hold Settlement, dan Dana Taktis. Nama dan nomor telepon yang kosong memicu alert "Data penting kosong".</li>
@@ -50,10 +50,10 @@ export const AphGuide: GuideItem[] = [
 <li>Bagian <b>Log Perubahan</b> mencatat: data dibuat, perubahan data (kolom sebelum dan sesudah), pembatalan, dan pengembalian. Setiap entri memuat siapa, kapan, dan alasan bila diisi.</li>
 <li>Terbaru di atas.</li>
 </ul>` },
-  { h: 'Simulasi notifikasi email', b: `<p>Tombol <b>Simulasi notifikasi</b> menampilkan contoh isi email. Angka di tombol adalah jumlah alert yang sedang aktif. Tiap jenis alert menampilkan maksimal 3 email dari data nyata. Bila tidak ada data yang cocok, ditampilkan satu <b>contoh statis</b>. Semua alert hanya untuk permintaan berstatus Active.</p>
+  { h: 'Notifikasi', b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah; Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Tombol "Tandai semua dibaca" menandai semuanya sudah dibaca. Semua notifikasi hanya untuk permintaan berstatus Active.</p>
 <ul>
 <li><b>Jadwal BAP mendekat</b>: muncul bila BAP tinggal 0 sampai 7 hari. <b>Kuning</b> bila 3 sampai 7 hari, <b>merah</b> bila 2 hari atau kurang. Penerima: Legal Officer dan Head CLRM.</li>
-<li><b>Lewat batas waktu jawaban</b>: muncul bila Batas Waktu Jawaban sudah lewat. <b>Merah</b>. Penerima: Legal Officer dan Head CLRM.</li>
+<li><b>Lewat batas waktu jawaban</b>: muncul bila Batas Waktu Jawaban terisi dan sudah lewat. <b>Merah</b>. Penerima: Legal Officer dan Head CLRM.</li>
 <li><b>Data penting kosong</b>: muncul bila PIC, Nama Penyidik, atau No. Telepon Penyidik masih kosong. <b>Kuning</b>. Penerima: Legal Officer.</li>
 </ul>` },
   { h: 'Export Excel', b: `<ul>

@@ -5,7 +5,7 @@ export const KontrakGuide: GuideItem[] = [
 <li>Buka tab <b>Dashboard</b>. Lihat enam kartu masa berlaku kontrak, grafik, dan daftar kontrak yang segera berakhir.</li>
 <li>Atur <b>Periode Tanggal Mulai</b> bila perlu. Kosongkan kedua tanggal untuk melihat semua data.</li>
 <li>Klik kartu atau batang grafik untuk membuka tab <b>Table</b> yang sudah terfilter. Atau buka tab <b>Table</b> langsung.</li>
-<li>Klik <b>Tambah</b>, lalu isi semua field bertanda * dan unggah <b>File Perjanjian</b>. Klik <b>Simpan</b>.</li>
+<li>Klik <b>Tambah</b>, lalu isi semua field bertanda *. <b>File Perjanjian</b> boleh dikosongkan. Klik <b>Simpan</b>.</li>
 <li>Klik <b>Edit</b> pada baris untuk mengubah data. Alasan perubahan boleh diisi untuk dicatat di Log Perubahan.</li>
 <li>Head CLRM dapat <b>Batalkan</b> kontrak yang salah (alasan wajib) dan <b>Kembalikan</b> bila perlu.</li>
 <li>Klik <b>Export Excel</b> untuk mengunduh baris yang tampil di tabel.</li>
@@ -26,16 +26,17 @@ export const KontrakGuide: GuideItem[] = [
 <li>Tabel menampilkan data Dibatalkan (teks abu-abu). Dashboard dan alert tidak menghitungnya.</li>
 <li>Pagination: 10, 25, atau 50 baris per halaman. Mengubah pencarian atau filter mengembalikan ke halaman 1.</li>
 </ul>` },
-  { h: 'Tambah & Edit', b: `<p><b>Field wajib</b> (bertanda *): Jenis Hubungan, Nomor PKS / NDA, Jenis Dokumen, Tanggal Mulai, Perpanjangan, Status, dan File Perjanjian.</p>
+  { h: 'Tambah & Edit', b: `<p><b>Field wajib</b> (bertanda *): Jenis Hubungan, Nomor PKS / NDA, Jenis Dokumen, Tanggal Mulai, Perpanjangan, dan Status. <b>File Perjanjian</b> boleh dikosongkan.</p>
 <ul>
 <li><b>Nama Mitra</b> tampil bila Jenis Hubungan bukan Merchant. Isinya dropdown dari master Mitra Vendor.</li>
 <li><b>Nama Merchant</b> tampil bila Jenis Hubungan = Merchant. Isinya teks bebas.</li>
 <li>Mengganti Jenis Hubungan mengosongkan isian nama yang tidak cocok lagi.</li>
 <li><b>Lama Perpanjangan (bulan)</b> tampil dan wajib bila Perpanjangan = Otomatis atau Manual. Minimal 1 bulan.</li>
 <li><b>PIC</b> atau <b>Unit Pemilik</b>: salah satu wajib diisi.</li>
-<li><b>Dokumen Induk</b> wajib bila Jenis Dokumen = Amandemen. Pilihannya nomor kontrak lain yang bukan Amandemen dan tidak dibatalkan. Tidak boleh dirinya sendiri.</li>
+<li><b>Dokumen Induk</b> berupa isian teks bebas (mis. nomor PKS induk), wajib bila Jenis Dokumen = Amandemen. Tidak boleh sama dengan Nomor PKS / NDA kontrak itu sendiri.</li>
 <li><b>Nomor PKS / NDA</b> harus unik (huruf besar atau kecil dianggap sama, kontrak dibatalkan diabaikan).</li>
 <li><b>Tanggal Berakhir</b> boleh kosong, tetapi muncul di kartu dan alert "Tanggal berakhir kosong". Tidak boleh sebelum Tanggal Mulai.</li>
+<li><b>Jenis Dokumen</b> dipilih dari Master Data <b>Jenis PKS Kontrak</b> (ditambah Lainnya).</li>
 <li><b>Lainnya</b>: pada Jenis Hubungan, Jenis Dokumen, dan Bidang Usaha, memilih Lainnya memunculkan isian teks bebas yang wajib diisi. Tabel menampilkan "Lainnya", Detail dan Export menampilkan teks aslinya. Grafik per Jenis Dokumen menghitung teks bebas sebagai Lainnya.</li>
 <li><b>File Perjanjian</b>: PDF, JPG, JPEG, atau PNG. Maksimal 25 MB, satu file.</li>
 <li><b>Sisa Hari</b> terisi otomatis dari Tanggal Berakhir. <b>Status</b> Aktif atau Akan Berakhir berubah otomatis: lewat tanggal menjadi Expired, sisa 90 hari atau kurang menjadi Akan Berakhir, selebihnya Aktif. Status lain (Draft, Review, Diperpanjang, Berakhir, Expired) tidak diubah otomatis.</li>
@@ -54,9 +55,9 @@ export const KontrakGuide: GuideItem[] = [
 <li>Bagian <b>Log Perubahan</b> mencatat: data dibuat, perubahan data (kolom sebelum dan sesudah), pembatalan, dan pengembalian. Setiap entri memuat siapa, kapan, dan alasan bila diisi.</li>
 <li>Terbaru di atas.</li>
 </ul>` },
-  { h: 'Simulasi notifikasi email', b: `<p>Tombol <b>Simulasi notifikasi</b> menampilkan contoh isi email. Angka di tombol adalah jumlah alert yang sedang aktif. Tiap jenis alert menampilkan maksimal 3 email dari data nyata. Bila tidak ada data yang cocok, ditampilkan satu <b>contoh statis</b>.</p>
+  { h: 'Notifikasi', b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah; Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Tombol "Tandai semua dibaca" menandai semuanya sudah dibaca.</p>
 <ul>
-<li><b>Kontrak hampir berakhir</b>: muncul bila kontrak Aktif atau Akan Berakhir punya sisa 0 sampai 90 hari. <b>Kuning</b> bila sisa lebih dari 30 hari, <b>merah</b> bila 30 hari atau kurang. Penerima: Legal Officer dan PIC kontrak. Teks aturan di email menyebut pengingat H-90, H-60, H-30, H-7.</li>
+<li><b>Kontrak hampir berakhir</b>: muncul bila kontrak Aktif atau Akan Berakhir punya sisa 0 sampai 90 hari. <b>Kuning</b> bila sisa lebih dari 30 hari, <b>merah</b> bila 30 hari atau kurang. Penerima: Legal Officer dan PIC kontrak. Pengingat berlaku pada tahap H-90, H-60, H-30, dan H-7.</li>
 <li><b>Kontrak expired belum diperpanjang</b>: muncul bila status Expired, atau Tanggal Berakhir sudah lewat. <b>Merah</b>. Penerima: Legal Officer dan Head CLRM.</li>
 <li><b>Tanggal berakhir kosong</b>: muncul bila Tanggal Berakhir belum diisi (kecuali status Berakhir atau Dibatalkan). <b>Kuning</b>. Penerima: Legal Officer.</li>
 </ul>` },

@@ -95,7 +95,7 @@ const fields: Field<Laporan>[] = [
   { key: 'tepat', label: 'Tepat Waktu?', type: 'text', auto: (r) => tepat(r) },
   { key: 'picPenyusun', label: 'PIC Penyusun', type: 'select', options: (c) => c.master.pic, required: true, editableBy: full },
   { key: 'picReviewer', label: 'PIC Reviewer', type: 'select', options: (c) => c.master.pic, required: true, editableBy: full },
-  { key: 'bukti', label: 'Bukti Submit (file)', type: 'file', help: 'Wajib file atau Nomor Tanda Terima bila status Terkirim.' },
+  { key: 'bukti', label: 'Bukti Submit (file)', type: 'file', help: 'Boleh kosong. Status Terkirim tanpa file dan tanpa Nomor Tanda Terima memunculkan notifikasi pengingat.' },
   { key: 'noTerima', label: 'Nomor Tanda Terima', type: 'text' },
   { key: 'dasar', label: 'Dasar Ketentuan', type: 'text', editableBy: full },
   { key: 'alasan', label: 'Alasan Terlambat', type: 'textarea', wide: true, required: (r, c) => r.status === 'Terlambat' || lateBy(r) > 0 || (!SENT(r) && !!r.batas && dOf(r.batas) < c.today) },
@@ -121,11 +121,6 @@ const filters: FilterDef<Laporan>[] = [
 ]
 
 const toPic = (r: Laporan) => (r.picPenyusun ? `PIC (${r.picPenyusun})` : 'PIC')
-const mk = (c: Ctx, o: Partial<Laporan>): Laporan => ({
-  id: 'sample', no: 99, status: 'Disusun', createdAt: c.today, createdBy: '-', nama: 'Laporan RBSP', regulator: 'BI', jenis: 'Triwulanan', periode: 'Q3 2026',
-  batas: `${addDays(c.today, 3)}`, siber: '', waktuKejadian: '', waktuNotif: '', tglSubmit: '', picPenyusun: 'Regie', picReviewer: 'Fakhri',
-  bukti: null, noTerima: '', dasar: 'PBI 23/6/PBI/2021', alasan: '', ...o,
-})
 const alerts: AlertDef<Laporan>[] = [
   {
     key: 'near', label: 'Hampir jatuh tempo', rule: 'Batas waktu tinggal 7, 3, atau 1 hari (H-7/H-3/H-1, paling lama 7 hari) dan laporan belum Terkirim.',
@@ -134,12 +129,10 @@ const alerts: AlertDef<Laporan>[] = [
       const d = diffDays(dOf(r.batas), c.today)
       return d >= 0 && d <= 7 ? { color: 'yellow', detail: `H-${d} batas waktu (${fmtDate(dOf(r.batas))})`, to: [toPic(r), 'Compliance Officer'] } : null
     },
-    sample: (c) => mk(c, { batas: `${addDays(c.today, 3)}` }),
   },
   {
     key: 'late', label: 'Laporan terlambat', rule: 'Batas waktu terlewat dan laporan belum Terkirim.',
     check: (r) => (r.status === 'Terlambat' ? { color: 'red', detail: `Terlambat sejak ${fmtDate(dOf(r.batas))}`, to: [toPic(r), 'Head CLRM'] } : null),
-    sample: (c) => mk(c, { status: 'Terlambat', batas: `${addDays(c.today, -3)}`, alasan: 'Menunggu data dari tim terkait.' }),
   },
   {
     key: 'siber', label: 'Insiden siber (jam berjalan)', rule: 'Laporan insiden siber belum Terkirim: notifikasi awal paling lambat 1 jam dan laporan lengkap paling lambat 3 hari kalender sejak waktu kejadian.',
@@ -151,12 +144,10 @@ const alerts: AlertDef<Laporan>[] = [
       const full = now > fullDue ? `laporan lengkap TERLEWAT ${dur(now - fullDue)}` : `laporan lengkap sisa ${dur(fullDue - now)}`
       return { color: 'red', detail: `Kejadian ${fmtTime(r.waktuKejadian)}: ${notif}; ${full}`, to: ['Head CLRM', 'CISO'] }
     },
-    sample: (c) => mk(c, { nama: 'Laporan Insiden Siber', regulator: 'BSSN', jenis: 'Insidental', siber: 'Ya', periode: 'Insiden siber', waktuKejadian: agoLocal(40), batas: `${addDays(c.today, 3)}` }),
   },
   {
     key: 'nobukti', label: 'Terkirim tanpa bukti', rule: 'Status Terkirim tetapi file bukti dan nomor tanda terima kosong.',
     check: (r) => (SENT(r) && !hasBukti(r) ? { color: 'yellow', detail: 'Bukti submit belum diisi', to: [toPic(r)] } : null),
-    sample: (c) => mk(c, { status: 'Terkirim', tglSubmit: `${addDays(c.today, -1)}T10:00` }),
   },
 ]
 
@@ -238,7 +229,6 @@ const cfg: PageConfig<Laporan> = {
     const e: Record<string, string> = {}
     if (r.status === 'Terlambat' && !(r.batas && dOf(r.batas) < c.today)) e.status = 'Status Terlambat hanya bisa dipilih jika Batas Waktu sudah lewat'
     if (r.picPenyusun.trim() && r.picPenyusun.trim().toLowerCase() === r.picReviewer.trim().toLowerCase()) e.picReviewer = 'PIC Penyusun dan Reviewer harus orang yang berbeda'
-    if (SENT(r) && !hasBukti(r)) e.bukti = 'Isi file bukti atau Nomor Tanda Terima (minimal salah satu)'
     if (r.waktuNotif && r.waktuKejadian && r.waktuNotif < r.waktuKejadian) e.waktuNotif = 'Waktu notifikasi tidak boleh sebelum waktu kejadian'
     return e
   },
@@ -273,3 +263,4 @@ const cfg: PageConfig<Laporan> = {
   },
 }
 export default function Reporting() { return <PageShell config={cfg} /> }
+export { cfg as config } // dipakai pusat notifikasi (kit/notify.tsx)

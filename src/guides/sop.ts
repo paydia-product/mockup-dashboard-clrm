@@ -5,7 +5,7 @@ export const SopGuide: GuideItem[] = [
 <li>Buka tab <b>Dashboard</b>. Atur <b>Periode Tanggal Berlaku</b> bila perlu.</li>
 <li>Klik kartu atau grafik untuk membuka tab <b>Table</b> dengan filter yang sudah terpasang.</li>
 <li>Di tab <b>Table</b>, cari atau filter SOP.</li>
-<li>Klik <b>Tambah</b>. Isi semua field bertanda * (No Dokumen harus unik) lalu unggah file. Klik <b>Simpan</b>.</li>
+<li>Klik <b>Tambah</b>. Isi semua field bertanda * (No Dokumen harus unik). File boleh dikosongkan. Klik <b>Simpan</b>.</li>
 <li>Klik <b>Edit</b> untuk mengubah data. Kolom Alasan perubahan boleh diisi.</li>
 <li>Head CLRM dapat <b>Batalkan</b> SOP (status menjadi Dicabut) dan <b>Kembalikan</b> bila perlu.</li>
 <li>Klik <b>Export Excel</b> untuk mengunduh daftar yang tampil.</li>
@@ -25,15 +25,16 @@ export const SopGuide: GuideItem[] = [
 <li><b>Pagination</b>: pilih 10, 25, atau 50 baris per halaman.</li>
 <li>SOP yang dibatalkan tetap tampil di Table dengan teks abu-abu.</li>
 </ul>` },
-  { h: 'Tambah & Edit', b: `<p><b>Field wajib</b> (bertanda *): No Dokumen, Judul, Ringkasan (Key Point), Pemilik Dokumen, Tanggal Berlaku, Tanggal Perubahan Terakhir, No Revisi, Retensi, Klasifikasi, File, Tanggal Review Berikutnya, Status, dan PIC Dokumen.</p>
+  { h: 'Tambah & Edit', b: `<p><b>Field wajib</b> (bertanda *): No Dokumen, Judul, Ringkasan (Key Point), Pemilik Dokumen, Tanggal Berlaku, Tanggal Perubahan Terakhir, No Revisi, Retensi, Klasifikasi, Status, dan PIC Dokumen. <b>File Dokumen</b> boleh dikosongkan.</p>
 <ul>
 <li><b>No Dokumen</b> harus unik. Sistem menolak nomor yang sudah dipakai SOP lain.</li>
 <li><b>Tanggal Perubahan Terakhir</b> tidak boleh sebelum Tanggal Berlaku.</li>
 <li><b>Pemilik Dokumen</b> dan <b>PIC Dokumen</b> dipilih dari Master Data (Unit Kerja dan PIC).</li>
-<li><b>Retensi</b>: 5 Tahun, 10 Tahun, atau Permanen. <b>Klasifikasi</b>: Publik, Internal, atau Rahasia. <b>Status</b>: Aktif, Dalam Review, atau Dicabut.</li>
-<li><b>Upload file</b> (kolom <b>File Dokumen</b>): format PDF, JPG, JPEG, atau PNG. Maksimal 25 MB, 1 file.</li>
+<li><b>Retensi</b>: 5 Tahun atau 10 Tahun. <b>Klasifikasi</b> (klasifikasi informasi): Publik, Internal, Rahasia, atau Sangat Rahasia. <b>Status</b>: Aktif, Dalam Review, atau Dicabut.</li>
+<li><b>Tanggal Review Berikutnya</b> terisi otomatis = Tanggal Berlaku + 1 tahun. Field ini nonaktif (tidak bisa diketik), berubah mengikuti Tanggal Berlaku, dan dihitung ulang saat disimpan. SOP berstatus Dicabut tidak memicu notifikasi review.</li>
+<li><b>Upload file</b> (kolom <b>File Dokumen</b>, tidak wajib): format PDF, JPG, JPEG, atau PNG. Maksimal 25 MB, 1 file.</li>
 <li>Saat Edit ada kolom <b>Alasan perubahan</b>. Kolom ini tidak wajib di halaman ini.</li>
-<li>Tidak ada field otomatis dan tidak ada pilihan Lainnya di halaman ini.</li>
+<li>Tidak ada pilihan Lainnya di halaman ini.</li>
 <li>Yang boleh <b>Tambah</b>: Compliance Officer, PIC, Super Admin. Yang boleh <b>Edit</b>: Compliance Officer, PIC, Super Admin. PIC hanya dapat mengedit SOP yang PIC Dokumen-nya adalah dirinya.</li>
 </ul>` },
   { h: 'Batalkan & Kembalikan', b: `<ul>
@@ -44,13 +45,13 @@ export const SopGuide: GuideItem[] = [
 </ul>` },
   { h: 'Detail & Log Perubahan', b: `<p>Klik <b>Lihat Detail</b> untuk melihat semua isian, badge alert yang aktif, dan keterangan pembatalan (siapa, kapan, alasan, status sebelumnya).</p>
 <p>Bagian <b>Log Perubahan</b> mencatat: data dibuat (siapa dan kapan), perubahan data (nilai sebelum dan sesudah, siapa, kapan, alasan), pembatalan, dan pengembalian beserta alasannya.</p>` },
-  { h: 'Simulasi notifikasi email', b: `<p>Tombol <b>Simulasi notifikasi</b> menampilkan contoh email dari 3 alert. Angka di tombol adalah jumlah alert aktif.</p>
+  { h: 'Notifikasi', b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah; Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Tombol "Tandai semua dibaca" menandai semuanya sudah dibaca.</p>
 <ul>
 <li><b>Review mendekat</b> (kuning): Tanggal Review Berikutnya 30 hari lagi atau kurang, dan SOP belum Dicabut. Penerima: PIC Dokumen, Compliance Officer.</li>
 <li><b>Review terlewat</b> (merah): Tanggal Review Berikutnya sudah lewat dan SOP belum Dicabut. Penerima: PIC Dokumen, Head CLRM.</li>
-<li><b>Data belum lengkap</b> (kuning): Tanggal Review, Status, atau PIC Dokumen kosong. Penerima: Compliance Officer.</li>
+<li><b>Data belum lengkap</b> (kuning): Tanggal Review (SOP belum Dicabut), Status, atau PIC Dokumen kosong. Penerima: Compliance Officer.</li>
 </ul>
-<p>Maksimal 3 email per jenis alert. Bila tidak ada data yang cocok, tampil <b>contoh statis</b>.</p>` },
+<p>Contoh pesan: "SOP [judul] perlu direview sebelum [tanggal] (H-30)". SOP berstatus <b>Dicabut</b> tidak memicu notifikasi review dan tidak dihitung di angka, grafik, maupun tabel review.</p>` },
   { h: 'Export Excel', b: `<ul>
 <li>Mengekspor baris yang tampil di Table, sesuai pencarian dan filter yang aktif.</li>
 <li>Kolom: Nomor, Tanggal Dibuat, lalu semua isian SOP. Kolom file berisi nama file.</li>

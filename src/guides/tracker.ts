@@ -6,7 +6,7 @@ export const TRACKER_GUIDE: GuideItem[] = [
     b: `<ol>
 <li>Buka tab <b>Dashboard</b> (tab awal) untuk melihat ringkasan temuan. Atur <b>Periode Tanggal Temuan</b> bila perlu. Kosong berarti semua tanggal.</li>
 <li>Buka tab <b>Table</b> untuk melihat daftar temuan. Cari lewat kotak pencarian atau tombol <b>Filter</b>.</li>
-<li>Klik <b>Tambah</b> (hanya peran yang diizinkan). Isi semua field bertanda <b>*</b> lalu klik <b>Simpan</b>.</li>
+<li>Klik <b>Tambah</b> (hanya peran yang diizinkan). Isi semua field bertanda <b>*</b> lalu klik <b>Simpan</b>. File bukti tidak wajib.</li>
 <li>Klik <b>Lihat Detail</b> untuk melihat isi temuan dan Log Perubahan.</li>
 <li>Klik <b>Edit</b> untuk mengubah Status, Batas Waktu, Rencana Tindak Lanjut, atau file bukti. Mengubah status ke <b>Selesai</b> membuat pengajuan penutupan ke Head CLRM (lihat item Approval).</li>
 <li>Compliance Officer mengisi <b>Validasi Ulang</b> dari Detail untuk temuan berstatus Menunggu Validasi.</li>
@@ -42,15 +42,15 @@ export const TRACKER_GUIDE: GuideItem[] = [
   },
   {
     h: 'Tambah & Edit',
-    b: `<p><b>Tambah</b> (Compliance Officer dan Super Admin). Semua field wajib:</p>
+    b: `<p><b>Tambah</b> (Compliance Officer dan Super Admin). Semua field wajib kecuali file upload:</p>
 <ul>
 <li>Regulator, Tanggal Temuan, Area Temuan, Penyebab Utama (Root Cause), Jenis Penyebab, PIC, Batas Waktu, Status, Unit Kerja, Tingkat Risiko.</li>
-<li>Rencana Tindak Lanjut, <b>File bukti</b> tindak lanjut, dan <b>Bukti Surat Regulator</b>.</li>
+<li>Rencana Tindak Lanjut. <b>File bukti</b> tindak lanjut dan <b>Bukti Surat Regulator</b> tidak wajib.</li>
 <li>Status saat Tambah: Open, Proses, atau Menunggu Validasi.</li>
 <li>Batas Waktu tidak boleh sebelum Tanggal Temuan.</li>
 </ul>
 <p><b>Lainnya</b>: dropdown <b>Regulator</b> dan <b>Area Temuan</b> punya opsi Lainnya. Bila dipilih, muncul isian teks bebas yang wajib diisi.</p>
-<p><b>Upload</b>: format PDF, JPG, JPEG, atau PNG. Maksimal 25 MB per file dan hanya 1 file per field.</p>
+<p><b>Upload</b> (tidak wajib): format PDF, JPG, JPEG, atau PNG. Maksimal 25 MB per file dan hanya 1 file per field.</p>
 <p><b>Edit</b> (Compliance Officer, PIC, Super Admin):</p>
 <ul>
 <li>Yang bisa diubah: Status (boleh sampai Selesai), Batas Waktu, Rencana Tindak Lanjut, File bukti, dan Bukti Surat Regulator.</li>
@@ -87,7 +87,7 @@ export const TRACKER_GUIDE: GuideItem[] = [
 <li>Hanya <b>Head CLRM</b> (dan Super Admin) yang punya aksi <b>Batalkan</b>.</li>
 <li>Klik Batalkan di tabel atau Detail. <b>Alasan wajib</b> diisi. Status menjadi Dibatalkan.</li>
 <li>Temuan yang sedang menunggu approval tidak bisa dibatalkan.</li>
-<li>Temuan Dibatalkan <b>tidak dihitung di dashboard</b> dan <b>tidak memicu alert</b> email.</li>
+<li>Temuan Dibatalkan <b>tidak dihitung di dashboard</b> dan <b>tidak memicu notifikasi</b>.</li>
 <li><b>Kembalikan</b> memulihkan temuan ke status sebelum dibatalkan (bila tidak terbaca, ke Open). <b>Alasan wajib</b>.</li>
 <li>Keduanya tercatat di Log Perubahan.</li>
 </ul>`,
@@ -101,14 +101,14 @@ export const TRACKER_GUIDE: GuideItem[] = [
 </ul>`,
   },
   {
-    h: 'Simulasi notifikasi email',
-    b: `<p>Tombol <b>Simulasi notifikasi</b> di tab Table menampilkan contoh email. Angka di tombol adalah <b>jumlah alert aktif</b> saat ini. Hanya temuan yang belum Selesai dan tidak Dibatalkan yang dihitung. Tiap jenis menampilkan maksimal 3 email.</p>
+    h: 'Notifikasi',
+    b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah; Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Tombol "Tandai semua dibaca" menandai semuanya sudah dibaca. Hanya temuan yang belum Selesai dan tidak Dibatalkan yang memicu notifikasi.</p>
 <ul>
 <li><b>Temuan hampir jatuh tempo</b> (kuning). Muncul bila Batas Waktu tinggal 7 hari atau kurang dan belum terlewat. Penerima: <b>PIC</b> temuan.</li>
 <li><b>Temuan lewat batas waktu</b> (merah). Muncul bila Batas Waktu sudah terlewat. Penerima: <b>PIC</b> dan <b>Head CLRM</b>. Bila terlambat lebih dari 7 hari, <b>Direktur terkait</b> ikut menerima.</li>
 <li><b>Menunggu validasi terlalu lama</b> (kuning). Muncul bila status Menunggu Validasi lebih dari 7 hari. Penerima: <b>Compliance Officer</b> dan <b>Head CLRM</b>.</li>
 </ul>
-<p>Bila tidak ada temuan yang cocok, ditampilkan <b>contoh statis</b> (diberi tanda) agar format email tetap terlihat.</p>`,
+`,
   },
   {
     h: 'Export Excel',

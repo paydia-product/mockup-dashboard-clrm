@@ -1,5 +1,6 @@
 import { addDays, diffDays, fmtDate } from '../lib'
-import { showLainnya } from '../kit/Lainnya'
+import { showLainnya, withLainnya } from '../kit/Lainnya'
+import { getStore } from '../kit/store'
 import PageShell from '../kit/PageShell'
 import { AphGuide } from '../guides/aph'
 import { sameName } from '../kit/perms'
@@ -16,7 +17,9 @@ interface Aph extends BaseRec {
   hold: number | ''; danaTaktis: number | ''
   tglBatas: string; pic: string; tglJawab: string
 }
-const PENGIRIM = ['Bareskrim', 'Polda', 'Polres', 'PPATK', 'Kejaksaan', 'Lainnya']
+// Pengirim dan Kategori = master Instansi Pengirim APH + Lainnya (teks bebas)
+const pengirimOpts = (c?: Ctx) => withLainnya((c?.master ?? getStore().master).instansiAph)
+const SEED_PENGIRIM = ['Bareskrim', 'Polda', 'Polres', 'PPATK', 'Kejaksaan']
 const PERIHAL = ['Permintaan Data Identitas', 'Permintaan Keterangan', 'Pemblokiran', 'Lainnya']
 const KASUS = ['Judi Online', 'Pencucian Uang', 'Penipuan', 'Lainnya']
 const UNIT = ['Dittipidsiber', 'Ditreskrimsus', 'Lainnya']
@@ -30,7 +33,7 @@ const fields: Field<Aph>[] = [
   { key: 'tglTerima', label: 'Tanggal Terima Surat', type: 'date', required: true, help: 'Awal hitungan batas waktu jawaban.' },
   { key: 'nomorSurat', label: 'Nomor Surat', type: 'text', required: true },
   { key: 'tglSurat', label: 'Tanggal Surat', type: 'date', required: true },
-  { key: 'pengirim', label: 'Pengirim dan Kategori', type: 'select', options: PENGIRIM, required: true },
+  { key: 'pengirim', label: 'Pengirim dan Kategori', type: 'select', options: (c) => pengirimOpts(c), required: true },
   { key: 'perihalJenis', label: 'Perihal Permintaan (Jenis)', type: 'select', options: PERIHAL, required: true },
   { key: 'perihalTeks', label: 'Perihal Permintaan (Uraian)', type: 'text', required: true },
   { key: 'kasus', label: 'Kasus', type: 'select', options: KASUS, required: true },
@@ -45,7 +48,7 @@ const fields: Field<Aph>[] = [
   { key: 'status', label: 'Status', type: 'select', options: ['Active', 'Done'], required: true },
   { key: 'hold', label: 'Nominal Hold Settlement (Rp)', type: 'money' },
   { key: 'danaTaktis', label: 'Dana Taktis (Rp)', type: 'money' },
-  { key: 'tglBatas', label: 'Batas Waktu Jawaban', type: 'date', required: true },
+  { key: 'tglBatas', label: 'Batas Waktu Jawaban', type: 'date', help: 'Boleh kosong; tanpa batas waktu tidak ada notifikasi keterlambatan.' },
   { key: 'pic', label: 'PIC', type: 'select', options: (c) => c.master.pic, required: true },
   { key: 'tglJawab', label: 'Tanggal Jawaban Dikirim', type: 'date', required: (r) => r.status === 'Done' },
 ]
@@ -64,18 +67,13 @@ const uniq = (rows: Aph[], g: (r: Aph) => string) => [...new Set(rows.map(g).fil
 const filters: FilterDef<Aph>[] = [
   { key: 'periode', label: 'Periode (Tanggal Terima)', type: 'daterange', match: (r, v) => { const [a, b] = v as [string, string]; return (!a || r.tglTerima >= a) && (!b || r.tglTerima <= b) } },
   { key: 'status', label: 'Status', type: 'select', options: ['Active', 'Done', 'Dibatalkan'], match: (r, v) => r.status === v },
-  { key: 'pengirim', label: 'Pengirim', type: 'select', options: PENGIRIM, match: (r, v) => showLainnya(r.pengirim, PENGIRIM) === v },
+  { key: 'pengirim', label: 'Pengirim', type: 'select', options: (_, c) => pengirimOpts(c), match: (r, v) => showLainnya(r.pengirim, pengirimOpts()) === v },
   { key: 'kasus', label: 'Kasus', type: 'select', options: KASUS, match: (r, v) => showLainnya(r.kasus, KASUS) === v },
   { key: 'unit', label: 'Unit Penyidik', type: 'select', options: UNIT, match: (r, v) => showLainnya(r.unit, UNIT) === v },
   { key: 'groupMerchant', label: 'Group Merchant', type: 'select', options: (rows) => uniq(rows, (r) => r.groupMerchant), match: (r, v) => r.groupMerchant === v },
   { key: 'pic', label: 'PIC', type: 'select', options: (rows) => uniq(rows, (r) => r.pic), match: (r, v) => r.pic === v },
 ]
 
-const mk = (c: Ctx, o: Partial<Aph>): Aph => ({
-  id: 'sample', no: 99, status: 'Active', createdAt: c.today, createdBy: '-', tglTerima: addDays(c.today, -10), nomorSurat: 'B/1234/X/2026/Siber', tglSurat: addDays(c.today, -12),
-  pengirim: 'Bareskrim', perihalJenis: 'Permintaan Data Identitas', perihalTeks: 'Data identitas pemilik rekening merchant', kasus: 'Judi Online', merchant: 'PT Contoh Digital', groupMerchant: 'Contoh Group',
-  unit: 'Dittipidsiber', namaPenyidik: 'AKP Contoh', noTelp: '0812-0000-0000', bapTgl: '', bapUlang: '', bapTempat: '', hold: '', danaTaktis: '', tglBatas: addDays(c.today, 5), pic: 'Regie', tglJawab: '', ...o,
-})
 const alerts: AlertDef<Aph>[] = [
   {
     key: 'bap', label: 'Jadwal BAP mendekat', rule: 'BAP tinggal 7 hari atau kurang (kuning), 2 hari atau kurang (merah).',
@@ -86,12 +84,10 @@ const alerts: AlertDef<Aph>[] = [
       if (d < 0 || d > 7) return null
       return { color: d <= 2 ? 'red' : 'yellow', detail: `BAP ${d} hari lagi (${fmtDate(b)})`, to: [...toLO, 'Head CLRM'] }
     },
-    sample: (c) => mk(c, { bapTgl: addDays(c.today, 2), bapTempat: 'Bareskrim, Jakarta' }),
   },
   {
     key: 'overdue', label: 'Lewat batas waktu jawaban', rule: 'Status Active dan batas waktu jawaban terlewat.',
     check: (r, c) => (late(r, c.today) ? { color: 'red', detail: `Lewat ${diffDays(c.today, r.tglBatas)} hari`, to: [...toLO, 'Head CLRM'] } : null),
-    sample: (c) => mk(c, { tglTerima: addDays(c.today, -20), tglBatas: addDays(c.today, -4) }),
   },
   {
     key: 'kosong', label: 'Data penting kosong', rule: 'PIC, nama penyidik, atau nomor telepon penyidik masih kosong pada permintaan Active.',
@@ -100,7 +96,6 @@ const alerts: AlertDef<Aph>[] = [
       const k = [!r.pic.trim() && 'PIC', !r.namaPenyidik.trim() && 'Nama Penyidik', !r.noTelp.trim() && 'No. Telepon'].filter(Boolean)
       return k.length ? { color: 'yellow', detail: `Kosong: ${k.join(', ')}`, to: toLO } : null
     },
-    sample: (c) => mk(c, { pic: '', noTelp: '' }),
   },
 ]
 
@@ -123,7 +118,7 @@ function seed(today: string): Aph[] {
     return {
       id: `aph-${i + 1}`, no: i + 1, status, createdAt: tglTerima, createdBy: 'Regie',
       tglTerima, nomorSurat: `B/${1200 + i * 7}/${(i % 12) + 1}/2026/${['Siber', 'Reskrimsus', 'PPATK', 'Kejari'][i % 4]}`, tglSurat: addDays(tglTerima, -2),
-      pengirim: PENGIRIM[[0, 1, 0, 3, 2, 4][i % 6]], perihalJenis: PERIHAL[i % 4], perihalTeks: ['Data identitas pemilik rekening merchant', 'Keterangan alur transaksi merchant', 'Pemblokiran rekening settlement merchant', 'Salinan dokumen onboarding'][i % 4],
+      pengirim: SEED_PENGIRIM[[0, 1, 0, 3, 2, 4][i % 6]], perihalJenis: PERIHAL[i % 4], perihalTeks: ['Data identitas pemilik rekening merchant', 'Keterangan alur transaksi merchant', 'Pemblokiran rekening settlement merchant', 'Salinan dokumen onboarding'][i % 4],
       kasus: KASUS[[0, 0, 1, 2, 0, 3][i % 6]], merchant, groupMerchant, unit: UNIT[i % 3],
       namaPenyidik: i === 7 ? '' : `AKP Penyidik ${i + 1}`, noTelp: i === 7 || i === 10 ? '' : `0812-55${String(1000 + i * 13)}`,
       bapTgl: bap !== null ? addDays(today, bap) : done && i % 3 === 0 ? addDays(tglTerima, 5) : '', bapUlang: i === 1 ? addDays(today, 2) : '', bapTempat: bap !== null || (done && i % 3 === 0) ? TEMPAT[i % 4] : '',
@@ -183,16 +178,16 @@ const cfg: PageConfig<Aph> = {
           <BarCard title="Instansi pengirim terbanyak" info={{
             apa: 'Jumlah permintaan menurut instansi pengirim (Active dan Done, tanpa Dibatalkan), dalam Periode Tanggal Terima yang dipilih.',
             baca: ['Sumbu vertikal: instansi pengirim, urut terbanyak di atas. Sumbu horizontal: jumlah permintaan.', 'Isian teks bebas di luar daftar dihitung di batang Lainnya.', 'Klik batang untuk membuka tab Table terfilter Pengirim.'],
-          }} horizontal data={count((r) => showLainnya(r.pengirim, PENGIRIM), PENGIRIM).sort((a, b) => b.Jumlah - a.Jumlah)} keys={['Jumlah']} onClick={(row) => drill({ pengirim: row.name })} />
+          }} horizontal data={count((r) => showLainnya(r.pengirim, pengirimOpts(c)), pengirimOpts(c)).sort((a, b) => b.Jumlah - a.Jumlah)} keys={['Jumlah']} onClick={(row) => drill({ pengirim: row.name })} />
           <DonutCard title="Permintaan per kasus" info={{
             apa: 'Proporsi permintaan menurut Kasus (Active dan Done, tanpa Dibatalkan), dalam Periode Tanggal Terima yang dipilih.',
             baca: ['Tiap irisan adalah satu Kasus. Makin besar irisan, makin banyak permintaan. Kasus tanpa data tidak tampil.', 'Arahkan kursor ke irisan untuk melihat jumlah dan rinciannya per instansi pengirim.', 'Isian teks bebas di luar daftar dihitung di irisan Lainnya.', 'Klik irisan untuk membuka tab Table terfilter Kasus.'],
           }} data={KASUS.map((k) => ({ name: k, value: rows.filter((r) => showLainnya(r.kasus, KASUS) === k).length }))} onClick={(name) => drill({ kasus: name })}
             tip={(name, value) => <Breakdown title={`${name}: ${value} permintaan`} sub="Per instansi pengirim" items={countBy(rows.filter((r) => showLainnya(r.kasus, KASUS) === name), (r) => r.pengirim)} />} />
           <BarCard title="Group merchant paling banyak disebut" info={{
-            apa: 'Enam Group Merchant yang paling sering muncul pada permintaan (Active dan Done, tanpa Dibatalkan), dalam Periode Tanggal Terima yang dipilih.',
+            apa: 'Lima Group Merchant yang paling sering muncul pada permintaan (Active dan Done, tanpa Dibatalkan), dalam Periode Tanggal Terima yang dipilih.',
             baca: ['Sumbu horizontal: Group Merchant, urut terbanyak di kiri. Sumbu vertikal: jumlah permintaan.', 'Klik batang untuk membuka tab Table terfilter Group Merchant.'],
-          }} data={top((r) => r.groupMerchant, 6)} keys={['Jumlah']} onClick={(row) => drill({ groupMerchant: row.name })} />
+          }} data={top((r) => r.groupMerchant, 5)} keys={['Jumlah']} onClick={(row) => drill({ groupMerchant: row.name })} />
           <CalendarCard title="Jadwal BAP 30 hari ke depan" info={{
             apa: 'Kalender 30 hari mulai hari ini. Menampilkan jadwal BAP permintaan berstatus Active. Bila ada Tanggal Jadwal Ulang BAP, tanggal itu yang dipakai.',
             baca: ['Tiap sel adalah satu hari. Titik berwarna dengan nama "BAP [merchant]" adalah satu jadwal.', 'Merah: BAP 2 hari atau kurang dari hari ini. Kuning: 3 sampai 7 hari. Biru: lebih dari 7 hari.', 'Sel hari ini diberi warna biru muda. Sel dengan lebih dari 3 jadwal menampilkan "+N lagi".', 'Klik jadwal untuk membuka Detail permintaan.'],
@@ -215,3 +210,4 @@ const cfg: PageConfig<Aph> = {
   },
 }
 export default function Aph() { return <PageShell config={cfg} /> }
+export { cfg as config } // dipakai pusat notifikasi (kit/notify.tsx)

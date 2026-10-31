@@ -4,7 +4,7 @@ import { BarCard, DonutCard, MiniTable, StatCards } from '../kit/charts'
 import { StatusPill } from '../kit/fmt'
 import { sameName } from '../kit/perms'
 import type { AlertDef, Column, Ctx, Field, FilterDef, PageConfig } from '../kit/types'
-import { SopRec, seedSop } from './sop.shared'
+import { SopRec, addYear, seedSop } from './sop.shared'
 import { SopGuide } from '../guides/sop'
 
 const STATUS = ['Aktif', 'Dalam Review', 'Dicabut']
@@ -27,7 +27,8 @@ const umurBucket = (r: SopRec, today: string) => {
 const daysToReview = (r: SopRec, today: string) => (r.tglReview ? diffDays(r.tglReview, today) : null)
 const isOverdue = (r: SopRec, today: string) => live(r) && (daysToReview(r, today) ?? 0) < 0
 const isDue = (r: SopRec, today: string) => { const d = live(r) ? daysToReview(r, today) : null; return d !== null && d >= 0 && d <= REVIEW_WINDOW }
-const incomplete = (r: SopRec) => !r.tglReview || !r.status || !r.pic.trim()
+// Dicabut: Tanggal Review Berikutnya tidak dihitung (tidak memicu notifikasi "data belum lengkap")
+const incomplete = (r: SopRec) => (live(r) && !r.tglReview) || !r.status || !r.pic.trim()
 const toPic = (r: SopRec) => (r.pic ? `PIC (${r.pic})` : 'PIC Dokumen')
 
 // Import boleh membawa baris tanpa Tanggal Review / Status / PIC (jadi alert "Data belum lengkap"); form Tambah/Ubah tetap mewajibkan
@@ -40,10 +41,10 @@ const fields: Field<SopRec>[] = [
   { key: 'tglBerlaku', label: 'Tanggal Berlaku', type: 'date', required: true },
   { key: 'tglUbah', label: 'Tanggal Perubahan Terakhir', type: 'date', required: true },
   { key: 'noRevisi', label: 'No Revisi', type: 'text', required: true, help: 'Contoh Rev.1, 2.1.' },
-  { key: 'retensi', label: 'Retensi', type: 'select', options: ['5 Tahun', '10 Tahun', 'Permanen'], required: true },
-  { key: 'klasifikasi', label: 'Klasifikasi', type: 'select', options: ['Publik', 'Internal', 'Rahasia'], required: true },
-  { key: 'file', label: 'File Dokumen', type: 'file', required: true, wide: true },
-  { key: 'tglReview', label: 'Tanggal Review Berikutnya', type: 'date', required: notImport },
+  { key: 'retensi', label: 'Retensi', type: 'select', options: ['5 Tahun', '10 Tahun'], required: true }, // ponytail: opsi Permanen dihapus; data lama Permanen dipetakan ke 10 Tahun (opsi terpanjang yang tersisa) di load()
+  { key: 'klasifikasi', label: 'Klasifikasi', type: 'select', options: ['Publik', 'Internal', 'Rahasia', 'Sangat Rahasia'], required: true }, // klasifikasi informasi ala ISO 27001
+  { key: 'file', label: 'File Dokumen', type: 'file', wide: true },
+  { key: 'tglReview', label: 'Tanggal Review Berikutnya', type: 'date', readOnly: true, help: 'Otomatis: Tanggal Berlaku + 1 tahun.' },
   { key: 'status', label: 'Status', type: 'select', options: STATUS, required: notImport },
   { key: 'pic', label: 'PIC Dokumen', type: 'select', options: (c) => c.master.pic, required: true },
 ]
@@ -66,30 +67,22 @@ const filters: FilterDef<SopRec>[] = [
   { key: 'umur', label: 'Umur Dokumen', type: 'select', options: UMUR, match: (r, v) => umurBucket(r, todayStr()) === v },
 ]
 
-const mk = (c: Ctx, o: Partial<SopRec>): SopRec => ({
-  id: 'sample', no: 99, status: 'Aktif', createdAt: c.today, createdBy: '-', noDok: 'SOP-099-PAY', judul: 'Contoh SOP', ringkasan: 'Contoh', pemilik: 'Information Technology',
-  tglBerlaku: addDays(c.today, -400), tglUbah: addDays(c.today, -400), noRevisi: 'Rev.1', retensi: '5 Tahun', klasifikasi: 'Internal', file: null,
-  tglReview: addDays(c.today, 15), pic: 'Regie', ...o,
-})
 const alerts: AlertDef<SopRec>[] = [
   {
     key: 'due', label: 'Review mendekat', rule: `Tanggal review berikutnya ${REVIEW_WINDOW} hari lagi atau kurang.`,
     check: (r, c) => (isDue(r, c.today) ? { color: 'yellow', detail: `Review ${daysToReview(r, c.today)} hari lagi (${fmtDate(r.tglReview)})`, to: [toPic(r), 'Compliance Officer'] } : null),
-    sample: (c) => mk(c, { tglReview: addDays(c.today, 20) }),
   },
   {
     key: 'overdue', label: 'Review terlewat', rule: 'Tanggal review berikutnya sudah lewat dan dokumen belum dicabut.',
     check: (r, c) => (isOverdue(r, c.today) ? { color: 'red', detail: `Lewat review ${-(daysToReview(r, c.today) as number)} hari`, to: [toPic(r), 'Head CLRM'] } : null),
-    sample: (c) => mk(c, { tglReview: addDays(c.today, -12) }),
   },
   {
-    key: 'incomplete', label: 'Data belum lengkap', rule: 'Tanggal review, status, atau PIC Dokumen kosong (biasanya dari data impor).',
+    key: 'incomplete', label: 'Data belum lengkap', rule: 'Tanggal review (SOP belum Dicabut), status, atau PIC Dokumen kosong (biasanya dari data impor).',
     check: (r) => {
       if (!incomplete(r)) return null
-      const miss = [!r.tglReview && 'tanggal review', !r.status && 'status', !r.pic.trim() && 'PIC'].filter(Boolean).join(', ')
+      const miss = [live(r) && !r.tglReview && 'tanggal review', !r.status && 'status', !r.pic.trim() && 'PIC'].filter(Boolean).join(', ')
       return { color: 'yellow', detail: `Belum diisi: ${miss}`, to: ['Compliance Officer'] }
     },
-    sample: (c) => mk(c, { tglReview: '', pic: '' }),
   },
 ]
 
@@ -102,6 +95,8 @@ const cfg: PageConfig<SopRec> = {
   search: (r) => `${r.noDok} ${r.judul} ${r.ringkasan}`, searchPlaceholder: 'Cari no dokumen, judul, ringkasan',
   // Dicabut lewat Cancel diblokir shell (r.cancelled); Dicabut manual tetap bisa diedit/dipulihkan. PIC hanya PIC Dokumen miliknya.
   canEditRow: (r, c) => c.role !== 'PIC' || sameName(r.pic, c.user.name),
+  onChange: (n, k) => (k === 'tglBerlaku' ? { ...n, tglReview: n.tglBerlaku ? addYear(n.tglBerlaku) : '' } : n),
+  beforeSave: (_old, next) => ({ ...next, tglReview: next.tglBerlaku ? addYear(next.tglBerlaku) : '' }), // dipaksa saat simpan, apa pun isi form
   validate: (r, _mode, c) => {
     const e: Record<string, string> = {}
     const dup = (c.all('sop') as SopRec[]).find((x) => x.id !== r.id && x.noDok.trim().toLowerCase() === r.noDok.trim().toLowerCase())
@@ -140,3 +135,4 @@ const cfg: PageConfig<SopRec> = {
   },
 }
 export default function Sop() { return <PageShell config={cfg} /> }
+export { cfg as config } // dipakai pusat notifikasi (kit/notify.tsx)

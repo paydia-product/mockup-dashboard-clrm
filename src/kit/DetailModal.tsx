@@ -1,21 +1,23 @@
+import { useState } from 'react'
 import { FileText } from 'lucide-react'
 import { fmtDate, fmtSize, fmtTime, fmtTimeSec } from '../lib'
 import { Badge, Modal } from '../ui'
 import { fmtValue, isMasked, maskStr } from './fmt'
 import { LogPerubahan, kitHistory } from './history'
+import Reveal from './Reveal'
 import { useApp } from './store'
 import type { AlertDef, ApprovalReq, BaseRec, Ctx, Field, FileMeta, PageConfig } from './types'
 
 type R = Record<string, any> // eslint-disable-line @typescript-eslint/no-explicit-any
-const Row = ({ l, wide, children }: { l: string; wide?: boolean; children: React.ReactNode }) => (
-  <div className={wide ? 'col-span-2' : ''}><div className="text-xs text-slate-400">{l}</div><div className="mt-0.5 whitespace-pre-wrap text-slate-800">{children}</div></div>
+const Row = ({ l, wide, children, eye }: { l: string; wide?: boolean; children: React.ReactNode; eye?: React.ReactNode }) => (
+  <div className={wide ? 'col-span-2' : ''}><div className="text-xs text-slate-400">{l}{eye}</div><div className="mt-0.5 whitespace-pre-wrap text-slate-800">{children}</div></div>
 )
 const Dash = <span className="text-slate-400">-</span>
 
 function Value({ f, r, c }: { f: Field<any>; r: R; c: Ctx }) { // eslint-disable-line @typescript-eslint/no-explicit-any
   const v = f.auto ? f.auto(r, c) : r[f.key]
   if (v === undefined || v === null || v === '' || (Array.isArray(v) && !v.length)) return Dash
-  if (isMasked(f, c)) return <>{maskStr(String(v))}</>
+  if (isMasked(f, c) || (f.reveal?.(c) && !c.reveal?.[f.key])) return <>{maskStr(String(v))}</> // reveal: bawaan tersamar, tombol mata membuka
   if (f.type === 'file') { const m = v as FileMeta; return <span className="inline-flex items-center gap-1 text-brand"><FileText size={12} />{m.name} ({fmtSize(m.size)})</span> }
   if (f.type === 'list' && f.sub) {
     return (
@@ -30,10 +32,12 @@ function Value({ f, r, c }: { f: Field<any>; r: R; c: Ctx }) { // eslint-disable
 
 export default function DetailModal<T extends BaseRec>({ cfg, r, c, alerts, pending, onClose }: { cfg: PageConfig<T>; r: T; c: Ctx; alerts: { a: AlertDef<T>; hit: { color: 'yellow' | 'red'; detail: string; to: string[] } }[]; pending?: ApprovalReq; onClose: () => void }) {
   const { store } = useApp()
+  const [rev, setRev] = useState<Record<string, boolean>>({})
+  const cr = { ...c, reveal: rev }
   return (
     <Modal wide title="Detail" onClose={onClose}>
       <div className="space-y-4">
-        {alerts.length > 0 && <div className="flex flex-wrap gap-1.5">{alerts.map(({ a, hit }) => <Badge key={a.key} tone={hit.color} title={`${a.label} (${hit.detail}). Dikirim ke: ${hit.to.join(', ')}`}>{a.label}: {hit.detail}</Badge>)}</div>}
+        {alerts.length > 0 && <div className="flex flex-wrap gap-1.5">{alerts.map(({ a, hit }) => <Badge key={a.key} tone={hit.color} title={`${a.label} (${hit.detail}). Penerima notifikasi: ${hit.to.join(', ')}`}>{a.label}: {hit.detail}</Badge>)}</div>}
         {pending && (
           <div className="rounded border border-yellow-300 bg-yellow-50 p-3 text-xs">
             <div className="font-semibold text-yellow-800">Menunggu persetujuan {pending.approver}</div>
@@ -48,7 +52,7 @@ export default function DetailModal<T extends BaseRec>({ cfg, r, c, alerts, pend
         <div className="grid grid-cols-2 gap-x-6 gap-y-3">
           <Row l="Tanggal Dibuat">{fmtTimeSec(r.createdAt)}</Row>
           {cfg.fields.filter((f) => f.key !== 'no' && (!f.showIf || f.showIf(r))).map((f) => (
-            <Row key={f.key} l={f.label} wide={f.wide ?? ['textarea', 'list', 'checklist', 'multiselect', 'multidrop'].includes(f.type)}><Value f={f} r={r} c={c} /></Row>
+            <Row key={f.key} l={f.label} wide={f.wide ?? ['textarea', 'list', 'checklist', 'multiselect', 'multidrop'].includes(f.type)} eye={!f.mask?.(c) && f.reveal?.(c) ? <Reveal on={!!rev[f.key]} toggle={() => setRev((p) => ({ ...p, [f.key]: !p[f.key] }))} label={f.label} /> : undefined}><Value f={f} r={r} c={cr} /></Row>
           ))}
         </div>
         <LogPerubahan items={kitHistory(r, cfg.module, cfg.title, store)} />

@@ -20,7 +20,7 @@ export const AlertBadges = ({ list }: { list: AlertInfo[] }) =>
   list.length ? (
     <div className="flex flex-col items-start gap-1">
       {list.map((a) => (
-        <Badge key={a.key} tone={a.color} title={`${a.label} (${a.detail}). Dikirim ke: ${a.to.join(', ')}`}>{a.label}</Badge>
+        <Badge key={a.key} tone={a.color} title={`${a.label} (${a.detail}). Penerima notifikasi: ${a.to.join(', ')}`}>{a.label}</Badge>
       ))}
     </div>
   ) : <span className="text-slate-300">-</span>
