@@ -54,7 +54,7 @@ export const KajianGuide: GuideItem[] = [
   { h: 'Notifikasi', b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah. Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Gunakan "Tandai semua dibaca" untuk mengosongkan penghitung.</p>
 <ul>
 <li><b>Lewat batas waktu</b> (merah): Tanggal Batas terlewat dan status belum Selesai atau Batal. Penerima: PIC, Head CLRM.</li>
-<li><b>Mendekati batas waktu</b> (kuning): Tanggal Batas tinggal 2 hari kerja atau kurang (Senin-Jumat) dan belum Selesai atau Batal. Penerima: PIC.</li>
+<li><b>Mendekati batas waktu</b> (kuning): Tanggal Batas tinggal 2 hari kerja atau kurang (Senin-Jumat) dan belum Selesai atau Batal — judul notifikasi berubah menjadi "Kajian jatuh tempo hari ini" bila tenggatnya hari ini. Penerima: PIC.</li>
 <li><b>Selesai tanpa hasil</b> (kuning): status Selesai tetapi Hasil / Opini kosong. Penerima: PIC, Risk Officer.</li>
 <li><b>Jadwal evaluasi mitra akan tiba / terlewat</b>: hanya Jenis Vendor yang punya Tanggal Due Diligence. Kuning bila 30 hari lagi atau kurang, merah bila sudah lewat. Penerima: PIC, Risk Officer.</li>
 </ul>` },

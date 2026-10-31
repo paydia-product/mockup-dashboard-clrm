@@ -12,7 +12,7 @@ export const KontrakGuide: GuideItem[] = [
 </ol>` },
   { h: 'Dashboard', b: `<p>Dashboard menghitung kontrak yang tidak <b>Dibatalkan</b>. Filter <b>Periode Tanggal Mulai</b> di atas dashboard membatasi data menurut Tanggal Mulai kontrak. Kosong berarti semua data.</p>
 <ul>
-<li><b>Enam kartu masa berlaku</b>: Aktif lebih dari 90 hari, berakhir 60 sampai 90 hari, berakhir 30 sampai 60 hari, berakhir 30 hari atau kurang, Expired, dan Tanggal Berakhir kosong. Klik kartu untuk membuka Table dengan filter <b>Kelompok masa berlaku</b>.</li>
+<li><b>Enam kartu masa berlaku</b>: Aktif lebih dari 90 hari, berakhir 60 sampai 90 hari, berakhir 30 sampai 60 hari, berakhir 30 hari atau kurang, Kedaluwarsa, dan Tanggal Berakhir kosong. Klik kartu untuk membuka Table dengan filter <b>Kelompok masa berlaku</b>.</li>
 <li>Kontrak berstatus Draft, Review, Diperpanjang, atau Berakhir yang punya Tanggal Berakhir tidak masuk kartu mana pun.</li>
 <li><b>Kontrak per jenis dokumen</b>: batang mendatar, klik batang untuk membuka Table terfilter Jenis Dokumen.</li>
 <li><b>Kontrak baru per bulan</b>: garis jumlah kontrak menurut bulan Tanggal Mulai. Grafik ini punya filter <b>Periode</b> sendiri (bawaan 12 bulan terakhir) dan tidak ikut Periode halaman.</li>
@@ -39,7 +39,7 @@ export const KontrakGuide: GuideItem[] = [
 <li><b>Jenis Dokumen</b> dipilih dari Master Data <b>Jenis PKS Kontrak</b> (ditambah Lainnya).</li>
 <li><b>Lainnya</b>: pada Jenis Hubungan, Jenis Dokumen, dan Bidang Usaha, memilih Lainnya memunculkan isian teks bebas yang wajib diisi. Tabel menampilkan "Lainnya", Detail dan Export menampilkan teks aslinya. Grafik per Jenis Dokumen menghitung teks bebas sebagai Lainnya.</li>
 <li><b>File Perjanjian</b>: PDF, JPG, JPEG, atau PNG. Maksimal 25 MB, satu file.</li>
-<li><b>Sisa Hari</b> terisi otomatis dari Tanggal Berakhir. <b>Status</b> Aktif atau Akan Berakhir berubah otomatis: lewat tanggal menjadi Expired, sisa 90 hari atau kurang menjadi Akan Berakhir, selebihnya Aktif. Status lain (Draft, Review, Diperpanjang, Berakhir, Expired) tidak diubah otomatis.</li>
+<li><b>Sisa Hari</b> terisi otomatis dari Tanggal Berakhir. <b>Status</b> Aktif atau Akan Berakhir berubah otomatis: lewat tanggal menjadi Kedaluwarsa, sisa 90 hari atau kurang menjadi Akan Berakhir, selebihnya Aktif. Status lain (Draft, Review, Diperpanjang, Berakhir, Kedaluwarsa) tidak diubah otomatis.</li>
 <li><b>Alasan perubahan</b> di form Edit bersifat opsional pada halaman ini.</li>
 <li>Halaman ini tidak memakai approval. Perubahan langsung tersimpan.</li>
 <li><b>Siapa boleh</b>: Tambah oleh Legal Officer. Edit oleh Legal Officer dan PIC. PIC hanya boleh mengedit kontrak yang PIC-nya namanya sendiri atau Unit Pemilik-nya sama dengan unitnya, dan hanya isian <b>Tanggal Berakhir, Perpanjangan, Lama Perpanjangan, dan Status</b>. Isian lain terkunci.</li>
@@ -58,7 +58,7 @@ export const KontrakGuide: GuideItem[] = [
   { h: 'Notifikasi', b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah. Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Gunakan "Tandai semua dibaca" untuk mengosongkan penghitung.</p>
 <ul>
 <li><b>Kontrak akan berakhir</b>: muncul bila kontrak Aktif atau Akan Berakhir punya sisa 0 sampai 90 hari. <b>Kuning</b> bila sisa lebih dari 30 hari, <b>merah</b> bila 30 hari atau kurang. Penerima: Legal Officer dan PIC kontrak. Pengingat berlaku pada tahap H-90, H-60, H-30, dan H-7.</li>
-<li><b>Kontrak kedaluwarsa belum diperpanjang</b>: muncul bila status Expired, atau Tanggal Berakhir sudah lewat. <b>Merah</b>. Penerima: Legal Officer dan Head CLRM.</li>
+<li><b>Kontrak kedaluwarsa belum diperpanjang</b>: muncul bila status Kedaluwarsa, atau Tanggal Berakhir sudah lewat. <b>Merah</b>. Penerima: Legal Officer dan Head CLRM.</li>
 <li><b>Tanggal berakhir kontrak belum diisi</b>: muncul bila Tanggal Berakhir belum diisi (kecuali status Berakhir atau Dibatalkan). <b>Kuning</b>. Penerima: Legal Officer.</li>
 </ul>` },
   { h: 'Export Excel', b: `<ul>

@@ -18,19 +18,19 @@ const HUBUNGAN = ['Merchant', 'Partner-Vendor', 'Paybuddy', 'NDA', 'Lainnya']
 // Jenis Dokumen = master Jenis PKS Kontrak + Lainnya (teks bebas)
 const jenisDok = (c?: Ctx) => withLainnya((c?.master ?? getStore().master).jenisPks)
 const PERPANJANGAN = ['Otomatis', 'Manual', 'Sampai Diputus', 'Tidak Diperpanjang']
-const STATUS = ['Draft', 'Review', 'Aktif', 'Akan Berakhir', 'Expired', 'Diperpanjang', 'Berakhir']
+const STATUS = ['Draft', 'Review', 'Aktif', 'Akan Berakhir', 'Kedaluwarsa', 'Diperpanjang', 'Berakhir']
 const BIDANG = ['F&B', 'Retail', 'Jasa', 'Pendidikan', 'Lainnya']
 const isMerchant = (r: Kontrak) => r.jenisHubungan === 'Merchant'
 const nm = (r: Kontrak) => (isMerchant(r) ? r.merchant : r.mitra) // Merchant = teks bebas; selain itu = master Mitra Vendor
 const LIVE = (r: Kontrak) => r.status === 'Aktif' || r.status === 'Akan Berakhir'
-const G = { d30: '≤30 hari', d60: '30–60 hari', d90: '60–90 hari', over: '>90 hari', exp: 'Expired', empty: 'Kosong' }
+const G = { d30: '≤30 hari', d60: '30–60 hari', d90: '60–90 hari', over: '>90 hari', exp: 'Kedaluwarsa', empty: 'Kosong' }
 const GROUPS = [G.d30, G.d60, G.d90, G.over, G.exp, G.empty]
 
 const sisa = (r: Kontrak, today: string) => (r.berakhir ? diffDays(r.berakhir, today) : null)
-// Kelompok masa berlaku: hanya kontrak berjalan (Aktif / Akan Berakhir), ditambah Expired dan Kosong.
+// Kelompok masa berlaku: hanya kontrak berjalan (Aktif / Akan Berakhir), ditambah Kedaluwarsa dan Kosong.
 const grup = (r: Kontrak, today: string) => {
   if (!r.berakhir) return r.status === 'Berakhir' || r.status === 'Dibatalkan' || r.cancelled ? '' : G.empty // sama dengan alert "Tanggal berakhir kosong"
-  if (r.status === 'Expired') return G.exp
+  if (r.status === 'Kedaluwarsa') return G.exp
   if (!LIVE(r)) return ''
   const s = sisa(r, today)!
   return s <= 30 ? G.d30 : s <= 60 ? G.d60 : s <= 90 ? G.d90 : G.over
@@ -50,7 +50,7 @@ const fields: Field<Kontrak>[] = [
   { key: 'berakhir', label: 'Tanggal Berakhir', type: 'date', help: 'Boleh kosong (masuk kartu "Kontrak Tanggal Berakhir Kosong").' },
   { key: 'perpanjangan', label: 'Perpanjangan', type: 'select', options: PERPANJANGAN, required: true },
   { key: 'lamaBulan', label: 'Lama Perpanjangan (bulan)', type: 'number', required: needsLama, showIf: needsLama },
-  { key: 'status', label: 'Status', type: 'select', options: STATUS, required: true, help: 'Aktif otomatis menjadi Akan Berakhir (≤90 hari) atau Expired menurut Tanggal Berakhir.' },
+  { key: 'status', label: 'Status', type: 'select', options: STATUS, required: true, help: 'Aktif otomatis menjadi Akan Berakhir (≤90 hari) atau Kedaluwarsa menurut Tanggal Berakhir.' },
   { key: 'bidang', label: 'Bidang Usaha', type: 'select', options: BIDANG, editableBy: notPic },
   { key: 'pic', label: 'PIC', type: 'select', options: (c) => c.master.pic, required: (r) => !r.dept, editableBy: notPic, help: 'Isi PIC atau Unit Pemilik, salah satu wajib.' },
   { key: 'dept', label: 'Unit Pemilik (Unit Kerja)', type: 'select', options: (c) => c.master.unitKerja, required: (r) => !r.pic, editableBy: notPic },
@@ -98,8 +98,8 @@ const alerts: AlertDef<Kontrak>[] = [
     key: 'expired', label: 'Kontrak kedaluwarsa belum diperpanjang', rule: 'Tanggal Berakhir terlewat dan kontrak belum diperpanjang. Merah.',
     check: (r, c) => {
       const s = sisa(r, c.today)
-      const lewat = r.status === 'Expired' || (LIVE(r) && s !== null && s < 0)
-      return lewat ? { color: 'red', detail: `Expired ${s !== null ? Math.abs(s) : '?'} hari lalu`, to: ['Legal Officer', 'Head CLRM'] } : null
+      const lewat = r.status === 'Kedaluwarsa' || (LIVE(r) && s !== null && s < 0)
+      return lewat ? { color: 'red', detail: `Kedaluwarsa ${s !== null ? Math.abs(s) : '?'} hari lalu`, to: ['Legal Officer', 'Head CLRM'] } : null
     },
   },
   {
@@ -121,7 +121,7 @@ function seed(today: string): Kontrak[] {
     ['Merchant', 'PKS QRIS', 330, 85, 'Akan Berakhir', 'Manual'], ['Partner-Vendor', 'Biller Gateway', 450, 70, 'Akan Berakhir', 'Otomatis'], ['Merchant', 'Program Peningkatan Transaksi', 200, 62, 'Akan Berakhir', 'Manual'],
     ['Merchant', 'PKS QRIS', 320, 55, 'Akan Berakhir', 'Manual'], ['Partner-Vendor', 'Payout', 380, 45, 'Akan Berakhir', 'Otomatis'], ['Paybuddy', 'Account Linkage', 360, 35, 'Akan Berakhir', 'Manual'],
     ['Merchant', 'PKS QRIS', 340, 28, 'Akan Berakhir', 'Manual'], ['NDA', 'NDA', 700, 15, 'Akan Berakhir', 'Tidak Diperpanjang'], ['Partner-Vendor', 'Biller Gateway', 355, 6, 'Akan Berakhir', 'Otomatis'],
-    ['Merchant', 'PKS QRIS', 400, -20, 'Aktif', 'Manual'], ['Paybuddy', 'Payout', 500, -45, 'Expired', 'Manual'], ['Merchant', 'PKS QRIS', 420, -8, 'Expired', 'Tidak Diperpanjang'],
+    ['Merchant', 'PKS QRIS', 400, -20, 'Aktif', 'Manual'], ['Paybuddy', 'Payout', 500, -45, 'Kedaluwarsa', 'Manual'], ['Merchant', 'PKS QRIS', 420, -8, 'Kedaluwarsa', 'Tidak Diperpanjang'],
     ['Merchant', 'PKS QRIS', 100, null, 'Aktif', 'Sampai Diputus'], ['Partner-Vendor', 'Lainnya', 60, null, 'Review', 'Manual'],
     ['NDA', 'NDA', 90, 400, 'Aktif', 'Tidak Diperpanjang'], ['NDA', 'NDA', 150, 330, 'Aktif', 'Tidak Diperpanjang'], ['Lainnya', 'Lainnya', 40, 500, 'Aktif', 'Otomatis'],
     ['Merchant', 'PKS QRIS', 15, 350, 'Draft', 'Manual'], ['Partner-Vendor', 'Biller Gateway', 20, 700, 'Review', 'Otomatis'], ['Merchant', 'Program Peningkatan Transaksi', 520, -150, 'Berakhir', 'Tidak Diperpanjang'],
@@ -156,7 +156,7 @@ const cfg: PageConfig<Kontrak> = {
   normalize: (r, c) => {
     if (!LIVE(r) || !r.berakhir) return r
     const s = diffDays(r.berakhir, c.today)
-    const status = s < 0 ? 'Expired' : s <= 90 ? 'Akan Berakhir' : 'Aktif'
+    const status = s < 0 ? 'Kedaluwarsa' : s <= 90 ? 'Akan Berakhir' : 'Aktif'
     return status === r.status ? r : { ...r, status }
   },
   // ganti Jenis Hubungan: kosongkan isian nama yang tidak lagi cocok (Merchant = teks bebas, lainnya = dropdown master)
@@ -186,14 +186,14 @@ const cfg: PageConfig<Kontrak> = {
             'Aktif > 90 hari (hijau): sisa lebih dari 90 hari.',
             'Berakhir 60 sampai 90 hari (kuning): sisa 61 sampai 90 hari. Berakhir 30 sampai 60 hari (kuning): sisa 31 sampai 60 hari.',
             'Berakhir < 30 hari (merah): sisa 0 sampai 30 hari.',
-            'Expired (merah): status Expired, Tanggal Berakhir sudah lewat.',
+            'Kedaluwarsa (merah): status Kedaluwarsa, Tanggal Berakhir sudah lewat.',
             'Tanggal Berakhir Kosong (kuning): kontrak tanpa Tanggal Berakhir, kecuali status Berakhir atau Dibatalkan.',
             'Kontrak berstatus Draft, Review, Diperpanjang, atau Berakhir yang punya Tanggal Berakhir tidak masuk kartu mana pun.',
             'Klik kartu untuk membuka tab Table dengan filter Kelompok masa berlaku yang sama.',
           ],
         }} items={[
           card('Kontrak Aktif > 90 hari', G.over, 'green'), card('Kontrak Berakhir 60–90 hari', G.d90, 'yellow'), card('Kontrak Berakhir 30–60 hari', G.d60, 'yellow'),
-          card('Kontrak Berakhir < 30 hari', G.d30, 'red'), card('Kontrak Expired', G.exp, 'red'), card('Kontrak Tanggal Berakhir Kosong', G.empty, 'yellow'),
+          card('Kontrak Berakhir < 30 hari', G.d30, 'red'), card('Kontrak Kedaluwarsa', G.exp, 'red'), card('Kontrak Tanggal Berakhir Kosong', G.empty, 'yellow'),
         ]} />
         <div className="grid gap-3 lg:grid-cols-2">
           <BarCard title="Kontrak per jenis dokumen" info={{

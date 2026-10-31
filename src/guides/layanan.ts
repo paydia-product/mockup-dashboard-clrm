@@ -53,7 +53,7 @@ export const LayananGuide: GuideItem[] = [
   { h: 'Notifikasi', b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah. Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Gunakan "Tandai semua dibaca" untuk mengosongkan penghitung. Notifikasi hanya muncul untuk permintaan berstatus Baru atau Proses. Hari kerja dihitung Senin sampai Jumat, tanpa libur nasional.</p>
 <ul>
 <li><b>Lewat batas waktu</b>: muncul bila Tanggal Batas sudah terlewat. <b>Merah</b>. Penerima: PIC permintaan dan Head CLRM.</li>
-<li><b>Mendekati batas waktu</b>: muncul bila Tanggal Batas tinggal 2 hari kerja atau kurang (belum lewat). <b>Kuning</b>. Penerima: PIC permintaan.</li>
+<li><b>Mendekati batas waktu</b>: muncul bila Tanggal Batas tinggal 2 hari kerja atau kurang (belum lewat). <b>Kuning</b> — judul notifikasi berubah menjadi "Permintaan layanan hukum jatuh tempo hari ini" bila tenggatnya hari ini. Penerima: PIC permintaan.</li>
 <li><b>Belum punya PIC</b>: muncul bila PIC masih kosong lebih dari 1 hari kerja sejak Tanggal Masuk. <b>Kuning</b>. Penerima: Head CLRM.</li>
 </ul>` },
   { h: 'Export Excel', b: `<ul>

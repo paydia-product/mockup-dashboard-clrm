@@ -11,6 +11,18 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
+    v: '2.13.8',
+    date: '2026-10-31',
+    deployed: true,
+    title: 'Expired jadi Kedaluwarsa, panduan judul hari ini',
+    prompt: 'Ganti Expired menjadi Kedaluwarsa di Kontrak; panduan alert menjelaskan judul "jatuh tempo hari ini"',
+    tokens: 20000,
+    changes: [
+      'Kontrak: status Expired menjadi Kedaluwarsa di semua tampilan, kartu dashboard, grafik, ekspor, panduan, dan notifikasi; data lama dimigrasi (kunci penyimpanan v17)',
+      'Panduan Temuan, Laporan, Kajian, Layanan Hukum, dan SOP menjelaskan judul notifikasi "jatuh tempo hari ini" bila tenggatnya hari ini',
+    ],
+  },
+  {
     v: '2.13.7',
     date: '2026-10-31',
     deployed: true,

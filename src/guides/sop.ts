@@ -47,8 +47,8 @@ export const SopGuide: GuideItem[] = [
 <p>Bagian <b>Log Perubahan</b> mencatat: data dibuat (siapa dan kapan), perubahan data (nilai sebelum dan sesudah, siapa, kapan, alasan), pembatalan, dan pengembalian beserta alasannya.</p>` },
   { h: 'Notifikasi', b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah. Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Gunakan "Tandai semua dibaca" untuk mengosongkan penghitung.</p>
 <ul>
-<li><b>Peninjauan akan tiba</b> (kuning): Tanggal Peninjauan Berikutnya 30 hari lagi atau kurang, dan SOP belum Dicabut. Penerima: PIC Dokumen, Compliance Officer.</li>
-<li><b>Peninjauan terlewat</b> (merah): Tanggal Peninjauan Berikutnya sudah lewat dan SOP belum Dicabut. Penerima: PIC Dokumen, Head CLRM.</li>
+<li><b>Peninjauan akan tiba</b> (kuning): Tanggal Peninjauan Berikutnya 30 hari lagi atau kurang, dan SOP belum Dicabut — judul notifikasi berubah menjadi "Peninjauan SOP jatuh tempo hari ini" bila peninjauan jatuh hari ini. Penerima: PIC Dokumen, Compliance Officer.</li>
+<li><b>Peninjauan terlewat</b> (merah): Tanggal Peninjauan Berikutnya sudah lewat dan SOP belum Dicabut — judul notifikasi berubah menjadi "Peninjauan SOP jatuh tempo hari ini" bila peninjauan jatuh hari ini. Penerima: PIC Dokumen, Head CLRM.</li>
 <li><b>Data belum lengkap</b> (kuning): Tanggal Peninjauan (SOP belum Dicabut), Status, atau PIC Dokumen kosong. Penerima: Compliance Officer.</li>
 </ul>
 <p>Contoh pesan: "SOP [judul] perlu ditinjau sebelum [tanggal] (30 hari lagi)". SOP berstatus <b>Dicabut</b> tidak memicu notifikasi peninjauan dan tidak dihitung di angka, grafik, maupun tabel peninjauan.</p>` },

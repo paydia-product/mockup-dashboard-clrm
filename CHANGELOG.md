@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 2.13.8 | 2026-10-31 | ~20k |
 | 2.13.7 | 2026-10-31 | ~40k |
 | 2.13.6 | 2026-10-31 | ~40k |
 | 2.13.5 | 2026-10-31 | ~40k |
@@ -52,6 +53,12 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [2.13.8] - 2026-10-31
+
+### Diperbaiki
+- Kontrak: status "Expired" menjadi "Kedaluwarsa" di opsi status, filter, tabel, detail, ekspor, kartu dashboard "Kontrak Kedaluwarsa", grafik, panduan, dan notifikasi; nilai tersimpan ikut diganti dan data lama dimigrasi saat load() (kunci penyimpanan v16 menjadi v17)
+- Panduan Temuan, Laporan, Kajian, Layanan Hukum, dan SOP: butir alert menjelaskan judul notifikasi "... jatuh tempo hari ini" bila tenggatnya hari ini
 
 ## [2.13.7] - 2026-10-31
 

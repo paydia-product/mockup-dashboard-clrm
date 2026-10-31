@@ -104,7 +104,7 @@ export const TRACKER_GUIDE: GuideItem[] = [
     h: 'Notifikasi',
     b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah. Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Gunakan "Tandai semua dibaca" untuk mengosongkan penghitung. Hanya temuan yang belum Selesai dan tidak Dibatalkan yang memicu notifikasi.</p>
 <ul>
-<li><b>Temuan mendekati batas waktu</b> (kuning). Muncul bila Batas Waktu tinggal 7 hari atau kurang dan belum terlewat. Penerima: <b>PIC</b> temuan.</li>
+<li><b>Temuan mendekati batas waktu</b> (kuning). Muncul bila Batas Waktu tinggal 7 hari atau kurang dan belum terlewat — judul notifikasi berubah menjadi "Temuan jatuh tempo hari ini" bila tenggatnya hari ini. Penerima: <b>PIC</b> temuan.</li>
 <li><b>Temuan lewat batas waktu</b> (merah). Muncul bila Batas Waktu sudah terlewat. Penerima: <b>PIC</b> dan <b>Head CLRM</b>. Bila terlambat lebih dari 7 hari, <b>Direktur terkait</b> ikut menerima.</li>
 <li><b>Menunggu validasi terlalu lama</b> (kuning). Muncul bila status Menunggu Validasi lebih dari 7 hari. Penerima: <b>Compliance Officer</b> dan <b>Head CLRM</b>.</li>
 </ul>
