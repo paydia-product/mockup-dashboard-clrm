@@ -116,7 +116,7 @@ const WORDS: Record<string, Word> = {
     const m = d.match(/^Berakhir (.+) \((.+)\)$/)
     return `${s} ${m ? `berakhir pada ${m[2]} (${m[1]})` : lc(d)}. Siapkan perpanjangan atau penggantian.`
   }],
-  'kontrak.expired': [sameLabel, (s, d) => `${s} sudah kedaluwarsa ${d.replace(/^kedaluwarsa /i, '')}. Segera perpanjang atau tutup kontrak.`],
+  'kontrak.expired': [sameLabel, (s, d) => `${s} sudah kedaluwarsa${d.replace(/^kedaluwarsa/i, '').replace(/^ /, ' ')}. Segera perpanjang atau tutup kontrak.`],
   'kontrak.kosong': [sameLabel, (s) => `${s} belum memiliki Tanggal Berakhir. Lengkapi datanya.`],
   'aph.bap': [sameLabel, (s, d) => {
     const m = d.match(/^BAP (.+) \((.+)\)$/)

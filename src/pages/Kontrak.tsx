@@ -99,7 +99,7 @@ const alerts: AlertDef<Kontrak>[] = [
     check: (r, c) => {
       const s = sisa(r, c.today)
       const lewat = r.status === 'Kedaluwarsa' || (LIVE(r) && s !== null && s < 0)
-      return lewat ? { color: 'red', detail: `Kedaluwarsa ${s !== null ? Math.abs(s) : '?'} hari lalu`, to: ['Legal Officer', 'Head CLRM'] } : null
+      return lewat ? { color: 'red', detail: s !== null ? `Kedaluwarsa ${Math.abs(s)} hari lalu` : 'Kedaluwarsa', to: ['Legal Officer', 'Head CLRM'] } : null
     },
   },
   {

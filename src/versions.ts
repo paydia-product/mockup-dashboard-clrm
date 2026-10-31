@@ -11,6 +11,15 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
+    v: '2.13.9',
+    date: '2026-10-31',
+    deployed: true,
+    title: 'Notifikasi kontrak kedaluwarsa tanpa tanggal berakhir',
+    prompt: 'Perbaiki teks "? hari lalu" pada kontrak kedaluwarsa tanpa Tanggal Berakhir',
+    tokens: 10000,
+    changes: ['Kontrak berstatus Kedaluwarsa tanpa Tanggal Berakhir: notifikasi berbunyi "sudah kedaluwarsa." tanpa "? hari lalu"'],
+  },
+  {
     v: '2.13.8',
     date: '2026-10-31',
     deployed: true,

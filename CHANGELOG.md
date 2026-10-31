@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 2.13.9 | 2026-10-31 | ~10k |
 | 2.13.8 | 2026-10-31 | ~20k |
 | 2.13.7 | 2026-10-31 | ~40k |
 | 2.13.6 | 2026-10-31 | ~40k |
@@ -53,6 +54,11 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [2.13.9] - 2026-10-31
+
+### Diperbaiki
+- Kontrak Kedaluwarsa tanpa Tanggal Berakhir: notifikasi tidak lagi menampilkan "? hari lalu"
 
 ## [2.13.8] - 2026-10-31
 
