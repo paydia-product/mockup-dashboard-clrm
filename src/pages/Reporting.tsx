@@ -179,16 +179,16 @@ function seed(today: string): Laporan[] {
   }
   // H-7, H-3, H-1
   push(by('Laporan Keuangan UnAudited', 'Triwulanan'), { status: 'Review', batas: `${addDays(today, 7)}`, periode: 'Triwulan 3 2026' })
-  push(by('Pengguna QRIS', 'Bulanan'), { status: 'Disusun', batas: `${addDays(today, 3)}`, periode: 'Bulan berjalan' })
-  push(by('QRIS Transaksi', 'Mingguan'), { status: 'Belum Disiapkan', batas: `${addDays(today, 1)}`, periode: 'Minggu berjalan' })
+  push(by('Pengguna QRIS', 'Bulanan'), { status: 'Disusun', batas: `${addDays(today, 3)}` })
+  push(by('QRIS Transaksi', 'Mingguan'), { status: 'Belum Disiapkan', batas: `${addDays(today, 1)}` })
   // jatuh tempo jauh
   push(by('Laporan Rencana Edukasi Plan', 'Tahunan'), { status: 'Belum Disiapkan', batas: `${addDays(today, 25)}`, periode: 'Tahun 2026' })
   push(by('Laporan Tahunan SP', 'Tahunan'), { status: 'Belum Disiapkan', batas: `${addDays(today, 40)}`, periode: 'Tahun 2026' })
   // terlambat (status dihitung normalize)
-  push(by('Dana Float', 'Harian'), { status: 'Disusun', batas: `${addDays(today, -3)}`, periode: 'Hari lalu', alasan: 'Menunggu rekonsiliasi saldo dari Finance.' })
+  push(by('Dana Float', 'Harian'), { status: 'Disusun', batas: `${addDays(today, -3)}`, alasan: 'Menunggu rekonsiliasi saldo dari Finance.' })
   push(by('Laporan Keuangan Audited', 'Tahunan'), { status: 'Review', batas: `${addDays(today, -6)}`, periode: 'Tahun 2025', alasan: 'Review internal belum selesai.' })
   // terkirim tanpa bukti
-  push(by('Laporan Data Fraud Transaksi Sistem Pembayaran', 'Bulanan'), { batas: `${addDays(today, -2)}`, tglSubmit: `${addDays(today, -3)}T15:00`, periode: 'Bulan lalu' })
+  push(by('Laporan Data Fraud Transaksi Sistem Pembayaran', 'Bulanan'), { batas: `${addDays(today, -2)}`, tglSubmit: `${addDays(today, -3)}T15:00` })
   // insiden siber dengan jam berjalan
   push(SIBER, { status: 'Disusun', jenis: 'Insidental', siber: 'Ya', waktuKejadian: agoLocal(30 * 60), waktuNotif: agoLocal(29 * 60), batas: `${addDays(today, 2)}`, periode: 'Insiden akses tidak sah' })
   push(SIBER, { status: 'Belum Disiapkan', jenis: 'Insidental', siber: 'Ya', waktuKejadian: agoLocal(50), batas: `${addDays(today, 3)}`, periode: 'Insiden DDoS' })

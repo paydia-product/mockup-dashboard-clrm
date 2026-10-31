@@ -54,7 +54,7 @@ export const PerizinanGuide: GuideItem[] = [
 <li>Bagian <b>Log Perubahan</b> mencatat: data dibuat, perubahan data (kolom sebelum dan sesudah), pembatalan, dan pengembalian. Setiap entri memuat siapa, kapan, dan alasan bila diisi.</li>
 <li>Terbaru di atas.</li>
 </ul>` },
-  { h: 'Notifikasi', b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah; Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Tombol "Tandai semua dibaca" menandai semuanya sudah dibaca. Notifikasi hanya untuk dokumen yang tidak Tidak Berlaku dan yang punya Tanggal Kedaluwarsa.</p>
+  { h: 'Notifikasi', b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah. Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Tombol "Tandai semua dibaca" menandai semuanya sudah dibaca. Notifikasi hanya muncul untuk dokumen yang statusnya bukan Tidak Berlaku dan yang punya Tanggal Kedaluwarsa.</p>
 <ul>
 <li><b>Izin akan kedaluwarsa</b>: muncul bila sisa 0 sampai 180 hari dan status belum Kedaluwarsa. <b>Kuning</b> bila 91 sampai 180 hari, <b>merah</b> bila 90 hari atau kurang. Penerima: Legal Officer dan Head CLRM.</li>
 <li><b>Izin kedaluwarsa belum diperpanjang</b>: muncul bila Tanggal Kedaluwarsa sudah lewat dan status bukan Dalam Perpanjangan. <b>Merah</b>. Penerima: Legal Officer, Head CLRM, dan Direksi.</li>

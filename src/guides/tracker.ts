@@ -102,7 +102,7 @@ export const TRACKER_GUIDE: GuideItem[] = [
   },
   {
     h: 'Notifikasi',
-    b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah; Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Tombol "Tandai semua dibaca" menandai semuanya sudah dibaca. Hanya temuan yang belum Selesai dan tidak Dibatalkan yang memicu notifikasi.</p>
+    b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah. Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Tombol "Tandai semua dibaca" menandai semuanya sudah dibaca. Hanya temuan yang belum Selesai dan tidak Dibatalkan yang memicu notifikasi.</p>
 <ul>
 <li><b>Temuan hampir jatuh tempo</b> (kuning). Muncul bila Batas Waktu tinggal 7 hari atau kurang dan belum terlewat. Penerima: <b>PIC</b> temuan.</li>
 <li><b>Temuan lewat batas waktu</b> (merah). Muncul bila Batas Waktu sudah terlewat. Penerima: <b>PIC</b> dan <b>Head CLRM</b>. Bila terlambat lebih dari 7 hari, <b>Direktur terkait</b> ikut menerima.</li>

@@ -45,13 +45,13 @@ export const SopGuide: GuideItem[] = [
 </ul>` },
   { h: 'Detail & Log Perubahan', b: `<p>Klik <b>Lihat Detail</b> untuk melihat semua isian, badge alert yang aktif, dan keterangan pembatalan (siapa, kapan, alasan, status sebelumnya).</p>
 <p>Bagian <b>Log Perubahan</b> mencatat: data dibuat (siapa dan kapan), perubahan data (nilai sebelum dan sesudah, siapa, kapan, alasan), pembatalan, dan pengembalian beserta alasannya.</p>` },
-  { h: 'Notifikasi', b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah; Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Tombol "Tandai semua dibaca" menandai semuanya sudah dibaca.</p>
+  { h: 'Notifikasi', b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah. Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Tombol "Tandai semua dibaca" menandai semuanya sudah dibaca.</p>
 <ul>
 <li><b>Review mendekat</b> (kuning): Tanggal Review Berikutnya 30 hari lagi atau kurang, dan SOP belum Dicabut. Penerima: PIC Dokumen, Compliance Officer.</li>
 <li><b>Review terlewat</b> (merah): Tanggal Review Berikutnya sudah lewat dan SOP belum Dicabut. Penerima: PIC Dokumen, Head CLRM.</li>
 <li><b>Data belum lengkap</b> (kuning): Tanggal Review (SOP belum Dicabut), Status, atau PIC Dokumen kosong. Penerima: Compliance Officer.</li>
 </ul>
-<p>Contoh pesan: "SOP [judul] perlu direview sebelum [tanggal] (H-30)". SOP berstatus <b>Dicabut</b> tidak memicu notifikasi review dan tidak dihitung di angka, grafik, maupun tabel review.</p>` },
+<p>Contoh pesan: "SOP [judul] perlu direview sebelum [tanggal] (30 hari lagi)". SOP berstatus <b>Dicabut</b> tidak memicu notifikasi review dan tidak dihitung di angka, grafik, maupun tabel review.</p>` },
   { h: 'Export Excel', b: `<ul>
 <li>Mengekspor baris yang tampil di Table, sesuai pencarian dan filter yang aktif.</li>
 <li>Kolom: Nomor, Tanggal Dibuat, lalu semua isian SOP. Kolom file berisi nama file.</li>

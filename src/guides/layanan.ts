@@ -50,7 +50,7 @@ export const LayananGuide: GuideItem[] = [
 <li>Bagian <b>Log Perubahan</b> mencatat: data dibuat, perubahan data (kolom sebelum dan sesudah), pembatalan, dan pengembalian. Setiap entri memuat siapa, kapan, dan alasan bila diisi.</li>
 <li>Terbaru di atas.</li>
 </ul>` },
-  { h: 'Notifikasi', b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah; Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Tombol "Tandai semua dibaca" menandai semuanya sudah dibaca. Semua notifikasi hanya untuk permintaan Baru atau Proses. Hari kerja dihitung Senin sampai Jumat, tanpa libur nasional.</p>
+  { h: 'Notifikasi', b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah. Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Tombol "Tandai semua dibaca" menandai semuanya sudah dibaca. Notifikasi hanya muncul untuk permintaan berstatus Baru atau Proses. Hari kerja dihitung Senin sampai Jumat, tanpa libur nasional.</p>
 <ul>
 <li><b>Lewat batas waktu</b>: muncul bila Tanggal Batas sudah terlewat. <b>Merah</b>. Penerima: PIC permintaan dan Head CLRM.</li>
 <li><b>Hampir jatuh tempo</b>: muncul bila Tanggal Batas tinggal 2 hari kerja atau kurang (belum lewat). <b>Kuning</b>. Penerima: PIC permintaan.</li>

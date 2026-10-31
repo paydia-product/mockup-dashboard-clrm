@@ -87,7 +87,7 @@ export const REPORTING_GUIDE: GuideItem[] = [
   },
   {
     h: 'Notifikasi',
-    b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah; Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Tombol "Tandai semua dibaca" menandai semuanya sudah dibaca.</p>
+    b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah. Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Tombol "Tandai semua dibaca" menandai semuanya sudah dibaca.</p>
 <ul>
 <li><b>Hampir jatuh tempo</b> (kuning). Laporan belum Terkirim dan Batas Waktu tinggal 0 sampai 7 hari. Penerima: <b>PIC</b> penyusun dan <b>Compliance Officer</b>.</li>
 <li><b>Laporan terlambat</b> (merah). Status Terlambat, yaitu Batas Waktu terlewat dan belum Terkirim. Penerima: <b>PIC</b> penyusun dan <b>Head CLRM</b>.</li>

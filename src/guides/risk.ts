@@ -56,11 +56,11 @@ export const RiskGuide: GuideItem[] = [
 </ul>` },
   { h: 'Detail & Log Perubahan', b: `<p><b>Lihat Detail</b> menampilkan semua isian, termasuk skor, level, dan badge alert aktif.</p>
 <p><b>Log Perubahan</b> mencatat: data dibuat, perubahan data (sebelum dan sesudah, siapa, kapan, alasan), pengajuan approval (pengaju, approver, perubahan, alasan), keputusan Approve atau Reject beserta catatan, pembatalan, dan pengembalian.</p>` },
-  { h: 'Notifikasi', b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon lonceng pada header. Notifikasi hanya tampil bagi penerima yang tercantum. Klik notifikasi untuk membuka Detail datanya. Satu jenis notifikasi:</p>
+  { h: 'Notifikasi', b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon lonceng pada header. Notifikasi hanya tampil bagi penerima yang tercantum. Klik notifikasi untuk membuka Detail datanya. Hanya ada satu jenis notifikasi:</p>
 <ul>
 <li><b>Risiko High baru / naik ke High</b> (merah): Level High dan tanggal register atau kenaikan level dalam 7 hari terakhir. Penerima: Risk Officer, Head CLRM, Risk Owner (Unit Kerja risiko).</li>
 </ul>
-<p>Risiko Low dan Medium tidak memicu notifikasi. Risiko yang Dibatalkan tidak memicu notifikasi.</p>` },
+<p>Risiko Low, Medium, dan yang Dibatalkan tidak memicu notifikasi.</p>` },
   { h: 'Export Excel', b: `<ul>
 <li>Mengekspor baris yang tampil di Table, sesuai pencarian dan filter.</li>
 <li>Kolom: Nomor, Tanggal Dibuat, semua isian, plus Skor Total dan Level.</li>

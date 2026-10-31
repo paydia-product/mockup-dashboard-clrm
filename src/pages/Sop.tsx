@@ -80,7 +80,7 @@ const alerts: AlertDef<SopRec>[] = [
     key: 'incomplete', label: 'Data belum lengkap', rule: 'Tanggal review (SOP belum Dicabut), status, atau PIC Dokumen kosong (biasanya dari data impor).',
     check: (r) => {
       if (!incomplete(r)) return null
-      const miss = [live(r) && !r.tglReview && 'tanggal review', !r.status && 'status', !r.pic.trim() && 'PIC'].filter(Boolean).join(', ')
+      const miss = [live(r) && !r.tglReview && 'Tanggal Review', !r.status && 'Status', !r.pic.trim() && 'PIC'].filter(Boolean).join(', ')
       return { color: 'yellow', detail: `Belum diisi: ${miss}`, to: ['Compliance Officer'] }
     },
   },

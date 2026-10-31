@@ -51,7 +51,7 @@ export const KajianGuide: GuideItem[] = [
 </ul>` },
   { h: 'Detail & Log Perubahan', b: `<p><b>Lihat Detail</b> menampilkan semua isian (field vendor hanya untuk Jenis Vendor), badge alert aktif, dan keterangan pembatalan.</p>
 <p><b>Log Perubahan</b> mencatat: data dibuat, perubahan data (sebelum dan sesudah, siapa, kapan, alasan), penyelesaian lewat aksi Selesai, pembatalan, dan pengembalian.</p>` },
-  { h: 'Notifikasi', b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah; Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Tombol "Tandai semua dibaca" menandai semuanya sudah dibaca.</p>
+  { h: 'Notifikasi', b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah. Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Tombol "Tandai semua dibaca" menandai semuanya sudah dibaca.</p>
 <ul>
 <li><b>Lewat batas waktu</b> (merah): Tanggal Batas terlewat dan status belum Selesai atau Batal. Penerima: PIC, Head CLRM.</li>
 <li><b>Hampir jatuh tempo</b> (kuning): Tanggal Batas tinggal 2 hari kerja atau kurang (Senin-Jumat) dan belum Selesai atau Batal. Penerima: PIC.</li>

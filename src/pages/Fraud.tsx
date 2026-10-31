@@ -130,7 +130,7 @@ const filters: FilterDef<Fraud>[] = [
 const toPic = (r: Fraud) => (r.pic ? `PIC (${r.pic})` : 'PIC')
 const alerts: AlertDef<Fraud>[] = [
   {
-    key: 'nopic', label: 'Belum ada PIC / tanpa EDD atau tindakan', rule: 'Kasus Open belum punya PIC, atau belum ada tindakan dan Tanggal EDD 1 setelah 2 hari kerja sejak terima tugas.',
+    key: 'nopic', label: 'Belum ada PIC / tanpa EDD atau tindakan', rule: 'Kasus Open lebih dari 2 hari kerja sejak terima tugas dan belum punya PIC, atau belum ada Tindakan dan Tanggal EDD 1.',
     check: (r, c) => {
       const d = workDaysBetween(r.tglTerima, c.today)
       if (!OPEN(r) || d <= 2) return null
@@ -139,7 +139,7 @@ const alerts: AlertDef<Fraud>[] = [
     },
   },
   {
-    key: 'edd', label: 'EDD lewat batas', rule: 'Batas Waktu EDD terlewat dan Hasil EDD masih kosong pada kasus Open yang dilanjutkan.',
+    key: 'edd', label: 'EDD lewat batas waktu', rule: 'Batas Waktu EDD terlewat dan Hasil EDD masih kosong pada kasus Open yang dilanjutkan.',
     check: (r, c) => {
       if (!OPEN(r) || !needEdd(r) || r.hasilEdd || !batasEdd(r)) return null
       const d = diffDays(c.today, batasEdd(r))

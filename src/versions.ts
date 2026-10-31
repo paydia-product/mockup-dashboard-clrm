@@ -11,6 +11,25 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
+    v: '2.13.3',
+    date: '2026-10-31',
+    deployed: true,
+    title: 'Rapikan semua kalimat notifikasi, panduan, dan periode seed',
+    prompt: 'Rapikan semua kalimat janggal di notifikasi, panduan halaman, dan periode seed Regulatory Reporting',
+    tokens: 80000,
+    changes: [
+      'Semua pesan notifikasi ditulis ulang: nama data dirangkai wajar (Kontrak PKS/... dengan Mitra, Permintaan review dari unit, Risiko "judul"), tanpa tanda pisah panjang, titik koma, atau pengulangan kata',
+      'Daftar kolom kosong memakai kata dan (Nama Penyidik dan No. Telepon belum diisi; a, b, dan c untuk tiga atau lebih)',
+      'Batas waktu ditulis sebagai angka hari atau kata natural: hari ini, besok, kemarin, N hari lagi, melewati batas waktu N hari',
+      'Fraud: Kasus EDD/... melewati batas waktu N hari dan hasil belum diisi (EDD tidak lagi muncul tiga kali)',
+      'Regulatory Change: batas jawaban N hari lagi, berlaku N hari lagi dengan status kepatuhan masih Gap, tanpa kata tahap',
+      'Seed Regulatory Reporting memakai periode nyata (28/10/2026, Oktober 2026, September 2026, Minggu s.d. 01/11/2026) menggantikan Hari lalu, Bulan lalu, Bulan berjalan, Minggu berjalan; baris referensi notifikasi menjadi Dana Float (28/10/2026); kunci data lokal naik ke v15',
+      'Notifikasi SOP memakai nama kolom baku (Tanggal Review, Status, PIC) dan batas review dalam hari',
+      'Panduan halaman: titik koma pada paragraf Notifikasi diganti titik, contoh pesan SOP diperbarui, kalimat batas notifikasi Active, Baru/Proses, dan Perizinan dirapikan',
+      'Teks info kartu Risk Register tanpa koma menggantung; label alert Fraud menjadi EDD lewat batas waktu',
+    ],
+  },
+  {
     v: '2.13.2',
     date: '2026-10-31',
     deployed: true,

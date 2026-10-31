@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 2.13.3 | 2026-10-31 | ~80k |
 | 2.13.2 | 2026-10-31 | ~40k |
 | 2.13.1 | 2026-10-31 | ~60k |
 | 2.13.0 | 2026-10-31 | ~450k |
@@ -47,6 +48,19 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [2.13.3] - 2026-10-31
+
+### Diperbaiki
+- Semua pesan notifikasi ditulis ulang: nama data dirangkai wajar (Kontrak PKS/... dengan Mitra, Permintaan review dari unit, Risiko "judul"), tanpa tanda pisah panjang, titik koma, atau pengulangan kata
+- Daftar kolom kosong memakai kata dan (Nama Penyidik dan No. Telepon belum diisi; a, b, dan c untuk tiga atau lebih)
+- Batas waktu ditulis sebagai angka hari atau kata natural: hari ini, besok, kemarin, N hari lagi, melewati batas waktu N hari
+- Fraud: Kasus EDD/... melewati batas waktu N hari dan hasil belum diisi (EDD tidak lagi muncul tiga kali)
+- Regulatory Change: batas jawaban N hari lagi, berlaku N hari lagi dengan status kepatuhan masih Gap, tanpa kata tahap
+- Seed Regulatory Reporting memakai periode nyata (28/10/2026, Oktober 2026, September 2026, Minggu s.d. 01/11/2026) menggantikan Hari lalu, Bulan lalu, Bulan berjalan, Minggu berjalan; baris referensi notifikasi menjadi Dana Float (28/10/2026); kunci data lokal naik ke v15
+- Notifikasi SOP memakai nama kolom baku (Tanggal Review, Status, PIC) dan batas review dalam hari
+- Panduan halaman: titik koma pada paragraf Notifikasi diganti titik, contoh pesan SOP diperbarui, kalimat batas notifikasi Active, Baru/Proses, dan Perizinan dirapikan
+- Teks info kartu Risk Register tanpa koma menggantung; label alert Fraud menjadi EDD lewat batas waktu
 
 ## [2.13.2] - 2026-10-31
 

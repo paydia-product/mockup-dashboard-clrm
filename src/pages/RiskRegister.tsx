@@ -154,7 +154,7 @@ const cfg: PageConfig<Risk> = {
     const depts = [...new Set(rows.map((r) => r.dept))]
     return (
       <div className="space-y-3">
-        <StatCards info={{ apa: 'Jumlah risiko per Level (inherent) pada Periode yang dipilih, ', baca: ['High: skor 6-9. Medium: skor 3-4. Low: skor 1-2. Skor = Dampak x Kemungkinan.', 'Klik kartu untuk membuka Table terfilter Level tersebut.'] }} items={[
+        <StatCards info={{ apa: 'Jumlah risiko per Level (inherent) pada Periode yang dipilih.', baca: ['High: skor 6-9. Medium: skor 3-4. Low: skor 1-2. Skor = Dampak x Kemungkinan.', 'Klik kartu untuk membuka Table terfilter Level tersebut.'] }} items={[
           { label: 'High', value: cnt('High'), tone: 'red', onClick: () => drill({ level: 'High' }) },
           { label: 'Medium', value: cnt('Medium'), tone: 'yellow', onClick: () => drill({ level: 'Medium' }) },
           { label: 'Low', value: cnt('Low'), tone: 'green', onClick: () => drill({ level: 'Low' }) },

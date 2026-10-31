@@ -56,10 +56,10 @@ export const FraudGuide: GuideItem[] = [
 </ul>` },
   { h: 'Detail & Log Perubahan', b: `<p><b>Lihat Detail</b> menampilkan semua isian, badge alert aktif, dan keterangan pembatalan.</p>
 <p><b>Log Perubahan</b> mencatat: data dibuat, perubahan data (sebelum dan sesudah, siapa, kapan, alasan), pengajuan penutupan (pengaju, approver, perubahan, alasan), keputusan Approve atau Reject beserta catatan, pembatalan, dan pengembalian.</p>` },
-  { h: 'Notifikasi', b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah; Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Tombol "Tandai semua dibaca" menandai semuanya sudah dibaca.</p>
+  { h: 'Notifikasi', b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah. Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Tombol "Tandai semua dibaca" menandai semuanya sudah dibaca.</p>
 <ul>
-<li><b>Belum ada PIC / tanpa EDD atau tindakan</b> (merah): kasus Open lebih dari 2 hari kerja sejak Tanggal Terima, dan PIC kosong, atau Tindakan dan Tanggal EDD 1 sama-sama kosong. Penerima: Head CLRM, Fraud Investigator.</li>
-<li><b>EDD lewat batas</b> (merah): asesmen Dilanjutkan, kasus Open, Hasil EDD kosong, dan Batas Waktu EDD terlewat. Penerima: PIC, Head CLRM.</li>
+<li><b>Belum ada PIC / tanpa EDD atau tindakan</b> (merah): kasus Open lebih dari 2 hari kerja sejak Tanggal Terima, dengan PIC kosong atau dengan Tindakan dan Tanggal EDD 1 sama-sama kosong. Penerima: Head CLRM, Fraud Investigator.</li>
+<li><b>EDD lewat batas waktu</b> (merah): asesmen Dilanjutkan, kasus Open, Hasil EDD kosong, dan Batas Waktu EDD terlewat. Penerima: PIC, Head CLRM.</li>
 <li><b>Hold &gt; 30 hari</b> (kuning): kasus Open dengan Tanggal Hold lebih dari 30 hari lalu, tanpa Released dan tanpa Blokir. Penerima: PIC, Head CLRM.</li>
 <li><b>Lapor regulator terlambat</b> (merah): setelah Tanggal Blokir, Tanggal Lapor masih kosong melewati batas Komdigi 7 hari, BI 14 hari, atau PPATK 30 hari. Penerima: Compliance Officer, Head CLRM.</li>
 <li><b>Open &gt; 90 hari</b> (kuning): kasus Open lebih dari 90 hari sejak Tanggal Terima. Penerima: PIC, Head CLRM.</li>
