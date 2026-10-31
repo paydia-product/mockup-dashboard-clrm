@@ -36,7 +36,7 @@ export const RiskGuide: GuideItem[] = [
 <li><b>Domain Risiko</b>: 10 domain risiko. <b>Respon</b>: Avoid, Control, Transfer, atau Accept.</li>
 <li><b>Skor Dampak</b>: 1 Rendah, 2 Sedang, 3 Tinggi. <b>Skor Kemungkinan</b>: 1-3.</li>
 <li>Unit Kerja, Produk, dan Vendor / Mitra dipilih dari Master Data.</li>
-<li><b>Field otomatis</b> (tidak diisi manual): Skor Total dan Level Risiko Awal.</li>
+<li><b>Isian otomatis</b> (tidak diisi manual): Skor Total dan Level Risiko Awal.</li>
 <li>Saat Edit ada kolom <b>Alasan perubahan</b>. Kolom ini tidak wajib, tetapi sebaiknya diisi bila skor berubah (alasan ikut ke Risk Officer).</li>
 <li>Tanggal naik level dicatat otomatis. Dipakai oleh alert High.</li>
 <li>Yang boleh <b>Tambah</b>: Risk Officer, PIC, Super Admin. Yang boleh <b>Edit</b>: Risk Officer, PIC, Super Admin. PIC hanya dapat mengedit risiko milik Unit Kerjanya sendiri.</li>

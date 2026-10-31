@@ -27,7 +27,7 @@ export const KajianGuide: GuideItem[] = [
 <li>Kolom <b>Batas</b> = Tanggal Masuk + SLA (hari kalender).</li>
 </ul>` },
   { h: 'Tambah & Edit', b: `<p><b>Isian wajib</b>: Jenis, Judul / Objek, Unit Kerja Pengusul, Tanggal Masuk, SLA (hari kalender, minimal 1), Status, dan PIC.</p>
-<p><b>Wajib bersyarat (Jenis = Vendor)</b>: Nama Mitra, Status Mitra (Eksisting atau Rencana), Ada PKS?, Akses ke Sistem?, Akses Data Pengguna / Karyawan?, Akses Data Keuangan?, dan Pemantauan Berjalan?. <b>Tanggal PKS</b> muncul dan wajib hanya bila Ada PKS? = Ya. Konteks Kerja Sama dan Tanggal Due Diligence / Evaluasi boleh kosong. Field vendor tersembunyi untuk jenis lain.</p>
+<p><b>Wajib bersyarat (Jenis = Vendor)</b>: Nama Mitra, Status Mitra (Eksisting atau Rencana), Ada PKS?, Akses ke Sistem?, Akses Data Pengguna / Karyawan?, Akses Data Keuangan?, dan Pemantauan Berjalan?. <b>Tanggal PKS</b> muncul dan wajib hanya bila Ada PKS? = Ya. Konteks Kerja Sama dan Tanggal Due Diligence / Evaluasi boleh kosong. Isian vendor tersembunyi untuk jenis lain.</p>
 <ul>
 <li>Klasifikasi Regulasi (Izin, Lapor, Tidak Perlu) boleh kosong.</li>
 <li><b>Status</b> di form: Baru, Proses, Review, atau Batal. Status <b>Selesai</b> hanya lewat tombol Selesai pada baris.</li>
@@ -49,7 +49,7 @@ export const KajianGuide: GuideItem[] = [
 <li><b>Kembalikan</b> memulihkan status sebelumnya. Alasan wajib.</li>
 <li>Status <b>Batal</b> (pilihan di form) berbeda: itu status manual, bukan pembatalan oleh Head CLRM.</li>
 </ul>` },
-  { h: 'Detail & Log Perubahan', b: `<p><b>Lihat Detail</b> menampilkan semua isian (field vendor hanya untuk Jenis Vendor), badge alert aktif, dan keterangan pembatalan.</p>
+  { h: 'Detail & Log Perubahan', b: `<p><b>Lihat Detail</b> menampilkan semua isian (isian vendor hanya untuk Jenis Vendor), badge alert aktif, dan keterangan pembatalan.</p>
 <p><b>Log Perubahan</b> mencatat: data dibuat, perubahan data (sebelum dan sesudah, siapa, kapan, alasan), penyelesaian lewat aksi Selesai, pembatalan, dan pengembalian.</p>` },
   { h: 'Notifikasi', b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah. Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Gunakan "Tandai semua dibaca" untuk mengosongkan penghitung.</p>
 <ul>
@@ -60,7 +60,7 @@ export const KajianGuide: GuideItem[] = [
 </ul>` },
   { h: 'Export Excel', b: `<ul>
 <li>Mengekspor baris yang tampil di Table, sesuai pencarian dan filter.</li>
-<li>Kolom: Nomor, Tanggal Dibuat, lalu semua isian (field vendor hanya terisi untuk Jenis Vendor), termasuk Tanggal Batas.</li>
+<li>Kolom: Nomor, Tanggal Dibuat, lalu semua isian (isian vendor hanya terisi untuk Jenis Vendor), termasuk Tanggal Batas.</li>
 <li>Nama file: <b>Kajian_Risiko_[tanggal hari ini].xlsx</b>.</li>
 <li>Export tercatat di menu Log.</li>
 </ul>` },

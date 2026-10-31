@@ -11,6 +11,21 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
+    v: '2.13.5',
+    date: '2026-10-31',
+    deployed: true,
+    title: 'Seragamkan istilah peninjauan, pengiriman, isian',
+    prompt: 'Putaran akhir istilah: peninjauan, pengiriman, isian; judul notifikasi sesuai isi',
+    tokens: 40000,
+    changes: [
+      'Istilah SOP seragam: peninjauan dan ditinjau (Tanggal Peninjauan Berikutnya, alert Peninjauan mendekat/terlewat, kartu, tabel, panduan); kunci data tidak berubah',
+      'Judul notifikasi "Peninjauan SOP mendekat"; judul "hampir jatuh tempo" Temuan, Laporan, Kajian, Layanan Hukum menjadi "mendekati batas waktu", dan "jatuh tempo hari ini" saat 0 hari',
+      'Hold: "selama N hari dan belum dilepas (Released) atau diblokir"; SOP dicabut: "hapus dari daftar SOP terkait pada peraturan ini"',
+      'Reporting: Tanggal Submit menjadi Tanggal Pengiriman, tidak ada lagi kata submit di tampilan; label Tanggal Review Perizinan menjadi Tanggal Peninjauan',
+      'Panduan: kata Field diganti isian di semua panduan',
+    ],
+  },
+  {
     v: '2.13.4',
     date: '2026-10-31',
     deployed: true,

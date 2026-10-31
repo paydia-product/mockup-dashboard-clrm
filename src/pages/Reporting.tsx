@@ -28,7 +28,7 @@ const INFO: Record<string, ChartInfo> = {
     ],
   },
   tepat: {
-    apa: 'Persentase laporan Terkirim yang dikirim tepat waktu, per jenis periode dan per regulator. Hanya laporan Terkirim yang punya Tanggal Submit yang dihitung. Tepat waktu berarti tanggal submit tidak melewati Batas Waktu.',
+    apa: 'Persentase laporan Terkirim yang dikirim tepat waktu, per jenis periode dan per regulator. Hanya laporan Terkirim yang punya Tanggal Pengiriman yang dihitung. Tepat waktu berarti tanggal pengiriman tidak melewati Batas Waktu.',
     baca: [
       'Sumbu Y: kelompok ("Jenis: ..." berwarna biru, "Regulator: ..." berwarna hijau). Sumbu X: persen tepat waktu (0 sampai 100).',
       'Batang kosong (0) bisa berarti belum ada laporan Terkirim di kelompok itu atau semuanya terlambat. Cek rinciannya di hover.',
@@ -45,7 +45,7 @@ const INFO: Record<string, ChartInfo> = {
     ],
   },
   tren: {
-    apa: 'Jumlah laporan yang terlambat per bulan Batas Waktu. Dihitung laporan berstatus Terlambat atau yang Tanggal Submit-nya melewati Batas Waktu. Memakai semua data, tidak ikut Periode Batas Waktu.',
+    apa: 'Jumlah laporan yang terlambat per bulan Batas Waktu. Dihitung laporan berstatus Terlambat atau yang Tanggal Pengiriman-nya melewati Batas Waktu. Memakai semua data, tidak ikut Periode Batas Waktu.',
     baca: [
       'Sumbu X: bulan Batas Waktu. Sumbu Y: jumlah laporan terlambat.',
       'Garis naik berarti makin banyak laporan terlambat pada bulan itu.',
@@ -90,7 +90,7 @@ const fields: Field<Laporan>[] = [
   { key: 'waktuNotif', label: 'Waktu Notifikasi Awal', type: 'datetime', showIf: isSiber, help: 'Paling lambat 1 jam sejak kejadian.', editableBy: full },
   { key: 'periode', label: 'Periode yang Dilaporkan', type: 'text', required: true, help: 'Diisi manual, mis. "Oktober 2026" atau "Q3 2026".', editableBy: full },
   { key: 'batas', label: 'Batas Waktu (Due Date)', type: 'date', required: true, editableBy: full },
-  { key: 'tglSubmit', label: 'Tanggal Submit', type: 'datetime', required: (r) => SENT(r) },
+  { key: 'tglSubmit', label: 'Tanggal Pengiriman', type: 'datetime', required: (r) => SENT(r) },
   { key: 'status', label: 'Status', type: 'select', options: STATUS, required: true, help: 'Terlambat terisi otomatis bila Batas Waktu lewat dan belum Terkirim; dapat dipilih manual hanya jika Batas Waktu sudah lewat.' },
   { key: 'tepat', label: 'Tepat Waktu?', type: 'text', auto: (r) => tepat(r) },
   { key: 'picPenyusun', label: 'PIC Penyusun', type: 'select', options: (c) => c.master.pic, required: true, editableBy: full },

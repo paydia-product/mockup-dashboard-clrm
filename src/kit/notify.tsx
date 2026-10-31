@@ -48,12 +48,15 @@ const subj = (noun: string, name: string) => (name.toLowerCase().startsWith(noun
 const insiden = (r: R) => String(r.periode).replace(/^Insiden /i, '')
 const lap = (r: R) => `${subj('Laporan', r.nama)} (${r.jenis === 'Insidental' ? insiden(r) : `periode ${r.periode}`})` // mis. "Laporan Dana Float (periode 28/10/2026)"
 const when = (n: number) => (n === 0 ? 'hari ini' : n === 1 ? 'besok' : `${n} hari lagi`)
+// Judul 'near' harus cocok dengan isi: 0 hari = jatuh tempo hari ini, selain itu mendekati batas waktu
+const nearTitle = (noun: string) => (d: string) => (/^(H-0 |0 hari)/.test(d) ? `${noun} jatuh tempo hari ini` : `${noun} mendekati batas waktu`)
+const nearTxt = (d: string) => d.replace(/^0 hari( kerja)? lagi$/, 'hari ini')
 type Word = [string | ((d: string) => string), (s: string, d: string, r: R, today: string) => string]
 const WORDS: Record<string, Word> = {
-  'tracker.near': ['Temuan hampir jatuh tempo', (s, d) => `${s} jatuh tempo ${d}. Segera selesaikan tindak lanjutnya.`],
+  'tracker.near': [nearTitle('Temuan'), (s, d) => `${s} jatuh tempo ${nearTxt(d)}. Segera selesaikan tindak lanjutnya.`],
   'tracker.overdue': ['Temuan lewat batas waktu', (s, d) => `${s} melewati batas waktu ${lewat(d)}. Segera tindak lanjuti.`],
   'tracker.stale': ['Menunggu validasi terlalu lama', (s, d) => `${s} menunggu validasi ulang selama ${d.replace(/ menunggu$/, '')} (batas 7 hari). Segera validasi.`],
-  'reporting.near': ['Laporan hampir jatuh tempo', (_s, d, r) => {
+  'reporting.near': [nearTitle('Laporan'), (_s, d, r) => {
     const m = d.match(/^H-(\d+) batas waktu \((.+)\)$/)
     return m ? `${lap(r)} belum terkirim. Batas waktu ${m[2]} (${when(Number(m[1]))}). Siapkan dan kirim tepat waktu.` : `${lap(r)} belum terkirim (${d}). Siapkan dan kirim tepat waktu.`
   }],
@@ -73,12 +76,12 @@ const WORDS: Record<string, Word> = {
     const a = d.match(/^(.+?) sampai batas jawaban$/), b = d.match(/^Lewat (.+) dari batas jawaban$/)
     return `${s}: ${a ? `batas jawaban ${a[1]}` : b ? `batas jawaban sudah lewat ${b[1]}` : lc(d)}. Segera siapkan jawaban.`
   }],
-  'regchange.sop': ['SOP terkait peraturan dicabut perlu ditinjau', (s, _d, r) => `${s} dicabut sejak ${fmtDate(r.tglBerlaku)}. Ada ${r.sopList.length} SOP terkait yang perlu diperbarui. Perbarui SOP tersebut, lalu hapus dari daftar.`],
+  'regchange.sop': ['SOP terkait peraturan dicabut perlu ditinjau', (s, _d, r) => `${s} dicabut sejak ${fmtDate(r.tglBerlaku)}. Ada ${r.sopList.length} SOP terkait yang perlu diperbarui. Perbarui SOP tersebut, lalu hapus dari daftar SOP terkait pada peraturan ini.`],
   'regchange.high': ['Peraturan baru berdampak Tinggi', (s, d) => {
     const m = d.match(/^Dampak (.+), dicatat (.+)$/)
     return `${s} ${m ? `berdampak ${m[1]}, dicatat ${m[2]}` : lc(d)}. Perlu perhatian segera.`
   }],
-  'sop.due': ['Peninjauan SOP jatuh tempo', (s, _d, r, t) => {
+  'sop.due': ['Peninjauan SOP mendekat', (s, _d, r, t) => {
     const n = diffDays(r.tglReview, t)
     return n === 0 ? `${s} harus ditinjau hari ini (${fmtDate(r.tglReview)}). Segera lakukan peninjauan.` : `${s} perlu ditinjau sebelum ${fmtDate(r.tglReview)} (${when(n)}). Jadwalkan peninjauan.`
   }],
@@ -89,7 +92,7 @@ const WORDS: Record<string, Word> = {
     return `${s} ${m ? `dengan level High sejak ${m[1]} (skor ${m[2]})` : lc(d)}. Perlu rencana mitigasi dan eskalasi.`
   }],
   'kajian.overdue': ['Kajian lewat batas waktu', (s, d) => `${s} belum selesai dan melewati batas waktu ${lewat(d)}. Segera selesaikan.`],
-  'kajian.near': ['Kajian hampir jatuh tempo', (s, d) => `${s} jatuh tempo ${d}. Segera selesaikan.`],
+  'kajian.near': [nearTitle('Kajian'), (s, d) => `${s} jatuh tempo ${nearTxt(d)}. Segera selesaikan.`],
   'kajian.nohasil': ['Kajian selesai tanpa hasil', (s) => `${s} berstatus Selesai, tetapi Hasil / Opini belum diisi. Lengkapi hasilnya.`],
   'kajian.mitra': [(d: string) => (/^Lewat/i.test(d) ? 'Jadwal evaluasi mitra terlewat' : 'Jadwal evaluasi mitra mendekat'), (s, d) => (/^Lewat/i.test(d) ? `${s}: jadwal evaluasi mitra terlewat ${lewat(d)}. Segera jadwalkan ulang.` : `${s}: jadwal evaluasi mitra jatuh tempo ${d}. Siapkan evaluasinya.`)],
   'fraud.nopic': ['Kasus belum ditangani', (s, d, r) => {
@@ -98,7 +101,7 @@ const WORDS: Record<string, Word> = {
     return noPic && noAct ? `${s} masih Open dan sudah ${days} tanpa PIC, tindakan, atau EDD. Segera tetapkan PIC dan tentukan tindakan.` : noPic ? `${s} masih Open dan sudah ${days} tanpa PIC. Segera tetapkan PIC.` : `${s} masih Open dan sudah ${days} tanpa tindakan atau EDD. Segera tentukan tindakan.`
   }],
   'fraud.edd': ['EDD lewat batas waktu', (s, d) => `${s} melewati batas waktu ${lewat(d.replace(/^lewat batas EDD /i, ''))} dan hasil belum diisi. Segera lengkapi.`],
-  'fraud.hold': ['Hold settlement lebih dari 30 hari', (s, d) => `${s} berstatus Hold ${d.replace(/^Hold /, 'selama ')} belum dilepas (Released) atau diblokir. Tinjau kelanjutannya.`],
+  'fraud.hold': ['Hold settlement lebih dari 30 hari', (s, d) => `${s} berstatus Hold ${d.replace(/^Hold /, 'selama ')} dan belum dilepas (Released) atau diblokir. Tinjau kelanjutannya.`],
   'fraud.lapor': ['Lapor regulator terlambat', (s, d) => {
     const m = d.match(/^Belum lapor (.+?) \((.+)\)$/)
     return `${s} ${m ? `belum dilaporkan ke ${list(m[1].split(', '))} (${m[2]})` : lc(d)}. Segera laporkan ke regulator.`
@@ -123,7 +126,7 @@ const WORDS: Record<string, Word> = {
   }],
   'perizinan.lewat': ['Izin kedaluwarsa belum diperpanjang', (s, d) => `${s} sudah kedaluwarsa ${lewat(d)} lalu. Segera proses perpanjangan.`],
   'layanan.overdue': ['Permintaan layanan hukum lewat batas waktu', (s, d) => `${s} belum selesai dan melewati batas waktu ${lewat(d)}. Segera selesaikan.`],
-  'layanan.near': ['Permintaan layanan hukum hampir jatuh tempo', (s, d) => `${s} jatuh tempo ${d}. Segera selesaikan.`],
+  'layanan.near': [nearTitle('Permintaan layanan hukum'), (s, d) => `${s} jatuh tempo ${nearTxt(d)}. Segera selesaikan.`],
   'layanan.nopic': ['Permintaan layanan hukum belum punya PIC', (s, d) => `${s} sudah ${d}. Tetapkan PIC.`],
 }
 // Subjek kalimat per modul: nama data dirangkai dengan kata benda yang wajar ("Kontrak X dengan Y", bukan "Kontrak Y - X")

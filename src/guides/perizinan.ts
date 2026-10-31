@@ -28,15 +28,15 @@ export const PerizinanGuide: GuideItem[] = [
   { h: 'Tambah & Edit', b: `<p><b>Isian wajib</b> (bertanda *): Kategori Dokumen, Nama Dokumen, Nomor Dokumen, Penerbit, Tanggal Terbit, Tanggal Berlaku, PIC, dan Status. <b>Tanggal Kedaluwarsa</b>, <b>Nomor Versi</b>, dan <b>File Dokumen</b> boleh dikosongkan (dokumen tanpa Tanggal Kedaluwarsa tidak muncul di kartu dan notifikasi kedaluwarsa).</p>
 <p><b>Kategori Dokumen</b> dipilih dari Master Data <b>Kategori Dokumen Perizinan</b>.</p>
 <ul>
-<li>Field opsional: Tanggal Review dan Kewajiban Pelaporan terkait Izin (teks bebas).</li>
+<li>Isian opsional: Tanggal Peninjauan dan Kewajiban Pelaporan terkait Izin (teks bebas).</li>
 <li>Tanggal Kedaluwarsa tidak boleh sebelum Tanggal Berlaku.</li>
 <li><b>Status</b> pilihan: Aktif, Dalam Perpanjangan, Kedaluwarsa. Dokumen Aktif yang Tanggal Kedaluwarsa-nya terlewat otomatis tampil <b>Kedaluwarsa</b>.</li>
 <li><b>File Dokumen</b>: PDF, JPG, JPEG, atau PNG. Maksimal 25 MB, satu file.</li>
 <li><b>Data Pribadi Direksi &amp; Komisaris</b> tidak disimpan di dashboard. Detail hanya menampilkan catatan tetap.</li>
-<li>Halaman ini tidak memakai approval dan tidak ada field yang wajib alasan. Alasan perubahan bersifat opsional.</li>
+<li>Halaman ini tidak memakai approval dan tidak ada isian yang wajib alasan. Alasan perubahan bersifat opsional.</li>
 <li><b>Siapa boleh</b>: Tambah oleh Legal Officer. Edit oleh Legal Officer dan PIC. PIC hanya boleh mengedit dokumen yang PIC-nya namanya sendiri. Dokumen Tidak Berlaku tidak bisa diedit.</li>
 </ul>` },
-  { h: 'Perpanjang izin', b: `<p>Field <b>Perpanjang izin</b> hanya ada di form Edit. Pilih <b>Ya</b> untuk memperpanjang.</p>
+  { h: 'Perpanjang izin', b: `<p>Isian <b>Perpanjang izin</b> hanya ada di form Edit. Pilih <b>Ya</b> untuk memperpanjang.</p>
 <ol>
 <li>Isi <b>Tanggal Berlaku</b> baru dan <b>Tanggal Kedaluwarsa</b> baru. Tanggal Kedaluwarsa harus berbeda dari yang lama.</li>
 <li>Isi <b>Nomor Versi</b> baru. Harus berbeda dari versi lama.</li>
@@ -50,7 +50,7 @@ export const PerizinanGuide: GuideItem[] = [
 <li>Pembatalan dan pengembalian tercatat di Log Perubahan dan menu Log.</li>
 </ul>` },
   { h: 'Detail & Log Perubahan', b: `<ul>
-<li>Klik <b>Lihat Detail</b> untuk melihat semua field, termasuk Versi Sebelumnya. Badge alert yang sedang aktif tampil di atas Detail.</li>
+<li>Klik <b>Lihat Detail</b> untuk melihat semua isian, termasuk Versi Sebelumnya. Badge alert yang sedang aktif tampil di atas Detail.</li>
 <li>Bagian <b>Log Perubahan</b> mencatat: data dibuat, perubahan data (kolom sebelum dan sesudah), pembatalan, dan pengembalian. Setiap entri memuat siapa, kapan, dan alasan bila diisi.</li>
 <li>Terbaru di atas.</li>
 </ul>` },
@@ -61,7 +61,7 @@ export const PerizinanGuide: GuideItem[] = [
 </ul>` },
   { h: 'Export Excel', b: `<ul>
 <li>Tombol <b>Export Excel</b> mengekspor baris yang tampil di tabel, sesuai pencarian dan filter saat itu. Baris Tidak Berlaku ikut terekspor bila tampil.</li>
-<li>Kolom: Nomor (posisi baris), Tanggal Dibuat, lalu semua field yang tampil di Detail. Field <b>Perpanjang izin</b> tidak diekspor.</li>
+<li>Kolom: Nomor (posisi baris), Tanggal Dibuat, lalu semua isian yang tampil di Detail. Isian <b>Perpanjang izin</b> tidak diekspor.</li>
 <li>Nama file: <b>Perizinan_Legalitas_[tanggal hari ini].xlsx</b>.</li>
 <li>Setiap export tercatat di menu Log beserta jumlah barisnya.</li>
 </ul>` },

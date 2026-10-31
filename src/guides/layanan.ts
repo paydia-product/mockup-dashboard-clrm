@@ -46,7 +46,7 @@ export const LayananGuide: GuideItem[] = [
 <li>Pembatalan dan pengembalian tercatat di Log Perubahan dan menu Log.</li>
 </ul>` },
   { h: 'Detail & Log Perubahan', b: `<ul>
-<li>Klik <b>Lihat Detail</b> untuk melihat semua field, termasuk Tanggal Batas. Badge alert yang sedang aktif tampil di atas Detail.</li>
+<li>Klik <b>Lihat Detail</b> untuk melihat semua isian, termasuk Tanggal Batas. Badge alert yang sedang aktif tampil di atas Detail.</li>
 <li>Bagian <b>Log Perubahan</b> mencatat: data dibuat, perubahan data (kolom sebelum dan sesudah), pembatalan, dan pengembalian. Setiap entri memuat siapa, kapan, dan alasan bila diisi.</li>
 <li>Terbaru di atas.</li>
 </ul>` },
@@ -58,7 +58,7 @@ export const LayananGuide: GuideItem[] = [
 </ul>` },
   { h: 'Export Excel', b: `<ul>
 <li>Tombol <b>Export Excel</b> mengekspor baris yang tampil di tabel, sesuai pencarian dan filter saat itu. Baris Dibatalkan ikut terekspor bila tampil.</li>
-<li>Kolom: Nomor (posisi baris), Tanggal Dibuat, lalu semua field yang tampil di Detail, termasuk Tanggal Batas.</li>
+<li>Kolom: Nomor (posisi baris), Tanggal Dibuat, lalu semua isian yang tampil di Detail, termasuk Tanggal Batas.</li>
 <li>Nama file: <b>Permintaan_Layanan_Hukum_[tanggal hari ini].xlsx</b>.</li>
 <li>Setiap export tercatat di menu Log beserta jumlah barisnya.</li>
 </ul>` },

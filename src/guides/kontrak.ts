@@ -5,7 +5,7 @@ export const KontrakGuide: GuideItem[] = [
 <li>Buka tab <b>Dashboard</b>. Lihat enam kartu masa berlaku kontrak, grafik, dan daftar kontrak yang segera berakhir.</li>
 <li>Atur <b>Periode Tanggal Mulai</b> bila perlu. Kosongkan kedua tanggal untuk melihat semua data.</li>
 <li>Klik kartu atau batang grafik untuk membuka tab <b>Table</b> yang sudah terfilter. Atau buka tab <b>Table</b> langsung.</li>
-<li>Klik <b>Tambah</b>, lalu isi semua field bertanda *. <b>File Perjanjian</b> boleh dikosongkan. Klik <b>Simpan</b>.</li>
+<li>Klik <b>Tambah</b>, lalu isi semua isian bertanda *. <b>File Perjanjian</b> boleh dikosongkan. Klik <b>Simpan</b>.</li>
 <li>Klik <b>Edit</b> pada baris untuk mengubah data. Alasan perubahan boleh diisi untuk dicatat di Log Perubahan.</li>
 <li>Head CLRM dapat <b>Batalkan</b> kontrak yang salah (alasan wajib) dan <b>Kembalikan</b> bila perlu.</li>
 <li>Klik <b>Export Excel</b> untuk mengunduh baris yang tampil di tabel.</li>
@@ -42,7 +42,7 @@ export const KontrakGuide: GuideItem[] = [
 <li><b>Sisa Hari</b> terisi otomatis dari Tanggal Berakhir. <b>Status</b> Aktif atau Akan Berakhir berubah otomatis: lewat tanggal menjadi Expired, sisa 90 hari atau kurang menjadi Akan Berakhir, selebihnya Aktif. Status lain (Draft, Review, Diperpanjang, Berakhir, Expired) tidak diubah otomatis.</li>
 <li><b>Alasan perubahan</b> di form Edit bersifat opsional pada halaman ini.</li>
 <li>Halaman ini tidak memakai approval. Perubahan langsung tersimpan.</li>
-<li><b>Siapa boleh</b>: Tambah oleh Legal Officer. Edit oleh Legal Officer dan PIC. PIC hanya boleh mengedit kontrak yang PIC-nya namanya sendiri atau Unit Pemilik-nya sama dengan unitnya, dan hanya field <b>Tanggal Berakhir, Perpanjangan, Lama Perpanjangan, dan Status</b>. Field lain terkunci.</li>
+<li><b>Siapa boleh</b>: Tambah oleh Legal Officer. Edit oleh Legal Officer dan PIC. PIC hanya boleh mengedit kontrak yang PIC-nya namanya sendiri atau Unit Pemilik-nya sama dengan unitnya, dan hanya isian <b>Tanggal Berakhir, Perpanjangan, Lama Perpanjangan, dan Status</b>. Isian lain terkunci.</li>
 </ul>` },
   { h: 'Batalkan & Kembalikan', b: `<ul>
 <li>Hanya <b>Head CLRM</b> (dan Super Admin) yang melihat tombol <b>Batalkan</b>. Alasan wajib diisi.</li>
@@ -51,7 +51,7 @@ export const KontrakGuide: GuideItem[] = [
 <li>Pembatalan dan pengembalian tercatat di Log Perubahan dan menu Log.</li>
 </ul>` },
   { h: 'Detail & Log Perubahan', b: `<ul>
-<li>Klik <b>Lihat Detail</b> untuk melihat semua field, termasuk Sisa Hari dan Kelengkapan. Badge alert yang sedang aktif tampil di atas Detail.</li>
+<li>Klik <b>Lihat Detail</b> untuk melihat semua isian, termasuk Sisa Hari dan Kelengkapan. Badge alert yang sedang aktif tampil di atas Detail.</li>
 <li>Bagian <b>Log Perubahan</b> mencatat: data dibuat, perubahan data (kolom sebelum dan sesudah), pembatalan, dan pengembalian. Setiap entri memuat siapa, kapan, dan alasan bila diisi.</li>
 <li>Terbaru di atas.</li>
 </ul>` },
@@ -63,7 +63,7 @@ export const KontrakGuide: GuideItem[] = [
 </ul>` },
   { h: 'Export Excel', b: `<ul>
 <li>Tombol <b>Export Excel</b> mengekspor baris yang tampil di tabel, sesuai pencarian dan filter saat itu. Baris Dibatalkan ikut terekspor bila tampil.</li>
-<li>Kolom: Nomor (posisi baris), Tanggal Dibuat, lalu semua field yang tampil di Detail, termasuk Sisa Hari.</li>
+<li>Kolom: Nomor (posisi baris), Tanggal Dibuat, lalu semua isian yang tampil di Detail, termasuk Sisa Hari.</li>
 <li>Nama file: <b>Kontrak_[tanggal hari ini].xlsx</b>.</li>
 <li>Setiap export tercatat di menu Log beserta jumlah barisnya.</li>
 </ul>` },

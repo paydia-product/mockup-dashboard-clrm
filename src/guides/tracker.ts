@@ -6,7 +6,7 @@ export const TRACKER_GUIDE: GuideItem[] = [
     b: `<ol>
 <li>Buka tab <b>Dashboard</b> (tab awal) untuk melihat ringkasan temuan. Atur <b>Periode Tanggal Temuan</b> bila perlu. Kosong berarti semua tanggal.</li>
 <li>Buka tab <b>Table</b> untuk melihat daftar temuan. Cari lewat kotak pencarian atau tombol <b>Filter</b>.</li>
-<li>Klik <b>Tambah</b> (hanya peran yang diizinkan). Isi semua field bertanda <b>*</b> lalu klik <b>Simpan</b>. File bukti tidak wajib.</li>
+<li>Klik <b>Tambah</b> (hanya peran yang diizinkan). Isi semua isian bertanda <b>*</b> lalu klik <b>Simpan</b>. File bukti tidak wajib.</li>
 <li>Klik <b>Lihat Detail</b> untuk melihat isi temuan dan Log Perubahan.</li>
 <li>Klik <b>Edit</b> untuk mengubah Status, Batas Waktu, Rencana Tindak Lanjut, atau file bukti. Mengubah status ke <b>Selesai</b> membuat pengajuan penutupan ke Head CLRM (lihat item Approval).</li>
 <li>Compliance Officer mengisi <b>Validasi Ulang</b> dari Detail untuk temuan berstatus Menunggu Validasi.</li>
@@ -50,12 +50,12 @@ export const TRACKER_GUIDE: GuideItem[] = [
 <li>Batas Waktu tidak boleh sebelum Tanggal Temuan.</li>
 </ul>
 <p><b>Lainnya</b>: dropdown <b>Regulator</b> dan <b>Area Temuan</b> punya opsi Lainnya. Bila dipilih, muncul isian teks bebas yang wajib diisi.</p>
-<p><b>Upload</b> (tidak wajib): format PDF, JPG, JPEG, atau PNG. Maksimal 25 MB per file dan hanya 1 file per field.</p>
+<p><b>Upload</b> (tidak wajib): format PDF, JPG, JPEG, atau PNG. Maksimal 25 MB per file dan hanya 1 file per isian.</p>
 <p><b>Edit</b> (Compliance Officer, PIC, Super Admin):</p>
 <ul>
 <li>Yang bisa diubah: Status (boleh sampai Selesai), Batas Waktu, Rencana Tindak Lanjut, File bukti, dan Bukti Surat Regulator.</li>
 <li>Bila <b>Batas Waktu diubah</b>, kolom <b>Alasan perubahan Batas Waktu</b> wajib diisi dan harus berbeda dari alasan terakhir.</li>
-<li>Bila Status diubah ke <b>Selesai</b>, field <b>Validasi Ulang</b> dan <b>Nama Validator</b> wajib diisi. Perubahan ini tidak langsung tersimpan, tetapi menjadi pengajuan (lihat Approval).</li>
+<li>Bila Status diubah ke <b>Selesai</b>, isian <b>Validasi Ulang</b> dan <b>Nama Validator</b> wajib diisi. Perubahan ini tidak langsung tersimpan, tetapi menjadi pengajuan (lihat Approval).</li>
 <li>Perubahan lain tersimpan langsung dan tercatat di Log Perubahan.</li>
 <li>Tombol Edit tidak muncul untuk temuan <b>Selesai</b>, <b>Dibatalkan</b>, atau yang sedang menunggu approval.</li>
 <li>Peran <b>PIC</b> hanya dapat mengedit temuan dengan PIC sama dengan nama akunnya.</li>

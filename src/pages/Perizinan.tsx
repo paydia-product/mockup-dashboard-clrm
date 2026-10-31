@@ -41,7 +41,7 @@ const fields: Field<Izin>[] = [
   { key: 'tglTerbit', label: 'Tanggal Terbit', type: 'date', required: true },
   { key: 'tglBerlaku', label: 'Tanggal Berlaku', type: 'date', required: true },
   { key: 'tglKedaluwarsa', label: 'Tanggal Kedaluwarsa', type: 'date', help: 'Boleh kosong (dokumen tanpa masa berlaku tidak memicu notifikasi kedaluwarsa).' },
-  { key: 'tglReview', label: 'Tanggal Review', type: 'date', help: 'Opsional.' },
+  { key: 'tglReview', label: 'Tanggal Peninjauan', type: 'date', help: 'Opsional.' },
   { key: 'kewajiban', label: 'Kewajiban Pelaporan terkait Izin', type: 'textarea', wide: true, help: 'Teks bebas (tidak ada master Daftar Laporan).' },
   { key: 'pic', label: 'PIC', type: 'select', options: (c) => c.master.pic, required: true },
   { key: 'status', label: 'Status', type: 'select', options: STATUS, required: true, help: 'Kedaluwarsa terisi otomatis bila tanggal kedaluwarsa terlewat dan belum diperpanjang.' },

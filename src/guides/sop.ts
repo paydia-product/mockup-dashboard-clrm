@@ -5,16 +5,16 @@ export const SopGuide: GuideItem[] = [
 <li>Buka tab <b>Dashboard</b>. Atur <b>Periode Tanggal Berlaku</b> bila perlu.</li>
 <li>Klik kartu atau grafik untuk membuka tab <b>Table</b> dengan filter yang sudah terpasang.</li>
 <li>Di tab <b>Table</b>, cari atau filter SOP.</li>
-<li>Klik <b>Tambah</b>. Isi semua field bertanda * (No Dokumen harus unik). File boleh dikosongkan. Klik <b>Simpan</b>.</li>
+<li>Klik <b>Tambah</b>. Isi semua isian bertanda * (No Dokumen harus unik). File boleh dikosongkan. Klik <b>Simpan</b>.</li>
 <li>Klik <b>Edit</b> untuk mengubah data. Kolom Alasan perubahan boleh diisi.</li>
 <li>Head CLRM dapat <b>Batalkan</b> SOP (status menjadi Dicabut) dan <b>Kembalikan</b> bila perlu.</li>
 <li>Klik <b>Export Excel</b> untuk mengunduh daftar yang tampil.</li>
 </ol>` },
-  { h: 'Dashboard', b: `<p>Dashboard memuat 4 kartu ringkasan, 3 grafik, dan 1 tabel SOP yang harus direview.</p>
+  { h: 'Dashboard', b: `<p>Dashboard memuat 4 kartu ringkasan, 3 grafik, dan 1 tabel SOP yang harus ditinjau.</p>
 <ul>
 <li><b>Periode Tanggal Berlaku</b>: isi tanggal awal dan akhir untuk membatasi data. Kosong = semua data. Tombol Reset mengosongkan periode.</li>
 <li>Klik kartu <b>Aktif</b>, batang unit kerja, irisan status, atau batang umur dokumen untuk membuka Table terfilter.</li>
-<li>Klik baris tabel review untuk membuka Detail SOP.</li>
+<li>Klik baris tabel peninjauan untuk membuka Detail SOP.</li>
 <li>SOP yang <b>Dibatalkan</b> tidak dihitung di dashboard.</li>
 </ul>` },
   { h: 'Tabel, cari, filter', b: `<ul>
@@ -31,7 +31,7 @@ export const SopGuide: GuideItem[] = [
 <li><b>Tanggal Perubahan Terakhir</b> tidak boleh sebelum Tanggal Berlaku.</li>
 <li><b>Pemilik Dokumen</b> dan <b>PIC Dokumen</b> dipilih dari Master Data (Unit Kerja dan PIC).</li>
 <li><b>Retensi</b>: 5 Tahun atau 10 Tahun. <b>Klasifikasi</b> (klasifikasi informasi): Publik, Internal, Rahasia, atau Sangat Rahasia. <b>Status</b>: Aktif, Dalam Review, atau Dicabut.</li>
-<li><b>Tanggal Review Berikutnya</b> terisi otomatis = Tanggal Berlaku + 1 tahun. Field ini nonaktif (tidak bisa diketik), berubah mengikuti Tanggal Berlaku, dan dihitung ulang saat disimpan. SOP berstatus Dicabut tidak memicu notifikasi peninjauan.</li>
+<li><b>Tanggal Peninjauan Berikutnya</b> terisi otomatis = Tanggal Berlaku + 1 tahun. Isian ini nonaktif (tidak bisa diketik), berubah mengikuti Tanggal Berlaku, dan dihitung ulang saat disimpan. SOP berstatus Dicabut tidak memicu notifikasi peninjauan.</li>
 <li><b>Upload file</b> (kolom <b>File Dokumen</b>, tidak wajib): format PDF, JPG, JPEG, atau PNG. Maksimal 25 MB, 1 file.</li>
 <li>Saat Edit ada kolom <b>Alasan perubahan</b>. Kolom ini tidak wajib di halaman ini.</li>
 <li>Tidak ada pilihan Lainnya di halaman ini.</li>
@@ -47,11 +47,11 @@ export const SopGuide: GuideItem[] = [
 <p>Bagian <b>Log Perubahan</b> mencatat: data dibuat (siapa dan kapan), perubahan data (nilai sebelum dan sesudah, siapa, kapan, alasan), pembatalan, dan pengembalian beserta alasannya.</p>` },
   { h: 'Notifikasi', b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah. Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Gunakan "Tandai semua dibaca" untuk mengosongkan penghitung.</p>
 <ul>
-<li><b>Review mendekat</b> (kuning): Tanggal Review Berikutnya 30 hari lagi atau kurang, dan SOP belum Dicabut. Penerima: PIC Dokumen, Compliance Officer.</li>
-<li><b>Review terlewat</b> (merah): Tanggal Review Berikutnya sudah lewat dan SOP belum Dicabut. Penerima: PIC Dokumen, Head CLRM.</li>
-<li><b>Data belum lengkap</b> (kuning): Tanggal Review (SOP belum Dicabut), Status, atau PIC Dokumen kosong. Penerima: Compliance Officer.</li>
+<li><b>Peninjauan mendekat</b> (kuning): Tanggal Peninjauan Berikutnya 30 hari lagi atau kurang, dan SOP belum Dicabut. Penerima: PIC Dokumen, Compliance Officer.</li>
+<li><b>Peninjauan terlewat</b> (merah): Tanggal Peninjauan Berikutnya sudah lewat dan SOP belum Dicabut. Penerima: PIC Dokumen, Head CLRM.</li>
+<li><b>Data belum lengkap</b> (kuning): Tanggal Peninjauan (SOP belum Dicabut), Status, atau PIC Dokumen kosong. Penerima: Compliance Officer.</li>
 </ul>
-<p>Contoh pesan: "SOP [judul] perlu ditinjau sebelum [tanggal] (30 hari lagi)". SOP berstatus <b>Dicabut</b> tidak memicu notifikasi peninjauan dan tidak dihitung di angka, grafik, maupun tabel review.</p>` },
+<p>Contoh pesan: "SOP [judul] perlu ditinjau sebelum [tanggal] (30 hari lagi)". SOP berstatus <b>Dicabut</b> tidak memicu notifikasi peninjauan dan tidak dihitung di angka, grafik, maupun tabel peninjauan.</p>` },
   { h: 'Export Excel', b: `<ul>
 <li>Mengekspor baris yang tampil di Table, sesuai pencarian dan filter yang aktif.</li>
 <li>Kolom: Nomor, Tanggal Dibuat, lalu semua isian SOP. Kolom file berisi nama file.</li>

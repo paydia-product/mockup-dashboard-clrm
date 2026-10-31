@@ -9,7 +9,7 @@ import { SopGuide } from '../guides/sop'
 
 const STATUS = ['Aktif', 'Dalam Review', 'Dicabut']
 const UMUR = ['< 1 tahun', '1-2 tahun', '> 2 tahun']
-const REVIEW_WINDOW = 30 // hari sebelum tanggal review untuk alert kuning
+const REVIEW_WINDOW = 30 // hari sebelum tanggal peninjauan untuk alert kuning
 
 // Tooltip: jumlah SOP per Unit Kerja pemilik untuk satu batang / irisan
 const unitTip = (title: string, xs: SopRec[]) => {
@@ -27,11 +27,11 @@ const umurBucket = (r: SopRec, today: string) => {
 const daysToReview = (r: SopRec, today: string) => (r.tglReview ? diffDays(r.tglReview, today) : null)
 const isOverdue = (r: SopRec, today: string) => live(r) && (daysToReview(r, today) ?? 0) < 0
 const isDue = (r: SopRec, today: string) => { const d = live(r) ? daysToReview(r, today) : null; return d !== null && d >= 0 && d <= REVIEW_WINDOW }
-// Dicabut: Tanggal Review Berikutnya tidak dihitung (tidak memicu notifikasi "data belum lengkap")
+// Dicabut: Tanggal Peninjauan Berikutnya tidak dihitung (tidak memicu notifikasi "data belum lengkap")
 const incomplete = (r: SopRec) => (live(r) && !r.tglReview) || !r.status || !r.pic.trim()
 const toPic = (r: SopRec) => (r.pic ? `PIC (${r.pic})` : 'PIC Dokumen')
 
-// Import boleh membawa baris tanpa Tanggal Review / Status / PIC (jadi alert "Data belum lengkap"); form Tambah/Ubah tetap mewajibkan
+// Import boleh membawa baris tanpa Tanggal Peninjauan / Status / PIC (jadi alert "Data belum lengkap"); form Tambah/Ubah tetap mewajibkan
 const notImport = (_r: SopRec, _c: Ctx, mode?: string) => mode !== 'import'
 const fields: Field<SopRec>[] = [
   { key: 'noDok', label: 'No Dokumen', type: 'text', required: true, help: 'Unik, contoh SOP-077-PAY.' },
@@ -44,7 +44,7 @@ const fields: Field<SopRec>[] = [
   { key: 'retensi', label: 'Retensi', type: 'select', options: ['5 Tahun', '10 Tahun'], required: true }, // ponytail: opsi Permanen dihapus; data lama Permanen dipetakan ke 10 Tahun (opsi terpanjang yang tersisa) di load()
   { key: 'klasifikasi', label: 'Klasifikasi', type: 'select', options: ['Publik', 'Internal', 'Rahasia', 'Sangat Rahasia'], required: true }, // klasifikasi informasi ala ISO 27001
   { key: 'file', label: 'File Dokumen', type: 'file', wide: true },
-  { key: 'tglReview', label: 'Tanggal Review Berikutnya', type: 'date', readOnly: true, help: 'Otomatis: Tanggal Berlaku + 1 tahun.' },
+  { key: 'tglReview', label: 'Tanggal Peninjauan Berikutnya', type: 'date', readOnly: true, help: 'Otomatis: Tanggal Berlaku + 1 tahun.' },
   { key: 'status', label: 'Status', type: 'select', options: STATUS, required: notImport },
   { key: 'pic', label: 'PIC Dokumen', type: 'select', options: (c) => c.master.pic, required: true },
 ]
@@ -55,7 +55,7 @@ const columns: Column<SopRec>[] = [
   { label: 'Pemilik', get: (r) => r.pemilik },
   { label: 'Revisi', get: (r) => r.noRevisi },
   { label: 'Tgl Perubahan', get: (r) => r.tglUbah, render: (r) => fmtDate(r.tglUbah) },
-  { label: 'Review Berikutnya', get: (r) => r.tglReview, render: (r) => (r.tglReview ? fmtDate(r.tglReview) : '-') },
+  { label: 'Peninjauan Berikutnya', get: (r) => r.tglReview, render: (r) => (r.tglReview ? fmtDate(r.tglReview) : '-') },
   { label: 'Status', get: (r) => r.status || '-', render: (r) => (r.status ? <StatusPill s={r.status} /> : <span>-</span>) },
 ]
 
@@ -69,18 +69,18 @@ const filters: FilterDef<SopRec>[] = [
 
 const alerts: AlertDef<SopRec>[] = [
   {
-    key: 'due', label: 'Review mendekat', rule: `Tanggal review berikutnya ${REVIEW_WINDOW} hari lagi atau kurang.`,
-    check: (r, c) => (isDue(r, c.today) ? { color: 'yellow', detail: `Review ${daysToReview(r, c.today)} hari lagi (${fmtDate(r.tglReview)})`, to: [toPic(r), 'Compliance Officer'] } : null),
+    key: 'due', label: 'Peninjauan mendekat', rule: `Tanggal peninjauan berikutnya ${REVIEW_WINDOW} hari lagi atau kurang.`,
+    check: (r, c) => (isDue(r, c.today) ? { color: 'yellow', detail: `Peninjauan ${daysToReview(r, c.today)} hari lagi (${fmtDate(r.tglReview)})`, to: [toPic(r), 'Compliance Officer'] } : null),
   },
   {
-    key: 'overdue', label: 'Review terlewat', rule: 'Tanggal review berikutnya sudah lewat dan dokumen belum dicabut.',
-    check: (r, c) => (isOverdue(r, c.today) ? { color: 'red', detail: `Lewat review ${-(daysToReview(r, c.today) as number)} hari`, to: [toPic(r), 'Head CLRM'] } : null),
+    key: 'overdue', label: 'Peninjauan terlewat', rule: 'Tanggal peninjauan berikutnya sudah lewat dan dokumen belum dicabut.',
+    check: (r, c) => (isOverdue(r, c.today) ? { color: 'red', detail: `Lewat peninjauan ${-(daysToReview(r, c.today) as number)} hari`, to: [toPic(r), 'Head CLRM'] } : null),
   },
   {
-    key: 'incomplete', label: 'Data belum lengkap', rule: 'Tanggal review (SOP belum Dicabut), status, atau PIC Dokumen kosong (biasanya dari data impor).',
+    key: 'incomplete', label: 'Data belum lengkap', rule: 'Tanggal peninjauan (SOP belum Dicabut), status, atau PIC Dokumen kosong (biasanya dari data impor).',
     check: (r) => {
       if (!incomplete(r)) return null
-      const miss = [live(r) && !r.tglReview && 'Tanggal Review', !r.status && 'Status', !r.pic.trim() && 'PIC'].filter(Boolean).join(', ')
+      const miss = [live(r) && !r.tglReview && 'Tanggal Peninjauan', !r.status && 'Status', !r.pic.trim() && 'PIC'].filter(Boolean).join(', ')
       return { color: 'yellow', detail: `Belum diisi: ${miss}`, to: ['Compliance Officer'] }
     },
   },
@@ -112,21 +112,21 @@ const cfg: PageConfig<SopRec> = {
     const statusData = [...STATUS, ''].map((s) => ({ name: s || 'Belum diisi', value: rows.filter((r) => r.status === s).length })).filter((d) => d.value)
     return (
       <div className="space-y-3">
-        <StatCards info={{ apa: 'Empat angka ringkas dari SOP pada Periode yang dipilih (SOP Dibatalkan tidak dihitung).', baca: ['Total SOP: semua SOP pada periode, apa pun statusnya.', 'Aktif: SOP berstatus Aktif. Klik kartu ini untuk membuka Table terfilter status Aktif.', 'Harus direview (<= 30 hari): SOP belum Dicabut dengan Tanggal Review Berikutnya 0 sampai 30 hari lagi (kuning bila ada).', 'Review terlewat: SOP belum Dicabut dengan Tanggal Review Berikutnya sudah lewat (merah bila ada).'] }} items={[
+        <StatCards info={{ apa: 'Empat angka ringkas dari SOP pada Periode yang dipilih (SOP Dibatalkan tidak dihitung).', baca: ['Total SOP: semua SOP pada periode, apa pun statusnya.', 'Aktif: SOP berstatus Aktif. Klik kartu ini untuk membuka Table terfilter status Aktif.', 'Harus ditinjau (<= 30 hari): SOP belum Dicabut dengan Tanggal Peninjauan Berikutnya 0 sampai 30 hari lagi (kuning bila ada).', 'Peninjauan terlewat: SOP belum Dicabut dengan Tanggal Peninjauan Berikutnya sudah lewat (merah bila ada).'] }} items={[
           { label: 'Total SOP', value: rows.length, tone: 'blue' },
           { label: 'Aktif', value: rows.filter((r) => r.status === 'Aktif').length, tone: 'green', onClick: () => drill({ status: 'Aktif' }) },
-          { label: 'Harus direview (<= 30 hari)', value: due.length, tone: due.length ? 'yellow' : 'gray' },
-          { label: 'Review terlewat', value: over.length, tone: over.length ? 'red' : 'gray' },
+          { label: 'Harus ditinjau (<= 30 hari)', value: due.length, tone: due.length ? 'yellow' : 'gray' },
+          { label: 'Peninjauan terlewat', value: over.length, tone: over.length ? 'red' : 'gray' },
         ]} />
         <div className="grid gap-3 lg:grid-cols-2">
           <BarCard info={{ apa: 'Jumlah SOP per Unit Kerja pemilik dokumen. Semua Unit Kerja dari Master Data ditampilkan, termasuk yang berjumlah nol.', baca: ['Sumbu Y: Unit Kerja pemilik. Sumbu X: jumlah SOP.', 'Arahkan kursor ke batang untuk melihat jumlahnya.', 'Klik batang untuk membuka Table terfilter Pemilik Dokumen tersebut.'] }} title="SOP per unit kerja pemilik" horizontal data={c.master.unitKerja.map((d) => ({ name: d, Jumlah: rows.filter((r) => r.pemilik === d).length }))} keys={['Jumlah']} onClick={(row) => drill({ pemilik: row.name })} />
           <DonutCard info={{ apa: 'Komposisi SOP menurut Status (Aktif, Dalam Review, Dicabut). Irisan "Belum diisi" muncul bila Status kosong.', baca: ['Tiap irisan = satu status; ukuran irisan = jumlah SOP.', 'Arahkan kursor ke irisan untuk melihat jumlah dan rincian per Unit Kerja pemilik.', 'Klik irisan untuk membuka Table terfilter status tersebut (irisan "Belum diisi" tidak bisa diklik).'] }} title="SOP per status" data={statusData} tip={(name) => unitTip(name, rows.filter((r) => r.status === (name === 'Belum diisi' ? '' : name)))} onClick={(name) => name !== 'Belum diisi' && drill({ status: name })} />
           <BarCard info={{ apa: 'Umur dokumen dihitung dari Tanggal Berlaku sampai hari ini, lalu dikelompokkan: kurang dari 1 tahun (di bawah 365 hari), 1-2 tahun (365 sampai 730 hari), dan lebih dari 2 tahun.', baca: ['Sumbu X: kelompok umur. Sumbu Y: jumlah SOP.', 'Warna: hijau = kurang dari 1 tahun, kuning = 1-2 tahun, merah = lebih dari 2 tahun.', 'Arahkan kursor ke batang untuk melihat jumlah per Unit Kerja pemilik.', 'Klik batang untuk membuka Table terfilter Umur Dokumen tersebut.'] }} title="Umur dokumen (sejak Tanggal Berlaku)" data={UMUR.map((u) => ({ name: u, Jumlah: rows.filter((r) => umurBucket(r, c.today) === u).length }))} keys={['Jumlah']} cellColors={['#22c55e', '#f59e0b', '#ef4444']} tip={(d) => unitTip(String(d.name), rows.filter((r) => umurBucket(r, c.today) === d.name))} onClick={(row) => drill({ umur: row.name })} />
-          <MiniTable<SopRec> info={{ apa: 'Daftar SOP belum Dicabut yang Tanggal Review Berikutnya-nya sudah lewat atau tinggal 30 hari atau kurang. Urut dari tanggal review paling awal.', baca: ['Kolom Sisa: merah "Lewat N hari" bila review terlewat, kuning "N hari" bila masih akan datang.', 'Klik baris untuk membuka Detail SOP.', 'Tabel menampilkan 5 baris per halaman.'] }} title="SOP yang harus direview (<= 30 hari atau lewat)" rows={review} onRow={(r) => open(r.id)}
+          <MiniTable<SopRec> info={{ apa: 'Daftar SOP belum Dicabut yang Tanggal Peninjauan Berikutnya-nya sudah lewat atau tinggal 30 hari atau kurang. Urut dari tanggal peninjauan paling awal.', baca: ['Kolom Sisa: merah "Lewat N hari" bila review terlewat, kuning "N hari" bila masih akan datang.', 'Klik baris untuk membuka Detail SOP.', 'Tabel menampilkan 5 baris per halaman.'] }} title="SOP yang harus ditinjau (<= 30 hari atau lewat)" rows={review} onRow={(r) => open(r.id)}
             cols={[
               { label: 'No Dokumen', get: (r) => r.noDok },
               { label: 'Judul', get: (r) => r.judul },
-              { label: 'Review', get: (r) => fmtDate(r.tglReview) },
+              { label: 'Peninjauan', get: (r) => fmtDate(r.tglReview) },
               { label: 'Sisa', get: (r) => { const d = daysToReview(r, c.today) as number; return <span className={d < 0 ? 'font-semibold text-red-600' : 'text-amber-600'}>{d < 0 ? `Lewat ${-d} hari` : `${d} hari`}</span> } },
             ]} />
         </div>

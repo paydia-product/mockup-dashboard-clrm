@@ -31,12 +31,12 @@ export const AphGuide: GuideItem[] = [
   { h: 'Tambah & Edit', b: `<p><b>Isian wajib</b> (bertanda *): Tanggal Terima Surat, Nomor Surat, Tanggal Surat, Pengirim dan Kategori, Perihal (Jenis dan Uraian), Kasus, Nama Merchant, Group Merchant, Unit Penyidik, Status, dan PIC. <b>Batas Waktu Jawaban</b> boleh kosong (tanpa batas waktu tidak ada notifikasi keterlambatan).</p>
 <ul>
 <li><b>Tanggal Jawaban Dikirim</b> wajib bila Status = Done.</li>
-<li>Field opsional: Nama Penyidik, No. Telepon Penyidik, Tanggal BAP, Tanggal Jadwal Ulang BAP, Tempat BAP, Nominal Hold Settlement, dan Dana Taktis. Nama dan nomor telepon yang kosong memicu alert "Data penting kosong".</li>
+<li>Isian opsional: Nama Penyidik, No. Telepon Penyidik, Tanggal BAP, Tanggal Jadwal Ulang BAP, Tempat BAP, Nominal Hold Settlement, dan Dana Taktis. Nama dan nomor telepon yang kosong memicu alert "Data penting kosong".</li>
 <li>Aturan tanggal: Batas Waktu Jawaban dan Tanggal Jawaban tidak boleh sebelum Tanggal Terima. Jadwal Ulang BAP tidak boleh sebelum Tanggal BAP.</li>
 <li>Bila Jadwal Ulang BAP diisi, alert dan kalender memakai tanggal itu. Perubahan jadwal BAP tercatat di Log.</li>
 <li><b>Lainnya</b>: pada Pengirim, Perihal (Jenis), Kasus, dan Unit Penyidik, memilih Lainnya memunculkan isian teks bebas yang wajib diisi. Tabel menampilkan "Lainnya", Detail dan Export menampilkan teks aslinya. Teks bebas itu dihitung sebagai Lainnya di grafik per Pengirim dan per Kasus.</li>
 <li><b>Nama Penyidik</b> dan <b>No. Telepon Penyidik</b> disamarkan untuk peran Viewer, dan tidak ikut Export.</li>
-<li>Halaman ini tidak memakai approval dan tidak ada field yang wajib alasan. Alasan perubahan bersifat opsional.</li>
+<li>Halaman ini tidak memakai approval dan tidak ada isian yang wajib alasan. Alasan perubahan bersifat opsional.</li>
 <li><b>Siapa boleh</b>: Tambah oleh Legal Officer. Edit oleh Legal Officer dan PIC. PIC hanya boleh mengedit permintaan yang PIC-nya namanya sendiri.</li>
 </ul>` },
   { h: 'Batalkan & Kembalikan', b: `<ul>
@@ -46,7 +46,7 @@ export const AphGuide: GuideItem[] = [
 <li>Pembatalan dan pengembalian tercatat di Log Perubahan dan menu Log.</li>
 </ul>` },
   { h: 'Detail & Log Perubahan', b: `<ul>
-<li>Klik <b>Lihat Detail</b> untuk melihat semua field. Badge alert yang sedang aktif tampil di atas Detail.</li>
+<li>Klik <b>Lihat Detail</b> untuk melihat semua isian. Badge alert yang sedang aktif tampil di atas Detail.</li>
 <li>Bagian <b>Log Perubahan</b> mencatat: data dibuat, perubahan data (kolom sebelum dan sesudah), pembatalan, dan pengembalian. Setiap entri memuat siapa, kapan, dan alasan bila diisi.</li>
 <li>Terbaru di atas.</li>
 </ul>` },
@@ -58,7 +58,7 @@ export const AphGuide: GuideItem[] = [
 </ul>` },
   { h: 'Export Excel', b: `<ul>
 <li>Tombol <b>Export Excel</b> mengekspor baris yang tampil di tabel, sesuai pencarian dan filter saat itu. Baris Dibatalkan ikut terekspor bila tampil.</li>
-<li>Kolom: Nomor (posisi baris), Tanggal Dibuat, lalu semua field yang tampil di Detail. <b>Nama Penyidik</b> dan <b>No. Telepon Penyidik</b> tidak diekspor.</li>
+<li>Kolom: Nomor (posisi baris), Tanggal Dibuat, lalu semua isian yang tampil di Detail. <b>Nama Penyidik</b> dan <b>No. Telepon Penyidik</b> tidak diekspor.</li>
 <li>Nama file: <b>Permintaan_APH_[tanggal hari ini].xlsx</b>.</li>
 <li>Setiap export tercatat di menu Log beserta jumlah barisnya.</li>
 </ul>` },

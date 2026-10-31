@@ -6,7 +6,7 @@ export const REGCHANGE_GUIDE: GuideItem[] = [
     b: `<ol>
 <li>Buka tab <b>Dashboard</b> (tab awal). Atur <b>Periode Tanggal Dicatat</b> bila perlu. Kosong berarti semua.</li>
 <li>Buka tab <b>Table</b>. Cari atau saring peraturan lewat pencarian dan tombol <b>Filter</b>.</li>
-<li>Klik <b>Tambah</b>. Isi field bertanda <b>*</b> lalu klik <b>Simpan</b>.</li>
+<li>Klik <b>Tambah</b>. Isi isian bertanda <b>*</b> lalu klik <b>Simpan</b>.</li>
 <li>Klik <b>Edit</b> untuk memperbarui penilaian dampak, Pemenuhan (%), tindak lanjut, jawaban imbauan, sosialisasi, atau daftar SOP.</li>
 <li>Mengubah data identitas peraturan (jenis, nomor, tahun, regulator, dan sejenisnya) membuat <b>pengajuan ke Ketua SMKI</b>. Lihat item Approval.</li>
 <li>Head CLRM dapat <b>Batalkan</b> data yang salah, lalu <b>Kembalikan</b> bila perlu. Alasan wajib.</li>
@@ -55,9 +55,9 @@ export const REGCHANGE_GUIDE: GuideItem[] = [
 <li>Tanggal Dijawab tidak boleh sebelum Tanggal Dicatat.</li>
 <li><b>Pemenuhan (%)</b> berisi 0 sampai 100, boleh kosong (belum dinilai).</li>
 </ul>
-<p><b>Field otomatis</b>: <b>Status Kepatuhan</b> dihitung dari Pemenuhan. 100 atau lebih = Comply, 70 sampai 99 = Partial, di bawah 70 = Gap, kosong = Belum Dinilai.</p>
+<p><b>Isian otomatis</b>: <b>Status Kepatuhan</b> dihitung dari Pemenuhan. 100 atau lebih = Comply, 70 sampai 99 = Partial, di bawah 70 = Gap, kosong = Belum Dinilai.</p>
 <p><b>Lainnya</b>: dropdown <b>Regulator</b> dan <b>Kategori</b> punya opsi Lainnya. Bila dipilih, muncul isian teks bebas yang wajib diisi.</p>
-<p><b>Daftar SOP</b>: field opsional. Pilih SOP dari modul SOP, dan hapus dari daftar bila sudah diperbarui.</p>
+<p><b>Daftar SOP</b>: isian opsional. Pilih SOP dari modul SOP, dan hapus dari daftar bila sudah diperbarui.</p>
 <p><b>Upload</b> (Lampiran / Bukti tidak wajib): PDF, JPG, JPEG, atau PNG. Maksimal 25 MB dan 1 file.</p>
 <p><b>Siapa boleh</b>: Tambah oleh Compliance Officer dan Super Admin. Edit oleh Compliance Officer dan Super Admin. Peran PIC tidak dapat mengedit di halaman ini. Kolom <b>Alasan perubahan</b> di form Edit bersifat opsional dan ikut tercatat.</p>`,
   },
@@ -87,7 +87,7 @@ export const REGCHANGE_GUIDE: GuideItem[] = [
   {
     h: 'Detail & Log Perubahan',
     b: `<ul>
-<li>Klik <b>Lihat Detail</b> untuk melihat semua field peraturan dan badge alert yang aktif.</li>
+<li>Klik <b>Lihat Detail</b> untuk melihat semua isian peraturan dan badge alert yang aktif.</li>
 <li><b>Log Perubahan</b> memuat riwayat dari terbaru: data dibuat, perubahan data, pengajuan dan keputusan approval, pembatalan, dan pengembalian.</li>
 <li>Tiap entri mencatat <b>siapa</b>, <b>kapan</b>, kolom yang berubah (<b>sebelum</b> dan <b>sesudah</b>), <b>alasan</b>, dan untuk approval juga pengaju serta approver.</li>
 </ul>`,
@@ -108,7 +108,7 @@ export const REGCHANGE_GUIDE: GuideItem[] = [
     h: 'Export Excel',
     b: `<ul>
 <li>Mengekspor <b>baris yang sedang tampil</b> di tabel, sesuai pencarian dan filter.</li>
-<li>Kolom: Nomor (urutan baris), Tanggal Dibuat, lalu semua field peraturan yang terisi (termasuk Status Kepatuhan). Lampiran diekspor sebagai nama file.</li>
+<li>Kolom: Nomor (urutan baris), Tanggal Dibuat, lalu semua isian peraturan yang terisi (termasuk Status Kepatuhan). Lampiran diekspor sebagai nama file.</li>
 <li>Nama file: <b>Daftar_Peraturan_&lt;tanggal hari ini&gt;.xlsx</b>.</li>
 <li>Setiap export tercatat di menu <b>Log</b> beserta jumlah barisnya.</li>
 </ul>`,

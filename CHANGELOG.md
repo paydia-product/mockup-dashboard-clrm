@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 2.13.5 | 2026-10-31 | ~40k |
 | 2.13.4 | 2026-10-31 | ~40k |
 | 2.13.3 | 2026-10-31 | ~80k |
 | 2.13.2 | 2026-10-31 | ~40k |
@@ -49,6 +50,15 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [2.13.5] - 2026-10-31
+
+### Diperbaiki
+- Istilah SOP seragam: peninjauan dan ditinjau (Tanggal Peninjauan Berikutnya, alert Peninjauan mendekat/terlewat, kartu, tabel, panduan); kunci data tidak berubah
+- Judul notifikasi "Peninjauan SOP mendekat"; judul "hampir jatuh tempo" Temuan, Laporan, Kajian, Layanan Hukum menjadi "mendekati batas waktu", dan "jatuh tempo hari ini" saat 0 hari
+- Hold: "selama N hari dan belum dilepas (Released) atau diblokir"; SOP dicabut: "hapus dari daftar SOP terkait pada peraturan ini"
+- Reporting: Tanggal Submit menjadi Tanggal Pengiriman, tidak ada lagi kata submit di tampilan; label Tanggal Review Perizinan menjadi Tanggal Peninjauan
+- Panduan: kata Field diganti isian di semua panduan
 
 ## [2.13.4] - 2026-10-31
 

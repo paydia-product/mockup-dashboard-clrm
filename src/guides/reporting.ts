@@ -6,8 +6,8 @@ export const REPORTING_GUIDE: GuideItem[] = [
     b: `<ol>
 <li>Buka tab <b>Dashboard</b> (tab awal). Atur <b>Periode Batas Waktu</b> bila perlu. Kosong berarti semua.</li>
 <li>Buka tab <b>Table</b>. Cari atau saring laporan lewat pencarian dan tombol <b>Filter</b>.</li>
-<li>Klik <b>Tambah</b>. Isi field bertanda <b>*</b> lalu klik <b>Simpan</b>. Jadwal laporan tidak dibuat otomatis, setiap laporan ditambah manual.</li>
-<li>Saat laporan dikirim, klik <b>Edit</b>: ubah Status ke <b>Terkirim</b>, isi Tanggal Submit, lalu file Bukti Pengiriman atau Nomor Tanda Terima.</li>
+<li>Klik <b>Tambah</b>. Isi isian bertanda <b>*</b> lalu klik <b>Simpan</b>. Jadwal laporan tidak dibuat otomatis, setiap laporan ditambah manual.</li>
+<li>Saat laporan dikirim, klik <b>Edit</b>: ubah Status ke <b>Terkirim</b>, isi Tanggal Pengiriman, lalu file Bukti Pengiriman atau Nomor Tanda Terima.</li>
 <li>Bila laporan telat, isi <b>Alasan Terlambat</b> lewat Edit.</li>
 <li>Head CLRM dapat <b>Batalkan</b> laporan yang salah, lalu <b>Kembalikan</b> bila perlu. Alasan wajib.</li>
 <li>Klik <b>Export Excel</b> untuk mengunduh baris yang sedang tampil.</li>
@@ -42,9 +42,9 @@ export const REPORTING_GUIDE: GuideItem[] = [
     b: `<p><b>Isian wajib</b>: Nama Laporan, Regulator, Jenis Periode, Periode yang Dilaporkan, Batas Waktu, Status, PIC Penyusun, PIC Reviewer.</p>
 <p><b>Wajib bersyarat</b>:</p>
 <ul>
-<li><b>Tanggal Submit</b>: wajib bila Status <b>Terkirim</b>.</li>
+<li><b>Tanggal Pengiriman</b>: wajib bila Status <b>Terkirim</b>.</li>
 <li><b>Bukti Pengiriman</b> (file) dan <b>Nomor Tanda Terima</b> boleh dikosongkan. Bila Status Terkirim tanpa keduanya, muncul notifikasi pengingat "Terkirim tanpa bukti".</li>
-<li><b>Alasan Terlambat</b>: wajib bila Status Terlambat, bila Tanggal Submit melewati Batas Waktu, atau bila Batas Waktu sudah lewat dan laporan belum Terkirim.</li>
+<li><b>Alasan Terlambat</b>: wajib bila Status Terlambat, bila Tanggal Pengiriman melewati Batas Waktu, atau bila Batas Waktu sudah lewat dan laporan belum Terkirim.</li>
 <li><b>Laporan Insiden Siber?</b> muncul bila Jenis Periode <b>Insidental</b>. Bila dijawab <b>Ya</b>, muncul <b>Waktu Notifikasi Awal</b> dan <b>Waktu Kejadian</b> menjadi wajib.</li>
 </ul>
 <p><b>Aturan</b>:</p>
@@ -53,16 +53,16 @@ export const REPORTING_GUIDE: GuideItem[] = [
 <li>Waktu Notifikasi Awal tidak boleh sebelum Waktu Kejadian.</li>
 <li>Status <b>Terlambat</b> hanya bisa dipilih bila Batas Waktu sudah lewat.</li>
 </ul>
-<p><b>Field otomatis</b>:</p>
+<p><b>Isian otomatis</b>:</p>
 <ul>
 <li><b>Status Terlambat</b> terisi sendiri bila Batas Waktu lewat dan laporan belum Terkirim. Bila Batas Waktu diundur ke depan, status Terlambat kembali menjadi Belum Disiapkan.</li>
-<li><b>Tepat Waktu?</b> dihitung dari Tanggal Submit dan Batas Waktu. Submit pada hari Batas Waktu dianggap tepat waktu.</li>
+<li><b>Tepat Waktu?</b> dihitung dari Tanggal Pengiriman dan Batas Waktu. Pengiriman pada hari Batas Waktu dianggap tepat waktu.</li>
 </ul>
 <p><b>Upload</b> (tidak wajib): PDF, JPG, JPEG, atau PNG. Maksimal 25 MB dan 1 file.</p>
 <p><b>Siapa boleh</b>:</p>
 <ul>
 <li><b>Tambah</b>: Compliance Officer dan Super Admin.</li>
-<li><b>Edit</b>: Compliance Officer, PIC, dan Super Admin. CO dan PIC hanya dapat mengubah <b>Status, Tanggal Submit, Bukti Pengiriman, Nomor Tanda Terima, dan Alasan Terlambat</b>. Field lain hanya dapat diubah Super Admin.</li>
+<li><b>Edit</b>: Compliance Officer, PIC, dan Super Admin. CO dan PIC hanya dapat mengubah <b>Status, Tanggal Pengiriman, Bukti Pengiriman, Nomor Tanda Terima, dan Alasan Terlambat</b>. Isian lain hanya dapat diubah Super Admin.</li>
 <li><b>PIC</b> hanya dapat mengedit laporan yang namanya tertulis sebagai penyusun atau reviewer.</li>
 <li>Saat Edit ada kolom <b>Alasan perubahan</b> (opsional) yang ikut masuk ke Log Perubahan.</li>
 </ul>`,
@@ -80,7 +80,7 @@ export const REPORTING_GUIDE: GuideItem[] = [
   {
     h: 'Detail & Log Perubahan',
     b: `<ul>
-<li>Klik <b>Lihat Detail</b> untuk melihat semua field laporan dan badge alert yang aktif.</li>
+<li>Klik <b>Lihat Detail</b> untuk melihat semua isian laporan dan badge alert yang aktif.</li>
 <li><b>Log Perubahan</b> di bawah Detail memuat riwayat dari terbaru: data dibuat, perubahan data, pembatalan, dan pengembalian.</li>
 <li>Tiap entri mencatat <b>siapa</b>, <b>kapan</b>, kolom yang berubah (<b>sebelum</b> dan <b>sesudah</b>), serta <b>alasan</b>.</li>
 </ul>`,
@@ -100,7 +100,7 @@ export const REPORTING_GUIDE: GuideItem[] = [
     h: 'Export Excel',
     b: `<ul>
 <li>Mengekspor <b>baris yang sedang tampil</b> di tabel, sesuai pencarian dan filter.</li>
-<li>Kolom: Nomor (urutan baris), Tanggal Dibuat, lalu semua field laporan yang terisi (termasuk Tepat Waktu?). File bukti diekspor sebagai nama file.</li>
+<li>Kolom: Nomor (urutan baris), Tanggal Dibuat, lalu semua isian laporan yang terisi (termasuk Tepat Waktu?). File bukti diekspor sebagai nama file.</li>
 <li>Nama file: <b>Pelaporan_Regulator_&lt;tanggal hari ini&gt;.xlsx</b>.</li>
 <li>Setiap export tercatat di menu <b>Log</b> beserta jumlah barisnya.</li>
 </ul>`,

@@ -30,12 +30,12 @@ export const FraudGuide: GuideItem[] = [
 <p><b>Wajib bersyarat saat status Closed</b>: Uraian, Nominal Korban, Tindakan, Tanggal Email Resolved, dan PIC Investigator.</p>
 <ul>
 <li>Bila Tindakan = <b>Blokir</b>: Saldo Tertahan wajib. Saat Closed, Tanggal Lapor Komdigi, BI, dan PPATK juga wajib.</li>
-<li>Field <b>Tanggal EDD 1</b>, <b>Tanggal EDD 2</b>, <b>Batas Waktu EDD</b> (otomatis), dan <b>Hasil EDD</b> selalu tampil sejak awal. Saat Closed dan asesmen Dilanjutkan, EDD 1 wajib. Hasil EDD wajib saat Closed bila EDD 1 atau EDD 2 terisi.</li>
-<li><b>No Laporan EDD</b> dibuat otomatis saat kasus disimpan dengan format <b>EDD/tahun/bulan/nomor</b> (contoh EDD/2026/10/0001). Tahun dan bulan mengikuti Tanggal Dibuat, nomor urut 4 digit mulai lagi dari 0001 tiap bulan. Field ini nonaktif dan tidak berubah saat Edit.</li>
+<li>Isian <b>Tanggal EDD 1</b>, <b>Tanggal EDD 2</b>, <b>Batas Waktu EDD</b> (otomatis), dan <b>Hasil EDD</b> selalu tampil sejak awal. Saat Closed dan asesmen Dilanjutkan, EDD 1 wajib. Hasil EDD wajib saat Closed bila EDD 1 atau EDD 2 terisi.</li>
+<li><b>No Laporan EDD</b> dibuat otomatis saat kasus disimpan dengan format <b>EDD/tahun/bulan/nomor</b> (contoh EDD/2026/10/0001). Tahun dan bulan mengikuti Tanggal Dibuat, nomor urut 4 digit mulai lagi dari 0001 tiap bulan. Isian ini nonaktif dan tidak berubah saat Edit.</li>
 <li><b>Tindakan</b> memuat juga pilihan <b>EDD 1</b> dan <b>EDD 2</b>.</li>
 <li><b>Media</b>: pilihan dari Master Data ditambah <b>Lainnya</b>. Memilih Lainnya memunculkan isian teks bebas yang wajib diisi (tabel menampilkan "Lainnya").</li>
 <li><b>Upload Bukti</b> (tidak wajib): PDF, JPG, JPEG, atau PNG. Maksimal 25 MB, 1 file.</li>
-<li><b>Alasan perubahan</b> (saat Edit) wajib bila salah satu field berikut yang sudah terisi diubah: Tanggal Terima Tugas, Nominal Korban, Tanggal Transaksi, data Hold, Tanggal Email PPATK, Tanggal EDD, Tanggal Blokir, data Released, Saldo Tertahan, Tanggal Hapus QRIS, Tanggal Email Tutup Akun, tanggal Lapor, Tanggal Email Resolved, dan Kerugian Paydia.</li>
+<li><b>Alasan perubahan</b> (saat Edit) wajib bila salah satu isian berikut yang sudah terisi diubah: Tanggal Terima Tugas, Nominal Korban, Tanggal Transaksi, data Hold, Tanggal Email PPATK, Tanggal EDD, Tanggal Blokir, data Released, Saldo Tertahan, Tanggal Hapus QRIS, Tanggal Email Tutup Akun, tanggal Lapor, Tanggal Email Resolved, dan Kerugian Paydia.</li>
 <li><b>Batas Waktu EDD</b> otomatis (rumus sementara): EDD 1 = Tanggal Terima + 3 hari kerja, EDD 2 = EDD 1 + 7 hari.</li>
 <li>Aturan tanggal: EDD 2 tidak boleh sebelum EDD 1. Tanggal Resolved dan Tanggal Blokir tidak boleh sebelum Tanggal Terima.</li>
 <li>Kasus <b>Closed</b> tidak bisa diedit.</li>
