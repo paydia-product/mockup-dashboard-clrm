@@ -66,7 +66,7 @@ const alerts: AlertDef<Layanan>[] = [
     },
   },
   {
-    key: 'nopic', label: 'Belum ada PIC', rule: 'PIC masih kosong lebih dari 1 hari kerja sejak tanggal masuk.',
+    key: 'nopic', label: 'Belum punya PIC', rule: 'PIC masih kosong lebih dari 1 hari kerja sejak tanggal masuk.',
     check: (r, c) => (OPEN(r) && !r.pic.trim() && workDaysBetween(r.tglMasuk, c.today) > 1 ? { color: 'yellow', detail: `${workDaysBetween(r.tglMasuk, c.today)} hari kerja tanpa PIC`, to: ['Head CLRM'] } : null),
   },
 ]
@@ -121,12 +121,12 @@ const cfg: PageConfig<Layanan> = {
       <div className="space-y-3">
         <StatCards title="Status permintaan" info={{
           apa: 'Jumlah permintaan layanan hukum menurut status, ditambah jumlah yang sudah lewat Tanggal Batas. Data Dibatalkan tidak dihitung.',
-          baca: ['Baru (biru), Proses (kuning), Selesai (hijau): jumlah permintaan menurut Status. Klik kartu untuk membuka tab Table terfilter Status.', 'Lewat batas (merah bila ada): permintaan Baru atau Proses yang Tanggal Batasnya sudah terlewat. Kartu ini tidak bisa diklik.', 'Permintaan berstatus Batal tidak punya kartu.'],
+          baca: ['Baru (biru), Proses (kuning), Selesai (hijau): jumlah permintaan menurut Status. Klik kartu untuk membuka tab Table terfilter Status.', 'Lewat batas waktu (merah bila ada): permintaan Baru atau Proses yang Tanggal Batasnya sudah terlewat. Kartu ini tidak bisa diklik.', 'Permintaan berstatus Batal tidak punya kartu.'],
         }} items={[
           { label: 'Baru', value: n('Baru'), tone: 'blue', onClick: () => drill({ status: 'Baru' }) },
           { label: 'Proses', value: n('Proses'), tone: 'yellow', onClick: () => drill({ status: 'Proses' }) },
           { label: 'Selesai', value: n('Selesai'), tone: 'green', onClick: () => drill({ status: 'Selesai' }) },
-          { label: 'Lewat batas', value: late, tone: late ? 'red' : 'gray' },
+          { label: 'Lewat batas waktu', value: late, tone: late ? 'red' : 'gray' },
         ]} />
         <div className="grid gap-3 lg:grid-cols-2">
           <DonutCard title="Permintaan per jenis" info={{

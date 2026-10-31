@@ -31,7 +31,7 @@ export const AphGuide: GuideItem[] = [
   { h: 'Tambah & Edit', b: `<p><b>Isian wajib</b> (bertanda *): Tanggal Terima Surat, Nomor Surat, Tanggal Surat, Pengirim dan Kategori, Perihal (Jenis dan Uraian), Kasus, Nama Merchant, Group Merchant, Unit Penyidik, Status, dan PIC. <b>Batas Waktu Jawaban</b> boleh kosong (tanpa batas waktu tidak ada notifikasi keterlambatan).</p>
 <ul>
 <li><b>Tanggal Jawaban Dikirim</b> wajib bila Status = Done.</li>
-<li>Isian opsional: Nama Penyidik, No. Telepon Penyidik, Tanggal BAP, Tanggal Jadwal Ulang BAP, Tempat BAP, Nominal Hold Settlement, dan Dana Taktis. Nama dan nomor telepon yang kosong memicu alert "Data penting kosong".</li>
+<li>Isian opsional: Nama Penyidik, No. Telepon Penyidik, Tanggal BAP, Tanggal Jadwal Ulang BAP, Tempat BAP, Nominal Hold Settlement, dan Dana Taktis. Nama dan nomor telepon yang kosong memicu alert "Data permintaan APH belum lengkap".</li>
 <li>Aturan tanggal: Batas Waktu Jawaban dan Tanggal Jawaban tidak boleh sebelum Tanggal Terima. Jadwal Ulang BAP tidak boleh sebelum Tanggal BAP.</li>
 <li>Bila Jadwal Ulang BAP diisi, alert dan kalender memakai tanggal itu. Perubahan jadwal BAP tercatat di Log.</li>
 <li><b>Lainnya</b>: pada Pengirim, Perihal (Jenis), Kasus, dan Unit Penyidik, memilih Lainnya memunculkan isian teks bebas yang wajib diisi. Tabel menampilkan "Lainnya", Detail dan Export menampilkan teks aslinya. Teks bebas itu dihitung sebagai Lainnya di grafik per Pengirim dan per Kasus.</li>
@@ -53,8 +53,8 @@ export const AphGuide: GuideItem[] = [
   { h: 'Notifikasi', b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah. Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Gunakan "Tandai semua dibaca" untuk mengosongkan penghitung. Notifikasi hanya muncul untuk permintaan berstatus Active.</p>
 <ul>
 <li><b>Jadwal BAP akan tiba</b>: muncul bila BAP tinggal 0 sampai 7 hari. <b>Kuning</b> bila 3 sampai 7 hari, <b>merah</b> bila 2 hari atau kurang. Penerima: Legal Officer dan Head CLRM.</li>
-<li><b>Lewat batas waktu jawaban</b>: muncul bila Batas Waktu Jawaban terisi dan sudah lewat. <b>Merah</b>. Penerima: Legal Officer dan Head CLRM.</li>
-<li><b>Data penting kosong</b>: muncul bila PIC, Nama Penyidik, atau No. Telepon Penyidik masih kosong. <b>Kuning</b>. Penerima: Legal Officer.</li>
+<li><b>Jawaban APH lewat batas waktu</b>: muncul bila Batas Waktu Jawaban terisi dan sudah lewat. <b>Merah</b>. Penerima: Legal Officer dan Head CLRM.</li>
+<li><b>Data permintaan APH belum lengkap</b>: muncul bila PIC, Nama Penyidik, atau No. Telepon Penyidik masih kosong. <b>Kuning</b>. Penerima: Legal Officer.</li>
 </ul>` },
   { h: 'Export Excel', b: `<ul>
 <li>Tombol <b>Export Excel</b> mengekspor baris yang tampil di tabel, sesuai pencarian dan filter saat itu. Baris Dibatalkan ikut terekspor bila tampil.</li>

@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 2.13.7 | 2026-10-31 | ~40k |
 | 2.13.6 | 2026-10-31 | ~40k |
 | 2.13.5 | 2026-10-31 | ~40k |
 | 2.13.4 | 2026-10-31 | ~40k |
@@ -51,6 +52,14 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [2.13.7] - 2026-10-31
+
+### Diperbaiki
+- Semua label alert halaman sama dengan judul notifikasi (judul = label, atau kata benda objek + label): Fraud "Kasus belum ditangani", "Hold settlement lebih dari 30 hari", "Kasus Open lebih dari 90 hari", "Data kasus belum lengkap"; Kontrak "Kontrak kedaluwarsa belum diperpanjang", "Tanggal berakhir kontrak belum diisi"; APH "Jawaban APH lewat batas waktu", "Data permintaan APH belum lengkap"; Layanan "Belum punya PIC"; Regulatory Change "Belum dinilai lebih dari 10 hari kerja", "Akan berlaku, kepatuhan belum terpenuhi", "Peraturan dicabut, SOP terkait perlu diperbarui"; Kajian "Jadwal evaluasi mitra akan tiba / terlewat"
+- Judul notifikasi diturunkan dari label halaman (tanpa teks judul ganda); imbauan terlambat: "Segera kirim jawaban."
+- Kartu dashboard: SOP "Peninjauan akan tiba (≤ 30 hari)", Layanan "Lewat batas waktu", Kajian "Jadwal evaluasi mitra akan tiba / terlewat"
+- Seed Risk Register: "Kontrol berkala dan peninjauan oleh <unit>" (kunci penyimpanan v15 menjadi v16); panduan semua modul disesuaikan
 
 ## [2.13.6] - 2026-10-31
 

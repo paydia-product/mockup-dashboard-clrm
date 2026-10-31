@@ -130,7 +130,7 @@ const filters: FilterDef<Fraud>[] = [
 const toPic = (r: Fraud) => (r.pic ? `PIC (${r.pic})` : 'PIC')
 const alerts: AlertDef<Fraud>[] = [
   {
-    key: 'nopic', label: 'Belum ada PIC / tanpa EDD atau tindakan', rule: 'Kasus Open lebih dari 2 hari kerja sejak terima tugas dan belum punya PIC, atau belum ada Tindakan dan Tanggal EDD 1.',
+    key: 'nopic', label: 'Kasus belum ditangani', rule: 'Kasus Open lebih dari 2 hari kerja sejak terima tugas dan belum punya PIC, atau belum ada Tindakan dan Tanggal EDD 1.',
     check: (r, c) => {
       const d = workDaysBetween(r.tglTerima, c.today)
       if (!OPEN(r) || d <= 2) return null
@@ -147,7 +147,7 @@ const alerts: AlertDef<Fraud>[] = [
     },
   },
   {
-    key: 'hold', label: 'Hold > 30 hari', rule: 'Hold Settlement lebih dari 30 hari tanpa Released atau Blokir pada kasus Open.',
+    key: 'hold', label: 'Hold settlement lebih dari 30 hari', rule: 'Hold Settlement lebih dari 30 hari tanpa Released atau Blokir pada kasus Open.',
     check: (r, c) => (OPEN(r) && r.holdTgl && !r.relTgl && !r.tglBlokir && holdAge(r, c.today) > 30 ? { color: 'yellow', detail: `Hold ${holdAge(r, c.today)} hari`, to: [toPic(r), 'Head CLRM'] } : null),
   },
   {
@@ -155,11 +155,11 @@ const alerts: AlertDef<Fraud>[] = [
     check: (r, c) => { const l = laporLate(r, c.today); return l.length && r.status !== 'Dibatalkan' ? { color: 'red', detail: `Belum lapor ${l.join(', ')} (blokir ${diffDays(c.today, r.tglBlokir)} hari lalu)`, to: ['Compliance Officer', 'Head CLRM'] } : null },
   },
   {
-    key: 'old', label: 'Open > 90 hari', rule: 'Kasus berstatus Open lebih dari 90 hari sejak terima tugas.',
+    key: 'old', label: 'Kasus Open lebih dari 90 hari', rule: 'Kasus berstatus Open lebih dari 90 hari sejak terima tugas.',
     check: (r, c) => (OPEN(r) && age(r, c.today) > 90 ? { color: 'yellow', detail: `Open ${age(r, c.today)} hari`, to: [toPic(r), 'Head CLRM'] } : null),
   },
   {
-    key: 'kosong', label: 'Data penting kosong', rule: 'Kasus Open belum punya Uraian, Nominal Korban, Jenis Dugaan, atau Kategori Pelapor.',
+    key: 'kosong', label: 'Data kasus belum lengkap', rule: 'Kasus Open belum punya Uraian, Nominal Korban, Jenis Dugaan, atau Kategori Pelapor.',
     check: (r) => {
       if (!OPEN(r)) return null
       const miss = [!r.uraian.trim() && 'Uraian', r.korban === '' && 'Nominal Korban', !r.jenis && 'Jenis Dugaan', !r.kategori && 'Kategori Pelapor'].filter(Boolean)

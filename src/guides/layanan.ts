@@ -12,7 +12,7 @@ export const LayananGuide: GuideItem[] = [
 </ol>` },
   { h: 'Dashboard', b: `<p>Dashboard menghitung permintaan yang tidak <b>Dibatalkan</b>. Filter <b>Periode Tanggal Masuk</b> membatasi data menurut Tanggal Masuk. Kosong berarti semua data.</p>
 <ul>
-<li><b>Kartu status</b>: Baru, Proses, Selesai (klik untuk membuka Table terfilter Status), dan <b>Lewat batas</b> (permintaan Baru atau Proses yang melewati Tanggal Batas, tanpa klik). Permintaan berstatus Batal tidak punya kartu.</li>
+<li><b>Kartu status</b>: Baru, Proses, Selesai (klik untuk membuka Table terfilter Status), dan <b>Lewat batas waktu</b> (permintaan Baru atau Proses yang melewati Tanggal Batas, tanpa klik). Permintaan berstatus Batal tidak punya kartu.</li>
 <li><b>Permintaan per jenis</b>: diagram donat. Arahkan kursor untuk rincian per unit kerja. Klik irisan untuk membuka Table terfilter Jenis.</li>
 <li><b>Belum selesai menurut umur (hari)</b>: permintaan Baru dan Proses menurut umur sejak Tanggal Masuk (0 sampai 7, 8 sampai 14, lebih dari 14 hari).</li>
 <li><b>Permintaan per unit kerja</b>: batang mendatar. Klik batang untuk membuka Table terfilter Unit Kerja.</li>
@@ -54,7 +54,7 @@ export const LayananGuide: GuideItem[] = [
 <ul>
 <li><b>Lewat batas waktu</b>: muncul bila Tanggal Batas sudah terlewat. <b>Merah</b>. Penerima: PIC permintaan dan Head CLRM.</li>
 <li><b>Mendekati batas waktu</b>: muncul bila Tanggal Batas tinggal 2 hari kerja atau kurang (belum lewat). <b>Kuning</b>. Penerima: PIC permintaan.</li>
-<li><b>Belum ada PIC</b>: muncul bila PIC masih kosong lebih dari 1 hari kerja sejak Tanggal Masuk. <b>Kuning</b>. Penerima: Head CLRM.</li>
+<li><b>Belum punya PIC</b>: muncul bila PIC masih kosong lebih dari 1 hari kerja sejak Tanggal Masuk. <b>Kuning</b>. Penerima: Head CLRM.</li>
 </ul>` },
   { h: 'Export Excel', b: `<ul>
 <li>Tombol <b>Export Excel</b> mengekspor baris yang tampil di tabel, sesuai pencarian dan filter saat itu. Baris Dibatalkan ikut terekspor bila tampil.</li>

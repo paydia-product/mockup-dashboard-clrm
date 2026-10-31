@@ -95,7 +95,7 @@ const alerts: AlertDef<Kontrak>[] = [
     },
   },
   {
-    key: 'expired', label: 'Kontrak expired belum diperpanjang', rule: 'Tanggal Berakhir terlewat dan kontrak belum diperpanjang. Merah.',
+    key: 'expired', label: 'Kontrak kedaluwarsa belum diperpanjang', rule: 'Tanggal Berakhir terlewat dan kontrak belum diperpanjang. Merah.',
     check: (r, c) => {
       const s = sisa(r, c.today)
       const lewat = r.status === 'Expired' || (LIVE(r) && s !== null && s < 0)
@@ -103,7 +103,7 @@ const alerts: AlertDef<Kontrak>[] = [
     },
   },
   {
-    key: 'kosong', label: 'Tanggal berakhir kosong', rule: 'Tanggal Berakhir belum diisi. Kuning.',
+    key: 'kosong', label: 'Tanggal berakhir kontrak belum diisi', rule: 'Tanggal Berakhir belum diisi. Kuning.',
     check: (r) => (!r.berakhir && r.status !== 'Berakhir' && r.status !== 'Dibatalkan' && !r.cancelled ? { color: 'yellow', detail: 'Tanggal Berakhir belum diisi', to: ['Legal Officer'] } : null),
   },
 ]

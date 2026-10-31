@@ -163,11 +163,11 @@ const MILE = [7, 30, 60, 90]
 const mile = (r: Reg, today: string) => { if (!r.tglBerlaku) return null; const d = diffDays(r.tglBerlaku, today); if (d < 0 || d > 90) return null; return { d, m: MILE.find((m) => d <= m) as number } }
 const alerts: AlertDef<Reg>[] = [
   {
-    key: 'unrated', label: 'Belum dinilai > 10 hari kerja', rule: 'Peraturan atau imbauan baru belum dinilai (dampak kosong) lebih dari 10 hari kerja sejak dicatat.',
+    key: 'unrated', label: 'Belum dinilai lebih dari 10 hari kerja', rule: 'Peraturan atau imbauan baru belum dinilai (dampak kosong) lebih dari 10 hari kerja sejak dicatat.',
     check: (r, c) => { const d = workDaysBetween(r.tglDicatat, c.today); return unrated(r) && d > 10 ? { color: 'yellow', detail: `${d} hari kerja sejak dicatat`, to: ['Compliance Officer', 'Head CLRM'] } : null },
   },
   {
-    key: 'effective', label: 'Akan berlaku, kepatuhan belum Comply', rule: 'Status Kepatuhan bukan Comply (Pemenuhan di bawah 100% atau belum dinilai) pada H-90, 60, 30, dan 7 sebelum Tanggal Berlaku. Kuning, merah saat H-7.',
+    key: 'effective', label: 'Akan berlaku, kepatuhan belum terpenuhi', rule: 'Status Kepatuhan bukan Comply (Pemenuhan di bawah 100% atau belum dinilai) pada H-90, 60, 30, dan 7 sebelum Tanggal Berlaku. Kuning, merah saat H-7.',
     check: (r, c) => { const x = mile(r, c.today); return x && kep(r) !== 'Comply' ? { color: x.m === 7 ? 'red' : 'yellow', detail: `Berlaku ${x.d} hari lagi (tahap H-${x.m}), status kepatuhan ${kep(r)}`, to: ['PIC unit terdampak', 'Head CLRM'] } : null },
   },
   {
@@ -179,7 +179,7 @@ const alerts: AlertDef<Reg>[] = [
     },
   },
   {
-    key: 'sop', label: 'Dicabut, SOP terkait perlu ditinjau', rule: 'Status Peraturan Dicabut, Tanggal Berlaku (pencabutan) sudah lewat, dan daftar SOP / Kebijakan yang Harus Diperbarui masih berisi. Hapus SOP dari daftar bila sudah diperbarui.',
+    key: 'sop', label: 'Peraturan dicabut, SOP terkait perlu diperbarui', rule: 'Status Peraturan Dicabut, Tanggal Berlaku (pencabutan) sudah lewat, dan daftar SOP / Kebijakan yang Harus Diperbarui masih berisi. Hapus SOP dari daftar bila sudah diperbarui.',
     check: (r, c) => (r.status === 'Dicabut' && r.tglBerlaku && r.tglBerlaku < c.today && r.sopList.length ? { color: 'yellow', detail: `${r.sopList.length} SOP terkait sejak pencabutan ${fmtDate(r.tglBerlaku)}`, to: ['PIC unit terdampak', 'Compliance Officer'] } : null),
   },
   {

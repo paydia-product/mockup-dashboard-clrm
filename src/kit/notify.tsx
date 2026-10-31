@@ -59,7 +59,7 @@ type Word = [string | ((d: string, label: string) => string), (s: string, d: str
 const WORDS: Record<string, Word> = {
   'tracker.near': [nearTitle('Temuan'), (s, d) => `${s} jatuh tempo ${nearTxt(d)}. Segera selesaikan tindak lanjutnya.`],
   'tracker.overdue': [withNoun('Temuan'), (s, d) => `${s} melewati batas waktu ${lewat(d)}. Segera tindak lanjuti.`],
-  'tracker.stale': ['Menunggu validasi terlalu lama', (s, d) => `${s} menunggu validasi ulang selama ${d.replace(/ menunggu$/, '')} (batas 7 hari). Segera validasi.`],
+  'tracker.stale': [sameLabel, (s, d) => `${s} menunggu validasi ulang selama ${d.replace(/ menunggu$/, '')} (batas 7 hari). Segera validasi.`],
   'reporting.near': [nearTitle('Laporan'), (_s, d, r) => {
     const m = d.match(/^H-(\d+) batas waktu \((.+)\)$/)
     return m ? `${lap(r)} belum terkirim. Batas waktu ${m[2]} (${when(Number(m[1]))}). Siapkan dan kirim tepat waktu.` : `${lap(r)} belum terkirim (${d}). Siapkan dan kirim tepat waktu.`
@@ -71,17 +71,17 @@ const WORDS: Record<string, Word> = {
     return m ? `Insiden siber "${insiden(r)}" terjadi pada ${m[1]}. Notifikasi awal: ${low(m[2])}. Laporan lengkap: ${low(m[3])}.` : `Insiden siber "${insiden(r)}": ${low(d)}.`
   }],
   'reporting.nobukti': [withNoun('Laporan'), (_s, _d, r) => `${lap(r)} berstatus Terkirim, tetapi file bukti dan nomor tanda terima belum diisi. Lengkapi bukti pengiriman.`],
-  'regchange.unrated': ['Peraturan belum dinilai', (s, d) => `${s} belum dinilai dampaknya, sudah ${d}. Segera lakukan penilaian dampak.`],
-  'regchange.effective': ['Peraturan akan berlaku, kepatuhan belum terpenuhi', (s, d) => {
+  'regchange.unrated': [withNoun('Peraturan'), (s, d) => `${s} belum dinilai dampaknya, sudah ${d}. Segera lakukan penilaian dampak.`],
+  'regchange.effective': [withNoun('Peraturan'), (s, d) => {
     const m = d.match(/^Berlaku (.+?)(?: \(tahap [^)]+\))?, status kepatuhan (.+)$/)
     return `${s} ${m ? `berlaku ${m[1]}, tetapi status kepatuhan masih ${m[2]}` : lc(d)}. Percepat pemenuhan sebelum tanggal berlaku.`
   }],
-  'regchange.reply': ['Imbauan harus dijawab', (s, d) => {
+  'regchange.reply': [sameLabel, (s, d) => {
     const a = d.match(/^(.+?) sampai batas jawaban$/), b = d.match(/^Lewat (.+) dari batas jawaban$/)
-    return `${s}: ${a ? `batas jawaban ${a[1]}` : b ? `batas jawaban sudah lewat ${b[1]}` : lc(d)}. Segera siapkan jawaban.`
+    return `${s}: ${a ? `batas jawaban ${a[1]}` : b ? `batas jawaban sudah lewat ${b[1]}` : lc(d)}. ${/^Lewat/.test(d) ? 'Segera kirim jawaban.' : 'Segera siapkan jawaban.'}`
   }],
   'regchange.sop': [sameLabel, (s, _d, r) => `${s} dicabut sejak ${fmtDate(r.tglBerlaku)}. Ada ${r.sopList.length} SOP terkait yang perlu diperbarui. Perbarui SOP tersebut, lalu hapus dari daftar SOP terkait pada peraturan ini.`],
-  'regchange.high': ['Peraturan baru berdampak Tinggi', (s, d) => {
+  'regchange.high': [sameLabel, (s, d) => {
     const m = d.match(/^Dampak (.+), dicatat (.+)$/)
     return `${s} ${m ? `berdampak ${m[1]}, dicatat ${m[2]}` : lc(d)}. Perlu perhatian segera.`
   }],
@@ -90,48 +90,48 @@ const WORDS: Record<string, Word> = {
     return n === 0 ? `${s} harus ditinjau hari ini (${fmtDate(r.tglReview)}). Segera lakukan peninjauan.` : `${s} perlu ditinjau sebelum ${fmtDate(r.tglReview)} (${when(n)}). Jadwalkan peninjauan.`
   }],
   'sop.overdue': [sopTitle, (s, _d, r, t) => `${s} melewati batas peninjauan ${fmtDate(r.tglReview)} selama ${diffDays(t, r.tglReview)} hari. Segera lakukan peninjauan.`],
-  'sop.incomplete': ['Data SOP belum lengkap', (s, d) => `${s} belum lengkap: ${fields(d)} belum diisi. Lengkapi datanya.`],
-  'risk.high': ['Risiko High baru', (s, d) => {
+  'sop.incomplete': [(_d: string, label: string) => label.replace(/^Data/, 'Data SOP'), (s, d) => `${s} belum lengkap: ${fields(d)} belum diisi. Lengkapi datanya.`],
+  'risk.high': [sameLabel, (s, d) => {
     const m = d.match(/^High sejak (.+?) \(skor (\d+)\)$/)
     return `${s} ${m ? `dengan level High sejak ${m[1]} (skor ${m[2]})` : lc(d)}. Perlu rencana mitigasi dan eskalasi.`
   }],
   'kajian.overdue': [withNoun('Kajian'), (s, d) => `${s} belum selesai dan melewati batas waktu ${lewat(d)}. Segera selesaikan.`],
   'kajian.near': [nearTitle('Kajian'), (s, d) => `${s} jatuh tempo ${nearTxt(d)}. Segera selesaikan.`],
-  'kajian.nohasil': ['Kajian selesai tanpa hasil', (s) => `${s} berstatus Selesai, tetapi Hasil / Opini belum diisi. Lengkapi hasilnya.`],
-  'kajian.mitra': [(d: string, label: string) => `${label} ${/^Lewat/i.test(d) ? 'terlewat' : 'akan tiba'}`, (s, d) => (/^Lewat/i.test(d) ? `${s}: jadwal evaluasi mitra terlewat ${lewat(d)}. Segera jadwalkan ulang.` : `${s}: jadwal evaluasi mitra jatuh tempo ${d}. Siapkan evaluasinya.`)],
-  'fraud.nopic': ['Kasus belum ditangani', (s, d, r) => {
+  'kajian.nohasil': [withNoun('Kajian'), (s) => `${s} berstatus Selesai, tetapi Hasil / Opini belum diisi. Lengkapi hasilnya.`],
+  'kajian.mitra': [(d: string, label: string) => label.replace('akan tiba / terlewat', /^Lewat/i.test(d) ? 'terlewat' : 'akan tiba'), (s, d) => (/^Lewat/i.test(d) ? `${s}: jadwal evaluasi mitra terlewat ${lewat(d)}. Segera jadwalkan ulang.` : `${s}: jadwal evaluasi mitra jatuh tempo ${d}. Siapkan evaluasinya.`)],
+  'fraud.nopic': [sameLabel, (s, d, r) => {
     const noPic = !String(r.pic ?? '').trim(), noAct = !r.edd1 && !r.tindakan
     const days = d.replace(/ tanpa .*$/, '')
     return noPic && noAct ? `${s} masih Open dan sudah ${days} tanpa PIC, tindakan, atau EDD. Segera tetapkan PIC dan tentukan tindakan.` : noPic ? `${s} masih Open dan sudah ${days} tanpa PIC. Segera tetapkan PIC.` : `${s} masih Open dan sudah ${days} tanpa tindakan atau EDD. Segera tentukan tindakan.`
   }],
-  'fraud.edd': ['EDD lewat batas waktu', (s, d) => `${s} melewati batas waktu ${lewat(d.replace(/^lewat batas EDD /i, ''))} dan hasil belum diisi. Segera lengkapi.`],
-  'fraud.hold': ['Hold settlement lebih dari 30 hari', (s, d) => `${s} berstatus Hold ${d.replace(/^Hold /, 'selama ')} dan belum dilepas (Released) atau diblokir. Tinjau kelanjutannya.`],
-  'fraud.lapor': ['Lapor regulator terlambat', (s, d) => {
+  'fraud.edd': [sameLabel, (s, d) => `${s} melewati batas waktu ${lewat(d.replace(/^lewat batas EDD /i, ''))} dan hasil belum diisi. Segera lengkapi.`],
+  'fraud.hold': [sameLabel, (s, d) => `${s} berstatus Hold ${d.replace(/^Hold /, 'selama ')} dan belum dilepas (Released) atau diblokir. Tinjau kelanjutannya.`],
+  'fraud.lapor': [sameLabel, (s, d) => {
     const m = d.match(/^Belum lapor (.+?) \((.+)\)$/)
     return `${s} ${m ? `belum dilaporkan ke ${list(m[1].split(', '))} (${m[2]})` : lc(d)}. Segera laporkan ke regulator.`
   }],
-  'fraud.old': ['Kasus Open lebih dari 90 hari', (s, d) => `${s} sudah ${d.replace(/^Open /, 'Open selama ')}. Tinjau dan percepat penyelesaian.`],
-  'fraud.kosong': ['Data kasus belum lengkap', (s, d) => `${s} belum lengkap: ${fields(d)} belum diisi. Lengkapi datanya.`],
+  'fraud.old': [sameLabel, (s, d) => `${s} sudah ${d.replace(/^Open /, 'Open selama ')}. Tinjau dan percepat penyelesaian.`],
+  'fraud.kosong': [sameLabel, (s, d) => `${s} belum lengkap: ${fields(d)} belum diisi. Lengkapi datanya.`],
   'kontrak.hmin': [sameLabel, (s, d) => {
     const m = d.match(/^Berakhir (.+) \((.+)\)$/)
     return `${s} ${m ? `berakhir pada ${m[2]} (${m[1]})` : lc(d)}. Siapkan perpanjangan atau penggantian.`
   }],
-  'kontrak.expired': ['Kontrak kedaluwarsa belum diperpanjang', (s, d) => `${s} sudah kedaluwarsa ${d.replace(/^expired /i, '')}. Segera perpanjang atau tutup kontrak.`],
-  'kontrak.kosong': ['Tanggal berakhir kontrak belum diisi', (s) => `${s} belum memiliki Tanggal Berakhir. Lengkapi datanya.`],
+  'kontrak.expired': [sameLabel, (s, d) => `${s} sudah kedaluwarsa ${d.replace(/^expired /i, '')}. Segera perpanjang atau tutup kontrak.`],
+  'kontrak.kosong': [sameLabel, (s) => `${s} belum memiliki Tanggal Berakhir. Lengkapi datanya.`],
   'aph.bap': [sameLabel, (s, d) => {
     const m = d.match(/^BAP (.+) \((.+)\)$/)
     return `${s}: ${m ? `BAP dijadwalkan ${m[1]} (${m[2]})` : lc(d)}. Siapkan kehadiran dan dokumen.`
   }],
-  'aph.overdue': ['Jawaban APH lewat batas waktu', (s, d) => `${s} belum dijawab dan melewati batas waktu jawaban ${lewat(d)}. Segera kirim jawaban.`],
-  'aph.kosong': ['Data permintaan APH belum lengkap', (s, d) => `${s} belum lengkap: ${fields(d)} belum diisi. Lengkapi datanya.`],
-  'perizinan.akan': ['Izin akan kedaluwarsa', (s, d) => {
+  'aph.overdue': [sameLabel, (s, d) => `${s} belum dijawab dan melewati batas waktu jawaban ${lewat(d)}. Segera kirim jawaban.`],
+  'aph.kosong': [sameLabel, (s, d) => `${s} belum lengkap: ${fields(d)} belum diisi. Lengkapi datanya.`],
+  'perizinan.akan': [sameLabel, (s, d) => {
     const m = d.match(/^Kedaluwarsa (.+) \((.+)\)$/)
     return `${s} ${m ? `kedaluwarsa pada ${m[2]} (${m[1]})` : lc(d)}. Siapkan perpanjangan.`
   }],
-  'perizinan.lewat': ['Izin kedaluwarsa belum diperpanjang', (s, d) => `${s} sudah kedaluwarsa ${lewat(d)} lalu. Segera proses perpanjangan.`],
+  'perizinan.lewat': [sameLabel, (s, d) => `${s} sudah kedaluwarsa ${lewat(d)} lalu. Segera proses perpanjangan.`],
   'layanan.overdue': [withNoun('Permintaan layanan hukum'), (s, d) => `${s} belum selesai dan melewati batas waktu ${lewat(d)}. Segera selesaikan.`],
   'layanan.near': [nearTitle('Permintaan layanan hukum'), (s, d) => `${s} jatuh tempo ${nearTxt(d)}. Segera selesaikan.`],
-  'layanan.nopic': ['Permintaan layanan hukum belum punya PIC', (s, d) => `${s} sudah ${d}. Tetapkan PIC.`],
+  'layanan.nopic': [withNoun('Permintaan layanan hukum'), (s, d) => `${s} sudah ${d}. Tetapkan PIC.`],
 }
 // Subjek kalimat per modul: nama data dirangkai dengan kata benda yang wajar ("Kontrak X dengan Y", bukan "Kontrak Y - X")
 const SUBJ: Record<string, (r: R, name: string, noun: string) => string> = {

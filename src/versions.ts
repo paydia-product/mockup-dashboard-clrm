@@ -11,6 +11,20 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
+    v: '2.13.7',
+    date: '2026-10-31',
+    deployed: true,
+    title: 'Samakan semua label alert dengan judul notifikasi',
+    prompt: 'Samakan label alert halaman, kartu dashboard, dan panduan dengan judul notifikasi; judul diturunkan dari label',
+    tokens: 40000,
+    changes: [
+      'Label alert halaman = judul notifikasi (atau kata benda objek + label) di semua modul; judul notifikasi diturunkan dari label',
+      'Fraud, Kontrak, APH, Layanan, Regulatory Change, Kajian: label diperjelas (mis. "Kasus belum ditangani", "Jawaban APH lewat batas waktu", "Belum punya PIC")',
+      'Kartu SOP "Peninjauan akan tiba (≤ 30 hari)", kartu Layanan "Lewat batas waktu", kartu Kajian "Jadwal evaluasi mitra akan tiba / terlewat"; imbauan terlambat: "Segera kirim jawaban."',
+      'Seed Risk Register "peninjauan oleh <unit>" (kunci penyimpanan v16); panduan semua modul disesuaikan',
+    ],
+  },
+  {
     v: '2.13.6',
     date: '2026-10-31',
     deployed: true,

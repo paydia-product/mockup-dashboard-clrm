@@ -86,11 +86,11 @@ const alerts: AlertDef<Aph>[] = [
     },
   },
   {
-    key: 'overdue', label: 'Lewat batas waktu jawaban', rule: 'Status Active dan batas waktu jawaban terlewat.',
+    key: 'overdue', label: 'Jawaban APH lewat batas waktu', rule: 'Status Active dan batas waktu jawaban terlewat.',
     check: (r, c) => (late(r, c.today) ? { color: 'red', detail: `Lewat ${diffDays(c.today, r.tglBatas)} hari`, to: [...toLO, 'Head CLRM'] } : null),
   },
   {
-    key: 'kosong', label: 'Data penting kosong', rule: 'PIC, nama penyidik, atau nomor telepon penyidik masih kosong pada permintaan Active.',
+    key: 'kosong', label: 'Data permintaan APH belum lengkap', rule: 'PIC, nama penyidik, atau nomor telepon penyidik masih kosong pada permintaan Active.',
     check: (r) => {
       if (!ACTIVE(r)) return null
       const k = [!r.pic.trim() && 'PIC', !r.namaPenyidik.trim() && 'Nama Penyidik', !r.noTelp.trim() && 'No. Telepon'].filter(Boolean)

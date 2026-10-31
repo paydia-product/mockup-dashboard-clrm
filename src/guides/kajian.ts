@@ -13,9 +13,9 @@ export const KajianGuide: GuideItem[] = [
 </ol>` },
   { h: 'Dashboard', b: `<ul>
 <li><b>Periode Tanggal Masuk</b>: kosong = semua data.</li>
-<li>8 kartu: Kajian per jenis, Kajian per status, Lewat batas waktu, Kajian per unit kerja, Rata-rata lama masuk sampai selesai, Kajian per hasil / opini, jadwal due diligence mitra, dan Mitra Eksisting vs Rencana.</li>
+<li>8 kartu: Kajian per jenis, Kajian per status, Lewat batas waktu, Kajian per unit kerja, Rata-rata lama masuk sampai selesai, Kajian per hasil / opini, jadwal evaluasi mitra akan tiba / terlewat, dan Mitra Eksisting vs Rencana.</li>
 <li>Klik irisan jenis, batang status, batang unit kerja, atau irisan hasil untuk membuka Table terfilter.</li>
-<li>Klik baris di tabel Lewat batas waktu atau jadwal mitra untuk membuka Detail.</li>
+<li>Klik baris di tabel Lewat batas waktu atau Jadwal evaluasi mitra untuk membuka Detail.</li>
 <li>Kajian yang <b>Dibatalkan</b> tidak dihitung.</li>
 </ul>` },
   { h: 'Tabel, cari, filter', b: `<ul>
@@ -56,7 +56,7 @@ export const KajianGuide: GuideItem[] = [
 <li><b>Lewat batas waktu</b> (merah): Tanggal Batas terlewat dan status belum Selesai atau Batal. Penerima: PIC, Head CLRM.</li>
 <li><b>Mendekati batas waktu</b> (kuning): Tanggal Batas tinggal 2 hari kerja atau kurang (Senin-Jumat) dan belum Selesai atau Batal. Penerima: PIC.</li>
 <li><b>Selesai tanpa hasil</b> (kuning): status Selesai tetapi Hasil / Opini kosong. Penerima: PIC, Risk Officer.</li>
-<li><b>Jadwal due diligence / evaluasi mitra</b>: hanya Jenis Vendor yang punya Tanggal Due Diligence. Kuning bila 30 hari lagi atau kurang, merah bila sudah lewat. Penerima: PIC, Risk Officer.</li>
+<li><b>Jadwal evaluasi mitra akan tiba / terlewat</b>: hanya Jenis Vendor yang punya Tanggal Due Diligence. Kuning bila 30 hari lagi atau kurang, merah bila sudah lewat. Penerima: PIC, Risk Officer.</li>
 </ul>` },
   { h: 'Export Excel', b: `<ul>
 <li>Mengekspor baris yang tampil di Table, sesuai pencarian dan filter.</li>

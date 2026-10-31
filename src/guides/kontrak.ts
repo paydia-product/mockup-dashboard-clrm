@@ -35,7 +35,7 @@ export const KontrakGuide: GuideItem[] = [
 <li><b>PIC</b> atau <b>Unit Pemilik</b>: salah satu wajib diisi.</li>
 <li><b>Dokumen Induk</b> berupa isian teks bebas (mis. nomor PKS induk), wajib bila Jenis Dokumen = Amandemen. Tidak boleh sama dengan Nomor PKS / NDA kontrak itu sendiri.</li>
 <li><b>Nomor PKS / NDA</b> harus unik (huruf besar atau kecil dianggap sama, kontrak dibatalkan diabaikan).</li>
-<li><b>Tanggal Berakhir</b> boleh kosong, tetapi muncul di kartu dan alert "Tanggal berakhir kosong". Tidak boleh sebelum Tanggal Mulai.</li>
+<li><b>Tanggal Berakhir</b> boleh kosong, tetapi muncul di kartu dan alert "Tanggal berakhir kontrak belum diisi". Tidak boleh sebelum Tanggal Mulai.</li>
 <li><b>Jenis Dokumen</b> dipilih dari Master Data <b>Jenis PKS Kontrak</b> (ditambah Lainnya).</li>
 <li><b>Lainnya</b>: pada Jenis Hubungan, Jenis Dokumen, dan Bidang Usaha, memilih Lainnya memunculkan isian teks bebas yang wajib diisi. Tabel menampilkan "Lainnya", Detail dan Export menampilkan teks aslinya. Grafik per Jenis Dokumen menghitung teks bebas sebagai Lainnya.</li>
 <li><b>File Perjanjian</b>: PDF, JPG, JPEG, atau PNG. Maksimal 25 MB, satu file.</li>
@@ -58,8 +58,8 @@ export const KontrakGuide: GuideItem[] = [
   { h: 'Notifikasi', b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah. Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Gunakan "Tandai semua dibaca" untuk mengosongkan penghitung.</p>
 <ul>
 <li><b>Kontrak akan berakhir</b>: muncul bila kontrak Aktif atau Akan Berakhir punya sisa 0 sampai 90 hari. <b>Kuning</b> bila sisa lebih dari 30 hari, <b>merah</b> bila 30 hari atau kurang. Penerima: Legal Officer dan PIC kontrak. Pengingat berlaku pada tahap H-90, H-60, H-30, dan H-7.</li>
-<li><b>Kontrak expired belum diperpanjang</b>: muncul bila status Expired, atau Tanggal Berakhir sudah lewat. <b>Merah</b>. Penerima: Legal Officer dan Head CLRM.</li>
-<li><b>Tanggal berakhir kosong</b>: muncul bila Tanggal Berakhir belum diisi (kecuali status Berakhir atau Dibatalkan). <b>Kuning</b>. Penerima: Legal Officer.</li>
+<li><b>Kontrak kedaluwarsa belum diperpanjang</b>: muncul bila status Expired, atau Tanggal Berakhir sudah lewat. <b>Merah</b>. Penerima: Legal Officer dan Head CLRM.</li>
+<li><b>Tanggal berakhir kontrak belum diisi</b>: muncul bila Tanggal Berakhir belum diisi (kecuali status Berakhir atau Dibatalkan). <b>Kuning</b>. Penerima: Legal Officer.</li>
 </ul>` },
   { h: 'Export Excel', b: `<ul>
 <li>Tombol <b>Export Excel</b> mengekspor baris yang tampil di tabel, sesuai pencarian dan filter saat itu. Baris Dibatalkan ikut terekspor bila tampil.</li>

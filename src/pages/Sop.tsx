@@ -112,10 +112,10 @@ const cfg: PageConfig<SopRec> = {
     const statusData = [...STATUS, ''].map((s) => ({ name: s || 'Belum diisi', value: rows.filter((r) => r.status === s).length })).filter((d) => d.value)
     return (
       <div className="space-y-3">
-        <StatCards info={{ apa: 'Empat angka ringkas dari SOP pada Periode yang dipilih (SOP Dibatalkan tidak dihitung).', baca: ['Total SOP: semua SOP pada periode, apa pun statusnya.', 'Aktif: SOP berstatus Aktif. Klik kartu ini untuk membuka Table terfilter status Aktif.', 'Harus ditinjau (<= 30 hari): SOP belum Dicabut dengan Tanggal Peninjauan Berikutnya 0 sampai 30 hari lagi (kuning bila ada).', 'Peninjauan terlewat: SOP belum Dicabut dengan Tanggal Peninjauan Berikutnya sudah lewat (merah bila ada).'] }} items={[
+        <StatCards info={{ apa: 'Empat angka ringkas dari SOP pada Periode yang dipilih (SOP Dibatalkan tidak dihitung).', baca: ['Total SOP: semua SOP pada periode, apa pun statusnya.', 'Aktif: SOP berstatus Aktif. Klik kartu ini untuk membuka Table terfilter status Aktif.', 'Peninjauan akan tiba (≤ 30 hari): SOP belum Dicabut dengan Tanggal Peninjauan Berikutnya 0 sampai 30 hari lagi (kuning bila ada).', 'Peninjauan terlewat: SOP belum Dicabut dengan Tanggal Peninjauan Berikutnya sudah lewat (merah bila ada).'] }} items={[
           { label: 'Total SOP', value: rows.length, tone: 'blue' },
           { label: 'Aktif', value: rows.filter((r) => r.status === 'Aktif').length, tone: 'green', onClick: () => drill({ status: 'Aktif' }) },
-          { label: 'Harus ditinjau (<= 30 hari)', value: due.length, tone: due.length ? 'yellow' : 'gray' },
+          { label: 'Peninjauan akan tiba (≤ 30 hari)', value: due.length, tone: due.length ? 'yellow' : 'gray' },
           { label: 'Peninjauan terlewat', value: over.length, tone: over.length ? 'red' : 'gray' },
         ]} />
         <div className="grid gap-3 lg:grid-cols-2">
