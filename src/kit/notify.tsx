@@ -38,7 +38,8 @@ const SOURCES: { route: string; cfg: PageConfig<any>; ref?: (r: R) => string }[]
 export const TRACKER_ROUTE = 'compliance/regulatory-findings-tracker'
 
 // ---- Redaksi per jenis alert: [judul, pesan(subjek, detail alert, rekaman, hari ini)] ----
-const lc = (s: string) => (/^[A-Z][a-z]/.test(s) ? s.charAt(0).toLowerCase() + s.slice(1) : s) // singkatan (BAP, EDD) dibiarkan
+const lc = (s: string) => (/^(?!High|Open|Hold)[A-Z][a-z]/.test(s) ? s.charAt(0).toLowerCase() + s.slice(1) : s) // singkatan (BAP, EDD) dibiarkan
+const zero = (d: string) => d.replace(/\b0 hari lagi sampai batas jawaban/, 'batas jawaban hari ini').replace(/\b0 hari( kerja)? lagi/, 'hari ini') // "0 hari lagi" -> "hari ini"
 const subj = (noun: string, name: string) => (name.toLowerCase().startsWith(noun.toLowerCase()) ? name : `${noun} ${name}`.trim())
 type Word = [string, (s: string, d: string, r: R, today: string) => string]
 const WORDS: Record<string, Word> = {
@@ -52,11 +53,11 @@ const WORDS: Record<string, Word> = {
   'regchange.unrated': ['Peraturan belum dinilai', (s, d) => `${s} belum dinilai dampaknya (${d}). Mohon lakukan penilaian dampak.`],
   'regchange.effective': ['Peraturan akan berlaku, kepatuhan belum Comply', (s, d) => `${s}: ${d}. Percepat pemenuhan sebelum tanggal berlaku.`],
   'regchange.reply': ['Imbauan harus dijawab', (s, d) => `${s}: ${d}.`],
-  'regchange.sop': ['SOP terkait peraturan dicabut perlu ditinjau', (s, d) => `${s} dicabut: ${d} yang perlu diperbarui. Perbarui SOP lalu hapus dari daftar.`],
+  'regchange.sop': ['SOP terkait peraturan dicabut perlu ditinjau', (s, _d, r) => `${s} dicabut sejak ${fmtDate(r.tglBerlaku)}; ${r.sopList.length} SOP terkait perlu diperbarui. Perbarui SOP lalu hapus dari daftar.`],
   'regchange.high': ['Peraturan baru berdampak Tinggi', (s, d) => `${s}: ${d}. Perlu perhatian segera.`],
-  'sop.due': ['Review SOP jatuh tempo', (s, _d, r, t) => `${s} perlu direview sebelum ${fmtDate(r.tglReview)} (H-${diffDays(r.tglReview, t)}).`],
+  'sop.due': ['Review SOP jatuh tempo', (s, _d, r, t) => `${s} perlu direview sebelum ${fmtDate(r.tglReview)} (${diffDays(r.tglReview, t) === 0 ? 'hari ini' : `H-${diffDays(r.tglReview, t)}`}).`],
   'sop.overdue': ['Review SOP terlewat', (s, _d, r, t) => `${s} melewati tanggal review ${fmtDate(r.tglReview)} (${diffDays(t, r.tglReview)} hari). Segera lakukan review.`],
-  'sop.incomplete': ['Data SOP belum lengkap', (s, d) => `${s}: ${lc(d)}. Lengkapi datanya.`],
+  'sop.incomplete': ['Data SOP belum lengkap', (s, d) => `${s} belum lengkap — ${d.replace(/^Belum diisi: /, '')} belum diisi. Lengkapi datanya.`],
   'risk.high': ['Risiko High baru', (s, d) => `${s}: ${lc(d)}. Perlu rencana mitigasi dan eskalasi.`],
   'kajian.overdue': ['Kajian lewat batas waktu', (s, d) => `${s} belum selesai dan ${lc(d)} dari batas waktu.`],
   'kajian.near': ['Kajian hampir jatuh tempo', (s, d) => `${s} jatuh tempo ${d}.`],
@@ -67,13 +68,13 @@ const WORDS: Record<string, Word> = {
   'fraud.hold': ['Hold settlement lebih dari 30 hari', (s, d) => `${s}: ${lc(d)} tanpa Released atau Blokir. Tinjau kelanjutannya.`],
   'fraud.lapor': ['Lapor regulator terlambat', (s, d) => `${s}: ${lc(d)}. Segera laporkan ke regulator.`],
   'fraud.old': ['Kasus Open lebih dari 90 hari', (s, d) => `${s}: ${lc(d)}. Tinjau dan percepat penyelesaian.`],
-  'fraud.kosong': ['Data penting kasus kosong', (s, d) => `${s}: ${lc(d)}. Lengkapi datanya.`],
+  'fraud.kosong': ['Data penting kasus kosong', (s, d) => `${s} belum lengkap — ${d.replace(/^Kosong: /, '')} kosong. Lengkapi datanya.`],
   'kontrak.hmin': ['Kontrak hampir berakhir', (s, d) => `${s}: ${lc(d)}. Siapkan perpanjangan atau penggantian.`],
   'kontrak.expired': ['Kontrak expired belum diperpanjang', (s, d) => `${s}: ${lc(d)}. Segera perpanjang atau tutup kontrak.`],
   'kontrak.kosong': ['Tanggal berakhir kontrak kosong', (s) => `${s}: Tanggal Berakhir belum diisi. Lengkapi datanya.`],
   'aph.bap': ['Jadwal BAP mendekat', (s, d) => `${s}: ${lc(d)}. Siapkan kehadiran dan dokumen.`],
   'aph.overdue': ['Jawaban APH lewat batas waktu', (s, d) => `${s} belum dijawab: ${lc(d)} dari batas waktu jawaban.`],
-  'aph.kosong': ['Data permintaan APH belum lengkap', (s, d) => `${s}: ${lc(d)}. Lengkapi datanya.`],
+  'aph.kosong': ['Data permintaan APH belum lengkap', (s, d) => `${s} belum lengkap — ${d.replace(/^Kosong: /, '')} kosong. Lengkapi datanya.`],
   'perizinan.akan': ['Izin akan kedaluwarsa', (s, d) => `${s}: ${lc(d)}. Siapkan perpanjangan.`],
   'perizinan.lewat': ['Izin kedaluwarsa belum diperpanjang', (s, d) => `${s} sudah kedaluwarsa: ${lc(d)}. Segera proses perpanjangan.`],
   'layanan.overdue': ['Permintaan layanan hukum lewat batas waktu', (s, d) => `${s} belum selesai dan ${lc(d)} dari batas waktu.`],
@@ -105,7 +106,7 @@ export function buildNotifs(ctx: Ctx, db: DB, perms: Parameters<typeof canPerm>[
         const label = findingLabel(f)
         add({
           id: `tracker:${f.id}:${a.key}`, module: 'tracker', route: TRACKER_ROUTE, page: 'Regulatory Findings Tracker', recordId: f.id, ref: label, color: a.color,
-          title: w[0], message: w[1](subj('Temuan', label), a.detail, f as unknown as R, ctx.today), to: a.to.map((t) => (t === 'PIC' ? `PIC (${f.pic})` : t)),
+          title: w[0], message: w[1](subj('Temuan', label), zero(a.detail), f as unknown as R, ctx.today), to: a.to.map((t) => (t === 'PIC' ? `PIC (${f.pic})` : t)),
         })
       }
     }
@@ -121,7 +122,7 @@ export function buildNotifs(ctx: Ctx, db: DB, perms: Parameters<typeof canPerm>[
         const hit = a.check(r as never, ctx)
         if (!hit) continue
         const w = WORDS[`${cfg.module}.${a.key}`] ?? [a.label, (s: string, d: string) => `${s}: ${d}`]
-        add({ id: `${cfg.module}:${r.id}:${a.key}`, module: cfg.module, route, page: cfg.title, recordId: r.id, ref: ref?.(r) ?? name, color: hit.color, title: w[0], message: w[1](subj(cfg.noun, name), hit.detail, r, ctx.today), to: hit.to })
+        add({ id: `${cfg.module}:${r.id}:${a.key}`, module: cfg.module, route, page: cfg.title, recordId: r.id, ref: ref?.(r) ?? name, color: hit.color, title: w[0], message: w[1](cfg.module === 'regchange' ? name : subj(cfg.noun, name), zero(hit.detail), r, ctx.today), to: hit.to })
       }
     }
   }

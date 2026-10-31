@@ -49,16 +49,20 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
   const open = db.findings.find((f) => f.id === openId) ?? null
   // tautan dari pusat notifikasi: #/route?open=<id> membuka Detail temuan itu, lalu parameter dibersihkan
   useEffect(() => {
-    const go = () => {
+    // saat hashchange, halaman yang sedang ditinggalkan tidak boleh menghapus parameter milik halaman tujuan: hanya bertindak bila id ada di datanya sendiri
+    const go = (initial = false) => {
       const m = location.hash.match(/[?&]open=([^&]+)/)
       if (!m) return
-      history.replaceState(null, '', location.pathname + location.search + location.hash.split('?')[0])
       const id = decodeURIComponent(m[1])
-      if (db.findings.some((f) => f.id === id)) setOpenId(id)
+      const found = db.findings.some((f) => f.id === id)
+      if (!initial && !found) return
+      history.replaceState(null, '', location.pathname + location.search + location.hash.split('?')[0])
+      if (found) setOpenId(id)
     }
-    go()
-    addEventListener('hashchange', go)
-    return () => removeEventListener('hashchange', go)
+    go(true)
+    const onHash = () => go()
+    addEventListener('hashchange', onHash)
+    return () => removeEventListener('hashchange', onHash)
   }, [db.findings])
 
   // ---- mutasi + audit ----

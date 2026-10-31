@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 2.13.1 | 2026-10-31 | ~60k |
 | 2.13.0 | 2026-10-31 | ~450k |
 | 2.12.1 | 2026-10-30 | ~150k |
 | 2.12.0 | 2026-10-30 | ~250k |
@@ -45,6 +46,13 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [2.13.1] - 2026-10-31
+
+### Diperbaiki
+- Klik notifikasi selalu membuka Detail data: halaman yang ditinggalkan tidak lagi menghapus parameter tautan milik halaman tujuan (Tracker, PageShell)
+- Teks info chart Regulatory Change memakai kata notifikasi, bukan alert email
+- Pesan notifikasi: level High tetap kapital, 0 hari lagi menjadi hari ini, awalan Peraturan ganda dihapus, data kosong tanpa titik dua ganda, redaksi SOP terkait peraturan dicabut dirapikan
 
 ## [2.13.0] - 2026-10-31
 

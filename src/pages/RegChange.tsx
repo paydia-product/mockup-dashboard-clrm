@@ -60,7 +60,7 @@ const INFO: Record<string, ChartInfo> = {
     baca: [
       'Sumbu X (Hari): kelompok lama sejak dicatat, yaitu 0-10, 11-20, dan lebih dari 20 hari. Sumbu Y: jumlah peraturan.',
       'Makin banyak di kelompok kanan, makin lama peraturan menunggu penilaian.',
-      'Alert email "Belum dinilai" memakai hari kerja lebih dari 10, sehingga angkanya bisa sedikit berbeda dari grafik ini.',
+      'Notifikasi "Belum dinilai" memakai hari kerja lebih dari 10, sehingga angkanya bisa sedikit berbeda dari grafik ini.',
       'Batang tidak bisa diklik.',
     ],
   },

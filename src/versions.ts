@@ -11,6 +11,19 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
+    v: '2.13.1',
+    date: '2026-10-31',
+    deployed: true,
+    title: 'Perbaikan klik notifikasi dan redaksi pesan notifikasi',
+    prompt: 'Klik notifikasi selalu membuka Detail, teks alert email jadi notifikasi, perapian redaksi pesan notifikasi',
+    tokens: 60000,
+    changes: [
+      'Klik notifikasi selalu membuka Detail data: halaman yang ditinggalkan tidak lagi menghapus parameter tautan milik halaman tujuan (Tracker, PageShell)',
+      'Teks info chart Regulatory Change memakai kata notifikasi, bukan alert email',
+      'Pesan notifikasi: level High tetap kapital, 0 hari lagi menjadi hari ini, awalan Peraturan ganda dihapus, data kosong tanpa titik dua ganda, redaksi SOP terkait peraturan dicabut dirapikan',
+    ],
+  },
+  {
     v: '2.13.0',
     date: '2026-10-31',
     deployed: true,

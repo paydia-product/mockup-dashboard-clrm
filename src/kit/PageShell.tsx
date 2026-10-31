@@ -46,16 +46,20 @@ export default function PageShell<T extends BaseRec>({ config: cfg }: { config: 
   const openDetail = (id: string) => setModal({ k: 'detail', id })
   // tautan dari pusat notifikasi: #/route?open=<id> membuka Detail data itu, lalu parameter dibersihkan
   useEffect(() => {
-    const go = () => {
+    // saat hashchange, halaman yang sedang ditinggalkan tidak boleh menghapus parameter milik halaman tujuan: hanya bertindak bila id ada di datanya sendiri (id berawalan modul)
+    const go = (initial = false) => {
       const m = location.hash.match(/[?&]open=([^&]+)/)
       if (!m) return
-      history.replaceState(null, '', location.pathname + location.search + location.hash.split('?')[0])
       const id = decodeURIComponent(m[1])
-      if (api.rows.some((r) => r.id === id)) setModal({ k: 'detail', id })
+      const found = api.rows.some((r) => r.id === id)
+      if (!initial && !found) return
+      history.replaceState(null, '', location.pathname + location.search + location.hash.split('?')[0])
+      if (found) setModal({ k: 'detail', id })
     }
-    go()
-    addEventListener('hashchange', go)
-    return () => removeEventListener('hashchange', go)
+    go(true)
+    const onHash = () => go()
+    addEventListener('hashchange', onHash)
+    return () => removeEventListener('hashchange', onHash)
   }, [api.rows]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const actions = (r: T) => (
