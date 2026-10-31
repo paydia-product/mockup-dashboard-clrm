@@ -89,9 +89,9 @@ export const REPORTING_GUIDE: GuideItem[] = [
     h: 'Notifikasi',
     b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah. Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Gunakan "Tandai semua dibaca" untuk mengosongkan penghitung.</p>
 <ul>
-<li><b>Hampir jatuh tempo</b> (kuning). Laporan belum Terkirim dan Batas Waktu tinggal 0 sampai 7 hari. Penerima: <b>PIC</b> penyusun dan <b>Compliance Officer</b>.</li>
-<li><b>Laporan terlambat</b> (merah). Status Terlambat, yaitu Batas Waktu terlewat dan belum Terkirim. Penerima: <b>PIC</b> penyusun dan <b>Head CLRM</b>.</li>
-<li><b>Insiden siber dengan jam berjalan</b> (merah). Laporan insiden siber belum Terkirim dan Waktu Kejadian terisi. Notifikasi awal paling lambat 1 jam dan laporan lengkap paling lambat 3 hari kalender sejak kejadian. Penerima: <b>Head CLRM</b> dan <b>CISO</b>.</li>
+<li><b>Mendekati batas waktu</b> (kuning). Laporan belum Terkirim dan Batas Waktu tinggal 0 sampai 7 hari. Penerima: <b>PIC</b> penyusun dan <b>Compliance Officer</b>.</li>
+<li><b>Lewat batas waktu</b> (merah). Status Terlambat, yaitu Batas Waktu terlewat dan belum Terkirim. Penerima: <b>PIC</b> penyusun dan <b>Head CLRM</b>.</li>
+<li><b>Tenggat pelaporan insiden siber sedang berjalan</b> (merah). Laporan insiden siber belum Terkirim dan Waktu Kejadian terisi. Notifikasi awal paling lambat 1 jam dan laporan lengkap paling lambat 3 hari kalender sejak kejadian. Penerima: <b>Head CLRM</b> dan <b>CISO</b>.</li>
 <li><b>Terkirim tanpa bukti</b> (kuning). Status Terkirim tetapi file bukti dan Nomor Tanda Terima kosong. Penerima: <b>PIC</b> penyusun.</li>
 </ul>
 `,

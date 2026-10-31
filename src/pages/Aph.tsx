@@ -76,7 +76,7 @@ const filters: FilterDef<Aph>[] = [
 
 const alerts: AlertDef<Aph>[] = [
   {
-    key: 'bap', label: 'Jadwal BAP mendekat', rule: 'BAP tinggal 7 hari atau kurang (kuning), 2 hari atau kurang (merah).',
+    key: 'bap', label: 'Jadwal BAP akan tiba', rule: 'BAP tinggal 7 hari atau kurang (kuning), 2 hari atau kurang (merah).',
     check: (r, c) => {
       const b = bapDate(r)
       if (!ACTIVE(r) || !b) return null

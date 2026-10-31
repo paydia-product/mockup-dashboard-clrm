@@ -111,7 +111,7 @@ export function alertsFor(f: Finding, audit: Audit[], today = todayStr()): Alert
     if (late > DIRECTOR_DAYS) to.push('Direktur terkait')
     out.push({ key: 'overdue', color: 'red', label: 'Lewat batas waktu', to, detail: `Lewat ${late} hari` })
   } else if (d <= NEAR_DUE_DAYS) {
-    out.push({ key: 'near', color: 'yellow', label: 'Hampir jatuh tempo', to: ['PIC'], detail: `${d} hari lagi` })
+    out.push({ key: 'near', color: 'yellow', label: 'Mendekati batas waktu', to: ['PIC'], detail: `${d} hari lagi` })
   }
   if (f.status === 'Menunggu Validasi') {
     const since = waitingSince(f, audit)

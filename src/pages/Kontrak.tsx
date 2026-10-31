@@ -87,7 +87,7 @@ const filters: FilterDef<Kontrak>[] = [
 const toPic = (r: Kontrak) => (r.pic ? `PIC (${r.pic})` : 'PIC')
 const alerts: AlertDef<Kontrak>[] = [
   {
-    key: 'hmin', label: 'Kontrak hampir berakhir', rule: 'Pengingat H-90, H-60, H-30, H-7 sebelum Tanggal Berakhir. Kuning, merah mulai ≤30 hari.',
+    key: 'hmin', label: 'Kontrak akan berakhir', rule: 'Pengingat H-90, H-60, H-30, H-7 sebelum Tanggal Berakhir. Kuning, merah mulai ≤30 hari.',
     check: (r, c) => {
       const s = sisa(r, c.today)
       if (!LIVE(r) || s === null || s < 0 || s > 90) return null

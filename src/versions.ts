@@ -11,6 +11,20 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
+    v: '2.13.6',
+    date: '2026-10-31',
+    deployed: true,
+    title: 'Samakan label alert halaman dan judul notifikasi',
+    prompt: 'Putaran akhir redaksi: label alert halaman sama dengan judul notifikasi',
+    tokens: 40000,
+    changes: [
+      'Label alert halaman dan judul notifikasi memakai frasa yang sama: Mendekati batas waktu, Lewat batas waktu, Peninjauan akan tiba / terlewat, Kontrak akan berakhir, Jadwal BAP akan tiba, Jadwal evaluasi mitra, Tenggat pelaporan insiden siber sedang berjalan; judul notifikasi kini diturunkan dari label halaman sehingga tidak bisa berbeda',
+      'Peninjauan SOP: judul "Peninjauan SOP akan tiba" bila masih N hari, "Peninjauan SOP jatuh tempo hari ini" bila 0 hari (sebelumnya judul "mendekat" dengan isi "hari ini")',
+      'Laporan terlambat menjadi "Laporan lewat batas waktu"; "Peraturan dicabut, SOP terkait perlu ditinjau"; Layanan: "Permintaan layanan hukum (Review) dari ..."',
+      'Kartu SOP: "bila peninjauan terlewat"; panduan semua modul disesuaikan dengan label baru',
+    ],
+  },
+  {
     v: '2.13.5',
     date: '2026-10-31',
     deployed: true,

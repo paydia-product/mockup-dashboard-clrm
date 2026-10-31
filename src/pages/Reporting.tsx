@@ -123,7 +123,7 @@ const filters: FilterDef<Laporan>[] = [
 const toPic = (r: Laporan) => (r.picPenyusun ? `PIC (${r.picPenyusun})` : 'PIC')
 const alerts: AlertDef<Laporan>[] = [
   {
-    key: 'near', label: 'Hampir jatuh tempo', rule: 'Batas waktu tinggal 7, 3, atau 1 hari (H-7/H-3/H-1, paling lama 7 hari) dan laporan belum Terkirim.',
+    key: 'near', label: 'Mendekati batas waktu', rule: 'Batas waktu tinggal 7, 3, atau 1 hari (H-7/H-3/H-1, paling lama 7 hari) dan laporan belum Terkirim.',
     check: (r, c) => {
       if (SENT(r) || r.status === 'Terlambat' || !r.batas) return null
       const d = diffDays(dOf(r.batas), c.today)
@@ -131,11 +131,11 @@ const alerts: AlertDef<Laporan>[] = [
     },
   },
   {
-    key: 'late', label: 'Laporan terlambat', rule: 'Batas waktu terlewat dan laporan belum Terkirim.',
+    key: 'late', label: 'Lewat batas waktu', rule: 'Batas waktu terlewat dan laporan belum Terkirim.',
     check: (r) => (r.status === 'Terlambat' ? { color: 'red', detail: `Terlambat sejak ${fmtDate(dOf(r.batas))}`, to: [toPic(r), 'Head CLRM'] } : null),
   },
   {
-    key: 'siber', label: 'Insiden siber (jam berjalan)', rule: 'Laporan insiden siber belum Terkirim: notifikasi awal paling lambat 1 jam dan laporan lengkap paling lambat 3 hari kalender sejak waktu kejadian.',
+    key: 'siber', label: 'Tenggat pelaporan insiden siber sedang berjalan', rule: 'Laporan insiden siber belum Terkirim: notifikasi awal paling lambat 1 jam dan laporan lengkap paling lambat 3 hari kalender sejak waktu kejadian.',
     check: (r) => {
       if (!isSiber(r) || SENT(r) || !r.waktuKejadian) return null
       const t0 = new Date(r.waktuKejadian).getTime(), now = Date.now()

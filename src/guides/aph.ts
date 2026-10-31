@@ -52,7 +52,7 @@ export const AphGuide: GuideItem[] = [
 </ul>` },
   { h: 'Notifikasi', b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah. Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Gunakan "Tandai semua dibaca" untuk mengosongkan penghitung. Notifikasi hanya muncul untuk permintaan berstatus Active.</p>
 <ul>
-<li><b>Jadwal BAP mendekat</b>: muncul bila BAP tinggal 0 sampai 7 hari. <b>Kuning</b> bila 3 sampai 7 hari, <b>merah</b> bila 2 hari atau kurang. Penerima: Legal Officer dan Head CLRM.</li>
+<li><b>Jadwal BAP akan tiba</b>: muncul bila BAP tinggal 0 sampai 7 hari. <b>Kuning</b> bila 3 sampai 7 hari, <b>merah</b> bila 2 hari atau kurang. Penerima: Legal Officer dan Head CLRM.</li>
 <li><b>Lewat batas waktu jawaban</b>: muncul bila Batas Waktu Jawaban terisi dan sudah lewat. <b>Merah</b>. Penerima: Legal Officer dan Head CLRM.</li>
 <li><b>Data penting kosong</b>: muncul bila PIC, Nama Penyidik, atau No. Telepon Penyidik masih kosong. <b>Kuning</b>. Penerima: Legal Officer.</li>
 </ul>` },

@@ -78,7 +78,7 @@ const alerts: AlertDef<Kajian>[] = [
     check: (r, c) => { const d = lateDays(r, c.today); return d > 0 ? { color: 'red', detail: `Lewat ${d} hari`, to: [toPic(r), 'Head CLRM'] } : null },
   },
   {
-    key: 'near', label: 'Hampir jatuh tempo', rule: 'Batas waktu tinggal 2 hari kerja atau kurang dan kajian belum Selesai.',
+    key: 'near', label: 'Mendekati batas waktu', rule: 'Batas waktu tinggal 2 hari kerja atau kurang dan kajian belum Selesai.',
     check: (r, c) => {
       if (!OPEN(r) || !batas(r) || lateDays(r, c.today) > 0) return null
       const d = workDaysBetween(c.today, batas(r))
@@ -90,7 +90,7 @@ const alerts: AlertDef<Kajian>[] = [
     check: (r) => (r.status === 'Selesai' && !r.hasil ? { color: 'yellow', detail: 'Hasil / Opini kosong', to: [toPic(r), 'Risk Officer'] } : null),
   },
   {
-    key: 'mitra', label: 'Jadwal due diligence / evaluasi mitra', rule: 'Vendor: jadwal due diligence/evaluasi H-30 (kuning) atau sudah lewat (merah).',
+    key: 'mitra', label: 'Jadwal evaluasi mitra', rule: 'Vendor: jadwal due diligence/evaluasi H-30 (kuning) atau sudah lewat (merah).',
     check: (r, c) => {
       const d = ddDays(r, c.today)
       if (d === null) return null

@@ -57,7 +57,7 @@ export const KontrakGuide: GuideItem[] = [
 </ul>` },
   { h: 'Notifikasi', b: `<p>Alert halaman ini muncul sebagai notifikasi di ikon <b>lonceng</b> pada header (kanan atas), dengan angka jumlah yang belum dibaca. Notifikasi hanya tampil bagi penerima yang tercantum di bawah. Super Admin melihat semua. Klik notifikasi untuk membuka halaman ini dan Detail datanya. Gunakan "Tandai semua dibaca" untuk mengosongkan penghitung.</p>
 <ul>
-<li><b>Kontrak hampir berakhir</b>: muncul bila kontrak Aktif atau Akan Berakhir punya sisa 0 sampai 90 hari. <b>Kuning</b> bila sisa lebih dari 30 hari, <b>merah</b> bila 30 hari atau kurang. Penerima: Legal Officer dan PIC kontrak. Pengingat berlaku pada tahap H-90, H-60, H-30, dan H-7.</li>
+<li><b>Kontrak akan berakhir</b>: muncul bila kontrak Aktif atau Akan Berakhir punya sisa 0 sampai 90 hari. <b>Kuning</b> bila sisa lebih dari 30 hari, <b>merah</b> bila 30 hari atau kurang. Penerima: Legal Officer dan PIC kontrak. Pengingat berlaku pada tahap H-90, H-60, H-30, dan H-7.</li>
 <li><b>Kontrak expired belum diperpanjang</b>: muncul bila status Expired, atau Tanggal Berakhir sudah lewat. <b>Merah</b>. Penerima: Legal Officer dan Head CLRM.</li>
 <li><b>Tanggal berakhir kosong</b>: muncul bila Tanggal Berakhir belum diisi (kecuali status Berakhir atau Dibatalkan). <b>Kuning</b>. Penerima: Legal Officer.</li>
 </ul>` },

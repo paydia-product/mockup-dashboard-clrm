@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 2.13.6 | 2026-10-31 | ~40k |
 | 2.13.5 | 2026-10-31 | ~40k |
 | 2.13.4 | 2026-10-31 | ~40k |
 | 2.13.3 | 2026-10-31 | ~80k |
@@ -50,6 +51,14 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [2.13.6] - 2026-10-31
+
+### Diperbaiki
+- Label alert halaman dan judul notifikasi memakai frasa yang sama: Mendekati batas waktu, Lewat batas waktu, Peninjauan akan tiba / terlewat, Kontrak akan berakhir, Jadwal BAP akan tiba, Jadwal evaluasi mitra, Tenggat pelaporan insiden siber sedang berjalan; judul notifikasi kini diturunkan dari label halaman sehingga tidak bisa berbeda
+- Peninjauan SOP: judul "Peninjauan SOP akan tiba" bila masih N hari, "Peninjauan SOP jatuh tempo hari ini" bila 0 hari (sebelumnya judul "mendekat" dengan isi "hari ini")
+- Laporan terlambat menjadi "Laporan lewat batas waktu"; "Peraturan dicabut, SOP terkait perlu ditinjau"; Layanan: "Permintaan layanan hukum (Review) dari ..."
+- Kartu SOP: "bila peninjauan terlewat"; panduan semua modul disesuaikan dengan label baru
 
 ## [2.13.5] - 2026-10-31
 

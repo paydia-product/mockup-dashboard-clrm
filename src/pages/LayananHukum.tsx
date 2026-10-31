@@ -58,7 +58,7 @@ const alerts: AlertDef<Layanan>[] = [
     check: (r, c) => { const d = lateDays(r, c.today); return d > 0 ? { color: 'red', detail: `Lewat ${d} hari`, to: [toPic(r), 'Head CLRM'] } : null },
   },
   {
-    key: 'near', label: 'Hampir jatuh tempo', rule: 'Batas waktu tinggal 2 hari kerja atau kurang dan permintaan belum Selesai.',
+    key: 'near', label: 'Mendekati batas waktu', rule: 'Batas waktu tinggal 2 hari kerja atau kurang dan permintaan belum Selesai.',
     check: (r, c) => {
       if (!OPEN(r) || !batas(r) || lateDays(r, c.today) > 0) return null
       const d = workDaysBetween(c.today, batas(r))
