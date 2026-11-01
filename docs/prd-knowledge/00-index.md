@@ -78,7 +78,7 @@ Sumber keputusan: bagian "Keputusan yang sudah final" di prompt PRD tanggal 1 No
 | Fraud Case Monitoring | Batas waktu EDD = tanggal surat EDD + 2 hari kerja, notifikasi saat jatuh tempo | Rumus sementara: Tanggal Terima + 3 hari kerja bila EDD 1 kosong, selain itu EDD 1 + 7 hari kalender. Alert muncul setelah lewat batas | 04 |
 | Fraud Case Monitoring | Semua peran yang punya akses halaman bisa membuka sensor | Sesuai sejak v2.14.5: semua peran punya ikon mata. Export selalu tersamar | 04 |
 | Fraud Case Monitoring | Nama merchant: teks uraian, bisa banyak, bisa dicari, tidak tampil di tabel | Tidak ada field Nama Merchant. Hanya Group Merchant (satu teks) dan Nama Terlapor | 04 |
-| Fraud Case Monitoring | Visual punya filter produk UE dan QRIS | Tidak ada filter produk di Dashboard. Produk hanya filter Table | 04 |
+| Fraud Case Monitoring | Visual punya filter produk UE dan QRIS | Produk hanya filter Table. Diputuskan cukup di Table (C.1) | 04 |
 | Kontrak | Mitra dari Master Data | Master hanya untuk Jenis Hubungan selain Merchant. Merchant memakai teks bebas | 05 |
 | Kontrak | Jenis dokumen dari Master Data jenis PKS | Sesuai, ditambah opsi Lainnya teks bebas | 05 |
 | Permintaan APH | Instansi pengirim tingkat Polda dan Bareskrim | Master berisi juga Polres, PPATK, Kejaksaan, ditambah Lainnya | 05 |
@@ -100,7 +100,7 @@ Keputusan ini menggantikan "Keputusan final" untuk baris yang disebut. Tulis req
 | Batas waktu EDD Fraud | Rumus mockup: Tanggal Terima + 3 hari kerja selama Tanggal EDD 1 kosong. Setelah EDD 1 terisi: Tanggal EDD 1 + 7 hari kalender. Alert muncul setelah batas terlewat. |
 | Sensor Fraud | Semua peran yang bisa membuka halaman Fraud punya ikon mata untuk Nama Terlapor dan RRN (header kolom Table, label Detail, label form Edit). Bawaan tersamar. Export selalu tersamar untuk semua peran. Ganti akun menutup lagi sensor yang terbuka. Sudah diterapkan di v2.14.5 dan v2.14.6. |
 | Nama Merchant Fraud | Pakai mockup: tidak ada field Nama Merchant. Yang ada Group Merchant (teks) dan Nama Terlapor. |
-| Filter produk Fraud | Pakai mockup: Produk (UE, QRIS, Biller dari Master Data) ada sebagai filter di tab Table. Dashboard tidak punya filter produk. [Menunggu jawaban pemilik produk apakah Dashboard juga perlu filter produk.] |
+| Filter produk Fraud | Pakai mockup: Produk (UE, QRIS, Biller dari Master Data) ada sebagai filter di tab Table. Dashboard tidak punya filter produk, dan memang tidak perlu (keputusan 1 November 2026). |
 | Progress Tracker | Pakai mockup: tidak ada kolom Progress. |
 | Tren Tracker | Pakai mockup: Seluruh Waktu, 3, 6, 9, 12 bulan terakhir (bawaan 12), Custom. Tidak ada per kuartal. |
 | Rencana Tindak Lanjut Tracker | Satu isian teks bebas (pengguna bisa menulis beberapa rencana dalam satu teks) dan satu file bukti opsional. |
