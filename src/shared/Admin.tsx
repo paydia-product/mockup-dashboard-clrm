@@ -130,7 +130,7 @@ export default function Admin({ actEl }: { actEl: HTMLElement | null }) {
   const refresh = () => {
     setStore((s) => ({ ...s, accounts: s.accounts.map((x) => ({ ...x, permissions: x.role === 'Super Admin' ? [...ALL_PERM_IDS] : x.permissions.filter((p) => ALL_PERM_IDS.includes(p)) })) }))
     log('Admin', 'Ubah permission', '', `Refresh permissions: ${store.accounts.length} admin`)
-    setMsg(`Permissions diperbarui untuk ${store.accounts.length} admin.`)
+    setMsg(`Permission diperbarui untuk ${store.accounts.length} admin.`)
     setTimeout(() => setMsg(''), 4000)
   }
   return (

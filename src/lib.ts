@@ -263,7 +263,9 @@ export function applyTrackerRequest(db: DB, reqId: string, userName: string, app
   const requests = db.requests.map((x) => (x.id === reqId ? { ...x, status: ok ? ('Disetujui' as const) : ('Ditolak' as const), decidedBy: userName, decidedAt: nowStr(), catatan: note } : x))
   const mk = (aksi: string, alasan: string): Audit[] => r.changes.map((c, i) => ({ id: `${r.fid}-${Date.now()}-${i}`, fid: r.fid, time: nowStr(), user: userName, aksi, kolom: c.label, lama: c.lama, baru: c.baru, alasan }))
   if (!ok || !f) {
-    const rej = f ? { ...f, persetujuan: 'Ditolak' as const, persetujuanOleh: userName, persetujuanTgl: todayStr() } : null
+    // status kembali ke status sebelum pengajuan (dari audit 'Ajukan penutupan'), bukan tertahan di Menunggu Validasi
+    const prev = (db.audit.filter((a) => a.fid === r.fid && a.kolom === 'Status' && a.aksi.startsWith('Ajukan penutupan')).sort((a, b) => b.time.localeCompare(a.time))[0]?.lama as Status) || 'Proses'
+    const rej = f ? { ...f, status: f.status === 'Menunggu Validasi' ? prev : f.status, persetujuan: 'Ditolak' as const, persetujuanOleh: userName, persetujuanTgl: todayStr() } : null
     return { ...db, requests, findings: rej ? db.findings.map((x) => (x.id === f!.id ? rej : x)) : db.findings, audit: [...db.audit, ...mk('Tolak penutupan', note)] }
   }
   const next = { ...f } as Record<string, unknown>

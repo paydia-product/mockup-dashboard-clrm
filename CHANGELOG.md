@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 2.14.1 | 2026-11-01 | ~60k |
 | 2.14.0 | 2026-11-01 | ~250k |
 | 2.13.10 | 2026-10-31 | ~25k |
 | 2.13.9 | 2026-10-31 | ~10k |
@@ -56,6 +57,15 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [2.14.1] - 2026-11-01
+
+### Diperbaiki
+- Seed Approval: jam pengajuan selalu valid (HH:mm), dan permintaan Fraud yang disetujui menampilkan Open -> Closed
+- Tolak penutupan Tracker di halaman Approval mengembalikan temuan ke status sebelumnya (bukan tertahan di Menunggu Validasi)
+- Log: IP demo selalu 0-255 per oktet; type konsisten (approve, reject); detail export live memakai format "Jumlah baris: N"; seed ditambah switch-account, restore, delete, master-delete, dan export tiap modul
+- Rute lama #/admin/akun dan #/admin/permission dialihkan ke #/admin
+- Approval: izin Update pada kategori Approval kini menentukan tombol Approve dan Reject; teks "Permission diperbarui untuk N admin"
 
 ## [2.14.0] - 2026-11-01
 

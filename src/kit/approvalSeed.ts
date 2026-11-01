@@ -21,13 +21,13 @@ export function seedApprovals() {
   const reqs: ApprovalReq[] = []
   let no = Math.max(s0.seq.approval ?? 0, 20) // nomor request Tracker seed 1..9
   const add = <T extends BaseRec>(cfg: PageConfig<T>, id: string, jenis: string, approver: Role, byRole: Role, by: string, ago: number, alasan: string,
-    patch: (r: T) => R, status: ApprovalReq['status'], extra?: R, catatan?: string) => {
+    patch: (r: T) => R, status: ApprovalReq['status'], extra?: R, catatan?: string, before?: R) => {
     const rec = readModule(cfg.module, cfg.seed).find((x) => x.id === id) as T | undefined
     if (!rec) return
     const p = patch(rec)
-    const time = `${addDays(today, -ago)}T09:${String(10 + no * 3).padStart(2, '0')}:00`
+    const time = `${addDays(today, -ago)}T09:${String((no * 7) % 60).padStart(2, '0')}:00`
     const show = (k: string, v: unknown) => { const f = cfg.fields.find((x) => x.key === k); return f ? fmtValue(f, v, c) : String(v ?? '') }
-    const changes = Object.keys(p).map((k) => ({ key: k, label: cfg.fields.find((x) => x.key === k)?.label ?? k, lama: show(k, (rec as R)[k]), baru: show(k, p[k]), value: p[k] }))
+    const changes = Object.keys(p).map((k) => ({ key: k, label: cfg.fields.find((x) => x.key === k)?.label ?? k, lama: show(k, before && k in before ? before[k] : (rec as R)[k]), baru: show(k, p[k]), value: p[k] }))
     no += 1
     reqs.push({
       id: `ap-seed-${no}`, no, module: cfg.module, jenis, recordId: rec.id, recordNo: rec.no, recordLabel: cfg.name?.(rec) ?? '', by, byRole, time, alasan, approver,
@@ -42,7 +42,7 @@ export function seedApprovals() {
   const closedId = (readModule(fraud.module, fraud.seed) as { id: string; status: string; cancelled?: unknown }[]).find((r) => r.status === 'Closed' && !r.cancelled)?.id
   add(fraud, 'fraud-8', 'Penutupan Kasus', 'Head CLRM', 'Fraud Investigator', 'Fakhri', 2, 'EDD selesai, tindakan Watchlist sudah dijalankan', (r) => close(r as never, 90), 'Menunggu')
   add(fraud, 'fraud-11', 'Penutupan Kasus', 'Head CLRM', 'Fraud Investigator', 'Fakhri', 1, 'Tidak ada tindak lanjut tambahan', (r) => close(r as never, 6), 'Menunggu')
-  if (closedId) add(fraud, closedId, 'Penutupan Kasus', 'Head CLRM', 'Fraud Investigator', 'Fakhri', 14, 'Kasus selesai dan dokumen lengkap', (r) => ({ status: 'Closed', tglResolved: (r as R).tglResolved }), 'Disetujui', undefined, 'Disetujui, dokumen lengkap')
+  if (closedId) add(fraud, closedId, 'Penutupan Kasus', 'Head CLRM', 'Fraud Investigator', 'Fakhri', 14, 'Kasus selesai dan dokumen lengkap', (r) => ({ status: 'Closed', tglResolved: (r as R).tglResolved }), 'Disetujui', undefined, 'Disetujui, dokumen lengkap', { status: 'Open', tglResolved: '' }) // record sudah Closed: nilai lama = sebelum penutupan
   add(fraud, 'fraud-9', 'Penutupan Kasus', 'Head CLRM', 'Fraud Investigator', 'Fakhri', 9, 'Kasus ditutup karena tidak ada respons', (r) => close(r as never, 100), 'Ditolak', undefined, 'Bukti pelaporan ke regulator belum lengkap')
 
   // Regulatory Change: perubahan data identitas peraturan (approver Ketua SMKI)

@@ -11,6 +11,21 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
+    v: '2.14.1',
+    date: '2026-11-01',
+    deployed: false,
+    title: 'Perbaikan QA seed Approval, Log, dan rute Admin',
+    prompt: 'Perbaiki temuan QA v2.14.0: jam seed tidak valid, IP negatif, tolak Tracker, type Log, seed Log, rute lama Admin',
+    tokens: 60000,
+    changes: [
+      'Seed Approval: jam pengajuan selalu valid (HH:mm), dan permintaan Fraud yang disetujui menampilkan Open -> Closed',
+      'Tolak penutupan Tracker di halaman Approval mengembalikan temuan ke status sebelumnya (bukan tertahan di Menunggu Validasi)',
+      'Log: IP demo selalu 0-255 per oktet; type konsisten (approve, reject); detail export live memakai format \"Jumlah baris: N\"; seed ditambah switch-account, restore, delete, master-delete, dan export tiap modul',
+      'Rute lama #/admin/akun dan #/admin/permission dialihkan ke #/admin',
+      'Approval: izin Update pada kategori Approval kini menentukan tombol Approve dan Reject; teks \"Permission diperbarui untuk N admin\"',
+    ],
+  },
+  {
     v: '2.14.0',
     date: '2026-11-01',
     deployed: false,

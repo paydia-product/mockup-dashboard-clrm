@@ -92,6 +92,15 @@ const S: Spec[] = [
   ['admin', 'permission-update', ['email: tono.santoso@paydia.id', 'Kategori: Fraud', 'Izin: fraud.export dicabut', 'Admin: {name} ({email})']],
   ['notification', 'notif-open', ['Notifikasi: Kontrak akan berakhir', 'Tujuan: #/legal/kontrak', 'Admin: {name} ({email})']],
   ['notification', 'notif-open', ['Notifikasi: Jawaban APH lewat batas waktu', 'Tujuan: #/legal/permintaan-aph', 'Admin: {name} ({email})']],
+  ['clrm-auth', 'switch-account', ['email: {email}', 'Ganti akun demo: Super Admin -> Rina Kartika']],
+  ['kontrak', 'restore', ['Kontrak: Amandemen - PT Cipta Layanan', 'Status: Dibatalkan -> Aktif', 'Alasan: pembatalan keliru', 'Admin: {name} ({email})']],
+  ['sop-dokumen-kontrol', 'delete', ['Dokumen: SOP lama Rekonsiliasi Manual', 'Alasan: diganti SOP versi baru', 'Admin: {name} ({email})']],
+  ['master-data', 'master-delete', ['Master: Kategori Pelapor', 'Nama: Asosiasi Lama', 'Admin: {name} ({email})']],
+  ['regulatory-change', 'export', ['Jumlah baris: 31', 'File: Daftar_Peraturan.xlsx', 'Admin: {name} ({email})']],
+  ['sop-dokumen-kontrol', 'export', ['Jumlah baris: 25', 'File: SOP_Dokumen_Kontrol.xlsx', 'Admin: {name} ({email})']],
+  ['kajian-risiko', 'export', ['Jumlah baris: 20', 'File: Kajian_Risiko.xlsx', 'Admin: {name} ({email})']],
+  ['perizinan', 'export', ['Jumlah baris: 18', 'File: Perizinan.xlsx', 'Admin: {name} ({email})']],
+  ['layanan-hukum', 'export', ['Jumlah baris: 22', 'File: Layanan_Hukum.xlsx', 'Admin: {name} ({email})']],
   ['log', 'export', ['Jumlah baris: 120', 'File: Log_Aktivitas.xlsx', 'Admin: {name} ({email})']],
 ]
 

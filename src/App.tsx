@@ -59,7 +59,11 @@ const groupOf = (id: string) => [...GROUPS, ...LOWER].find((g) => g.items.some((
 const trackerRole = (r: Role): TrackerRole => (r === 'Head CLRM' || r === 'Super Admin' ? 'Head CLRM' : r === 'Compliance Officer' ? 'Compliance Officer' : r === 'PIC' ? 'PIC' : 'Viewer')
 
 // ponytail: slug master 'mitra' berganti 'mitra-vendor' (v2.10.0); tautan lama dialihkan agar tidak crash
-const hashRoute = () => (location.hash.replace(/^#\/?/, '').split('?')[0] || TRACKER).replace(/^master\/mitra$/, 'master/mitra-vendor').replace(/^admin\/(akun|permission)$/, 'admin')
+const hashRoute = () => {
+  if (/^#\/?admin\/(akun|permission)/.test(location.hash)) location.replace('#/admin') // rute lama Akun/Permission
+  return hashRouteOf()
+}
+const hashRouteOf = () => (location.hash.replace(/^#\/?/, '').split('?')[0] || TRACKER).replace(/^master\/mitra$/, 'master/mitra-vendor').replace(/^admin\/(akun|permission)$/, 'admin')
 
 function VersionPicker() {
   const [open, setOpen] = useState(false)

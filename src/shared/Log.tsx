@@ -18,11 +18,11 @@ const CONTAINER: Record<string, string> = {
 // Aksi live (Indonesia) -> type (urutan penting: pola pertama yang cocok)
 const TYPES: [RegExp, string][] = [
   [/^tambah akun/i, 'admin-create'], [/^ubah (status )?akun/i, 'admin-update'], [/^ubah permission/i, 'permission-update'], [/^ganti akun/i, 'switch-account'],
-  [/^ganti password/i, 'password-change'], [/^ganti pin/i, 'pin-change'], [/^logout/i, 'logout'], [/^ajukan/i, 'submit-approval'], [/^approve|^persetujuan/i, 'approve'], [/^reject/i, 'reject'],
+  [/^ganti password/i, 'password-change'], [/^ganti pin/i, 'pin-change'], [/^logout/i, 'logout'], [/^ajukan/i, 'submit-approval'], [/^approve|^persetujuan|^setujui/i, 'approve'], [/^reject|^tolak/i, 'reject'],
   [/^export/i, 'export'], [/^import/i, 'import'], [/^batalkan|^cancel/i, 'cancel'], [/^kembalikan/i, 'restore'], [/^validasi/i, 'validate'], [/^hapus/i, 'delete'], [/^tambah/i, 'create'], [/^ubah/i, 'update'],
 ]
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
-const ipOf = (key: string) => { let h = 0; for (const ch of key) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return `182.253.${(h % 200) + 20}.${((h >> 8) % 230) + 10}` } // IP demo tetap per pengguna untuk entri live
+const ipOf = (key: string) => { let h = 0; for (const ch of key) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return `182.253.${(h % 200) + 20}.${((h >>> 8) % 230) + 10}` } // IP demo tetap per pengguna untuk entri live
 const dmy = (t: string) => fmtTimeSec(t).replace(/\//g, '-') // DD-MM-YYYY HH:mm:ss
 
 // Entri live (store.log dan audit Tracker) dipetakan ke bentuk tabel: Container, Type, Detail (baris kunci: nilai), IP
@@ -32,7 +32,7 @@ export function useAllLogs(tdb: DB): ActivityLog[] {
     const acct = (n: string) => store.accounts.find((a) => a.name === n)
     const kv = (user: string, nomor: string, ket: string) => {
       const a = acct(user)
-      return [`email: ${a?.email ?? user}`, `user_type: ${a?.role ?? '-'}`, nomor && `data: ${nomor}`, ...ket.split(/;\s|\.\s(?=Alasan|Catatan)/).filter(Boolean)].filter(Boolean).join('\n')
+      return [`email: ${a?.email ?? user}`, `user_type: ${a?.role ?? '-'}`, nomor && `data: ${nomor}`, ...ket.replace(/^(\d+) baris$/, 'Jumlah baris: $1').split(/;\s|\.\s(?=Alasan|Catatan)/).filter(Boolean)].filter(Boolean).join('\n')
     }
     const typeOf = (aksi: string, module: string) => (module === 'Master Data' ? `master-${aksi.toLowerCase() === 'tambah' ? 'create' : aksi.toLowerCase() === 'ubah' ? 'update' : 'delete'}` : TYPES.find(([r]) => r.test(aksi))?.[1] ?? slug(aksi))
     const live: ActivityLog[] = store.log.map((l) => {

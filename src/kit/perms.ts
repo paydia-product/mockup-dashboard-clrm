@@ -62,8 +62,13 @@ export const PERM_CATEGORIES: PermCategory[] = [
 export const ALL_PERM_IDS = PERM_CATEGORIES.flatMap((c) => c.actions.map((a) => `${c.id}.${a}`))
 const catOf = (m: PermKey) => PERM_CATEGORIES.find((c) => c.keys.includes(m))
 // Izin awal admin = turunan matriks peran: kategori memberi aksi bila salah satu halamannya memberi salah satu aksi lama yang dipetakan (Update = Ubah atau Cancel)
+const grants = (role: Role, matrix: PermMatrix, c: PermCategory, a: PermAction) => {
+  if (c.id === 'approval' && a === 'update') return PERM_KEYS.some((k) => matrix[role]?.[k.key]?.includes('Approve')) // Update di Approval = hak memutuskan (Approve/Reject)
+  if (a === 'dashboard') return c.keys.some((k) => matrix[role]?.[k]?.includes('Lihat'))
+  return c.keys.some((k) => ACTION_OF[a].some((x) => matrix[role]?.[k]?.includes(x)))
+}
 export const permsOf = (role: Role, matrix: PermMatrix = DEFAULT_PERMS): string[] =>
-  PERM_CATEGORIES.flatMap((c) => c.actions.filter((a) => role === 'Super Admin' || (a !== 'dashboard' ? c.keys.some((k) => ACTION_OF[a].some((x) => matrix[role]?.[k]?.includes(x))) : c.keys.some((k) => matrix[role]?.[k]?.includes('Lihat')))).map((a) => `${c.id}.${a}`))
+  PERM_CATEGORIES.flatMap((c) => c.actions.filter((a) => role === 'Super Admin' || grants(role, matrix, c, a)).map((a) => `${c.id}.${a}`))
 // can() untuk akun yang punya daftar izin: ada izin kategori untuk salah satu aksi lama yang dipetakan
 export const canAccount = (acc: Pick<Account, 'permissions'>, m: PermKey, a: Action): boolean => {
   const c = catOf(m)
