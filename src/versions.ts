@@ -11,6 +11,15 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
+    v: '2.14.2',
+    date: '2026-11-01',
+    deployed: true,
+    title: 'Log tolak penutupan Tracker',
+    prompt: 'Perbaiki temuan QA: detail Log tolak penutupan',
+    tokens: 10000,
+    changes: ['Log tolak penutupan Tracker mencatat status yang benar-benar terjadi (Menunggu Validasi -> status sebelumnya), bukan perubahan yang diajukan'],
+  },
+  {
     v: '2.14.1',
     date: '2026-11-01',
     deployed: false,

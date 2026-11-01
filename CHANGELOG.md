@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 2.14.2 | 2026-11-01 | ~10k |
 | 2.14.1 | 2026-11-01 | ~60k |
 | 2.14.0 | 2026-11-01 | ~250k |
 | 2.13.10 | 2026-10-31 | ~25k |
@@ -57,6 +58,11 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [2.14.2] - 2026-11-01
+
+### Diperbaiki
+- Log tolak penutupan Tracker mencatat status yang benar-benar terjadi (Menunggu Validasi -> status sebelumnya), bukan perubahan yang diajukan
 
 ## [2.14.1] - 2026-11-01
 
