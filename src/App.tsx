@@ -130,8 +130,8 @@ function Shell() {
     location.reload()
   }
   const demo = (() => {
-    const per = store.accounts.filter((a) => a.status === 'Active').filter((a, i, l) => l.findIndex((x) => x.role === a.role) === i)
-    return per.some((a) => a.id === user.id) ? per : [...per, user]
+    const act = store.accounts.filter((a) => a.status === 'Active') // semua admin aktif, termasuk yang baru dibuat lewat Add
+    return act.some((a) => a.id === user.id) ? act : [...act, user]
   })()
   const switchTo = (id: string) => {
     const to = store.accounts.find((a) => a.id === id)

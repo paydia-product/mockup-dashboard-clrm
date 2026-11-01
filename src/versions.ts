@@ -11,6 +11,15 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
+    v: '2.14.4',
+    date: '2026-11-01',
+    deployed: true,
+    title: 'Admin baru muncul di Akun demo',
+    prompt: 'Admin baru dari Add perlu muncul di pilihan Akun demo',
+    tokens: 5000,
+    changes: ['Pilihan Akun demo menampilkan semua admin berstatus Active, termasuk admin baru dari tombol Add'],
+  },
+  {
     v: '2.14.3',
     date: '2026-11-01',
     deployed: true,
