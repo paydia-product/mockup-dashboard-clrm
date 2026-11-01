@@ -266,7 +266,7 @@ export function applyTrackerRequest(db: DB, reqId: string, userName: string, app
     // status kembali ke status sebelum pengajuan (dari audit 'Ajukan penutupan'), bukan tertahan di Menunggu Validasi
     const prev = (db.audit.filter((a) => a.fid === r.fid && a.kolom === 'Status' && a.aksi.startsWith('Ajukan penutupan')).sort((a, b) => b.time.localeCompare(a.time))[0]?.lama as Status) || 'Proses'
     const rej = f ? { ...f, status: f.status === 'Menunggu Validasi' ? prev : f.status, persetujuan: 'Ditolak' as const, persetujuanOleh: userName, persetujuanTgl: todayStr() } : null
-    return { ...db, requests, findings: rej ? db.findings.map((x) => (x.id === f!.id ? rej : x)) : db.findings, audit: [...db.audit, ...mk('Tolak penutupan', note).map((a) => (a.kolom === 'Status' && f && rej ? { ...a, lama: f.status, baru: rej.status } : a))] } // log mencatat status yang benar-benar terjadi, bukan yang diajukan
+    return { ...db, requests, findings: rej ? db.findings.map((x) => (x.id === f!.id ? rej : x)) : db.findings, audit: [...db.audit, ...mk('Tolak penutupan', note).filter((a) => a.kolom === 'Status').map((a) => (f && rej ? { ...a, lama: f.status, baru: rej.status } : a))] } // log hanya mencatat status yang benar-benar terjadi; isian lain yang diajukan tidak berubah
   }
   const next = { ...f } as Record<string, unknown>
   r.changes.forEach((c) => { next[c.key] = c.value })
