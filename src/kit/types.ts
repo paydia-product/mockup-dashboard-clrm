@@ -6,7 +6,7 @@ export type { FileMeta }
 export type ModuleId = 'tracker' | 'reporting' | 'regchange' | 'sop' | 'risk' | 'kajian' | 'fraud' | 'kontrak' | 'aph' | 'perizinan' | 'layanan'
 export type PermKey = ModuleId | 'approval' | 'master' | 'admin' | 'log' // kunci matriks permission
 export type Role = 'Super Admin' | 'Head CLRM' | 'Compliance Officer' | 'Risk Officer' | 'Legal Officer' | 'Fraud Investigator' | 'Ketua SMKI' | 'PIC' | 'Viewer'
-export type Action = 'Lihat' | 'Tambah' | 'Ubah' | 'Cancel' | 'Approve' | 'Export' | 'Import'
+export type Action = 'Lihat' | 'Tambah' | 'Ubah' | 'Cancel' | 'Approve' | 'Export' | 'Import' | 'Dashboard'
 export interface Cancelled { prev: string; reason: string; by: string; at: string }
 // createdAt = ISO datetime lengkap (YYYY-MM-DDTHH:mm:ss); no = nomor internal untuk log/approval, bukan kolom tabel
 export interface BaseRec { id: string; no: number; status: string; createdAt: string; createdBy: string; cancelled?: Cancelled }
@@ -16,7 +16,8 @@ export type NewRec<T> = Omit<T, Exclude<keyof BaseRec, 'status'>>
 // checklist = Record<subKey, boolean>; file = FileMeta | null; list = Record<string, unknown>[]
 export type FieldType = 'text' | 'textarea' | 'number' | 'money' | 'percent' | 'date' | 'datetime' | 'select' | 'multiselect' | 'multidrop' | 'yesno' | 'checklist' | 'file' | 'list'
 export interface Master { laporan: string[]; pic: string[]; kategoriRegulasi: string[]; unitKerja: string[]; produk: string[]; mitra: string[]; kategoriPelapor: string[]; mediaPelapor: string[]; jenisPks: string[]; instansiAph: string[]; kategoriPerizinan: string[] }
-export interface Account { id: string; name: string; email: string; role: Role; departemen: string; status: 'Aktif' | 'Nonaktif'; lastLogin: string; password: string; pin: string }
+export type AdminStatus = 'Active' | 'Inactive' | 'Archive' | 'Suspend'
+export interface Account { id: string; name: string; email: string; role: Role; departemen: string; status: AdminStatus; lastLogin: string; password: string; pin: string; permissions: string[] } // permissions = id izin per kategori ('fraud.update'), lihat perms.ts
 export interface Ctx { role: Role; user: Account; today: string; master: Master; all: (m: ModuleId) => BaseRec[]; reveal?: Record<string, boolean> } // reveal = field yang sedang dibuka sensornya (tombol mata) di permukaan tampilan ini
 export interface Field<T> {
   key: string // boleh kunci kolom otomatis yang tidak ada di T. Kunci 'no' diabaikan (kit selalu menampilkan No)
@@ -93,10 +94,12 @@ export interface LogEntry {
   recordId?: string; kind?: 'create' | 'edit' | 'cancel' | 'restore' | 'request' | 'decision'
   changes?: { label: string; before: string; after: string }[]; approver?: string; alasan?: string
 }
+// Baris halaman Log (bentuk tampilan): detail = baris 'kunci: nilai' dipisah \n
+export interface ActivityLog { id: string; time: string; container: string; type: string; detail: string; ip: string }
 export type PermMatrix = Record<Role, Partial<Record<PermKey, Action[]>>>
 export interface Store {
   modules: Partial<Record<ModuleId, BaseRec[]>>
-  approvals: ApprovalReq[]; log: LogEntry[]; master: Master; accounts: Account[]; perms: PermMatrix; seq: Record<string, number>
+  approvals: ApprovalReq[]; log: LogEntry[]; activity: ActivityLog[]; master: Master; accounts: Account[]; perms: PermMatrix; seq: Record<string, number>
 }
 export interface Session { accountId: string; verified2fa: boolean }
 export interface ModuleApi<T> {

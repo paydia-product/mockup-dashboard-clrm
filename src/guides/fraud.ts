@@ -24,7 +24,7 @@ export const FraudGuide: GuideItem[] = [
 <li><b>Pencarian</b> mencari di No Laporan EDD, Terlapor (nilai yang tampil, bisa tersamar), Group Merchant, dan Kategori Pelapor.</li>
 <li><b>Filter</b>: Periode (Tanggal Terima), Status (Open, Closed, Dibatalkan), PIC, Jenis Dugaan, Tindakan, Sumber (Kategori Pelapor), Group Merchant, Produk, dan Channel.</li>
 <li><b>Pagination</b>: 10, 25, atau 50 baris per halaman.</li>
-<li>Nama Terlapor dan RRN <b>disamarkan</b> (contoh B*** S******) di tabel, Detail, dan form Edit. Super Admin, Head CLRM, dan Fraud Investigator melihat <b>ikon mata</b> (di header kolom tabel, di samping label pada Detail, dan di samping label pada form Edit): klik untuk membuka nilai asli, klik lagi untuk menyamarkan lagi. Bawaan selalu tersamar. Peran lain tidak punya tombol mata dan nilainya tetap tersamar (juga di Export).</li>
+<li>Nama Terlapor dan RRN <b>disamarkan</b> (contoh B*** S******) di tabel, Detail, dan form Edit. Super Admin, Head CLRM, dan Fraud Investigator melihat <b>ikon mata</b> (di header kolom tabel, di samping label pada Detail, dan di samping label pada form Edit): klik untuk membuka nilai asli, klik lagi untuk menyamarkan lagi. Bawaan selalu tersamar. Peran lain tidak punya tombol mata dan nilainya tetap tersamar. Di Export, Nama Terlapor dan RRN selalu tersamar untuk semua peran.</li>
 </ul>` },
   { h: 'Tambah & Edit', b: `<p><b>Isian wajib saat Tambah</b>: Tanggal Terima Tugas, Kategori Pelapor, Media, Nama Terlapor, Jenis Pengguna, Jenis Dugaan, Hasil Asesmen Awal, dan Alasan Asesmen. Bukti tidak wajib. Status Open diberikan otomatis.</p>
 <p><b>Wajib bersyarat saat status Closed</b>: Uraian, Nominal Korban, Tindakan, Tanggal Email Resolved, dan PIC Investigator.</p>
@@ -67,7 +67,7 @@ export const FraudGuide: GuideItem[] = [
 </ul>` },
   { h: 'Export Excel', b: `<ul>
 <li>Mengekspor baris yang tampil di Table, sesuai pencarian dan filter.</li>
-<li>Kolom: Nomor, Tanggal Dibuat, lalu semua isian. Kolom pertama setelah Tanggal Dibuat adalah No Laporan EDD. Nominal tetap berupa angka. Nama Terlapor dan RRN diekspor utuh bagi Head CLRM dan Fraud Investigator, dan tersamar bagi peran lain.</li>
+<li>Kolom: Nomor, Tanggal Dibuat, lalu semua isian. Kolom pertama setelah Tanggal Dibuat adalah No Laporan EDD. Nominal tetap berupa angka. Nama Terlapor dan RRN selalu diekspor tersamar untuk semua peran, termasuk yang boleh membuka ikon mata.</li>
 <li>Nama file: <b>Kasus_Fraud_EDD_[tanggal hari ini].xlsx</b>.</li>
 <li>Export tercatat di menu Log.</li>
 </ul>` },
@@ -79,5 +79,5 @@ export const FraudGuide: GuideItem[] = [
 <li><b>PIC</b>: Lihat, Ubah (kasus miliknya), Export.</li>
 <li><b>Risk Officer, Legal Officer, Ketua SMKI, Viewer</b>: Lihat dan Export.</li>
 </ul>
-<p>Super Admin dapat mengubah matriks ini di Admin &gt; Permission.</p>` },
+<p>Super Admin dapat mengubah matriks ini di menu <b>Admin</b> (Manage Permissions).</p>` },
 ]

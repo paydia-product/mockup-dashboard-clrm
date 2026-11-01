@@ -20,7 +20,7 @@ export default function PageShell<T extends BaseRec>({ config: cfg }: { config: 
   const api = useModule(cfg)
   const { ctx: c, can, log } = useApp()
   const m = cfg.module
-  const [tab, setTab] = useState<'dashboard' | 'table'>('dashboard')
+  const [tab, setTab] = useState<'dashboard' | 'table'>(can(m, 'Dashboard') ? 'dashboard' : 'table')
   const [q, setQ] = useState('')
   const [filter, setFilter] = useState<Filt>({})
   const [modal, setModal] = useState<Modal_>(null)
@@ -78,7 +78,7 @@ export default function PageShell<T extends BaseRec>({ config: cfg }: { config: 
     <div>
       <PageGuide name={cfg.title} items={cfg.guide} />
       <div className="mb-3 flex gap-1 border-b border-slate-200">
-        {(['dashboard', 'table'] as const).map((t) => (
+        {(['dashboard', 'table'] as const).filter((t) => t === 'table' || can(m, 'Dashboard')).map((t) => (
           <button key={t} onClick={() => setTab(t)} className={`border-b-2 px-4 py-2 text-sm font-medium ${tab === t ? 'border-brand text-brand' : 'border-transparent text-slate-500'}`}>{t === 'table' ? 'Table' : 'Dashboard'}</button>
         ))}
       </div>

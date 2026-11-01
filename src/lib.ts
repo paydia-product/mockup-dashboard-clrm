@@ -150,6 +150,14 @@ export function makeSeed(): DB {
   const ri = (a: number, b: number) => a + Math.floor(r() * (b - a + 1))
   const findings: Finding[] = []
   const audit: Audit[] = []
+  // request approval contoh Tracker (Menunggu / Disetujui / Ditolak); audit ditambah tanpa rng agar seed lain tidak bergeser
+  const requests: ChangeReq[] = []
+  const req = (f: Finding, status: 'Menunggu' | 'Disetujui' | 'Ditolak', time: string, alasan: string, decided?: { by: string; at: string; catatan: string }) => {
+    const cs: ChangeReq['changes'] = [{ key: 'status', label: 'Status', lama: f.status, baru: 'Selesai', value: 'Selesai' }, { key: 'validasi', label: 'Validasi Ulang', lama: 'Belum', baru: 'Valid', value: 'Valid' }, { key: 'validasiOleh', label: 'Nama Validator', lama: '', baru: VALIDATORS[requests.length % VALIDATORS.length], value: VALIDATORS[requests.length % VALIDATORS.length] }]
+    requests.push({ id: `rs${f.id}`, no: requests.length + 1, status, fid: f.id, by: f.pic, time, alasan, changes: cs, ...(decided ? { decidedBy: decided.by, decidedAt: decided.at, catatan: decided.catatan } : {}) })
+  }
+  let approved = 0
+  let rejected = false
   const log = (f: Finding, date: string, user: string, aksi: string, kolom = '', lama = '', baru = '', alasan = '') =>
     audit.push({ id: sid(), fid: f.id, time: `${date}T09:${pad(ri(0, 59))}:00`, user, aksi, kolom, lama, baru, alasan })
 
@@ -188,9 +196,17 @@ export function makeSeed(): DB {
     if (s.status === 'Proses' || s.status === 'Dibatalkan') {
       log(f, start, pic, 'Ubah temuan', 'Status', 'Open', 'Proses')
     }
+    if (s.status === 'Proses' && i >= 10 && !rejected) { // satu pengajuan ditolak: status temuan tetap, Persetujuan Penutupan = Ditolak
+      rejected = true
+      const at = addDays(t, -6)
+      req(f, 'Ditolak', `${addDays(t, -8)}T09:20:00`, 'Perbaikan diklaim selesai', { by: 'Dewi Anggraini', at: `${at}T11:05:00`, catatan: 'Bukti tindak lanjut belum lengkap' })
+      f.persetujuan = 'Ditolak'; f.persetujuanOleh = 'Dewi Anggraini'; f.persetujuanTgl = at
+      audit.push({ id: sid(), fid: f.id, time: `${at}T11:05:00`, user: 'Dewi Anggraini', aksi: 'Tolak penutupan', kolom: 'Status', lama: 'Proses', baru: 'Selesai', alasan: 'Bukti tindak lanjut belum lengkap' })
+    }
     if (s.status === 'Menunggu Validasi') {
       log(f, start, pic, 'Ubah temuan', 'Status', 'Open', 'Proses')
       log(f, addDays(t, -(s.wait ?? 3)), pic, 'Ajukan penutupan', 'Status', 'Proses', 'Menunggu Validasi')
+      req(f, 'Menunggu', `${addDays(t, -(s.wait ?? 3))}T09:30:00`, 'Bukti perbaikan sudah lengkap dan divalidasi')
     }
     if (s.status === 'Selesai') {
       const closeAt = addDays(tgl, Math.min(ri(15, 100), Math.max(15, diffDays(t, tgl) - 1)))
@@ -200,16 +216,17 @@ export function makeSeed(): DB {
       log(f, addDays(close, -5), pic, 'Ajukan penutupan', 'Status', 'Proses', 'Menunggu Validasi')
       log(f, f.validasiTgl, f.validasiOleh, 'Validasi ulang', 'Validasi Ulang', 'Belum', 'Valid')
       log(f, close, 'Dewi Anggraini', 'Persetujuan penutupan', 'Status', 'Menunggu Validasi', 'Selesai')
+      if (approved++ < 3) req({ ...f, status: 'Menunggu Validasi' }, 'Disetujui', `${addDays(close, -5)}T09:40:00`, 'Perbaikan selesai, bukti terlampir', { by: 'Dewi Anggraini', at: `${close}T10:15:00`, catatan: 'Bukti memadai' })
     }
     if (s.status === 'Dibatalkan') log(f, addDays(t, -3), 'Dewi Anggraini', 'Batalkan temuan', 'Status', 'Proses', 'Dibatalkan', 'Temuan duplikat dengan laporan regulator sebelumnya')
     findings.push(f)
   })
-  return { requests: [], findings, audit }
+  return { requests, findings, audit }
 }
 
 // ---- Penyimpanan ----
 // ponytail: v5 = seed punya createdAt dan tanpa 'Lainnya' di daftar; data v4 lama tetap aman dibaca (createdOf) tetapi direset agar seed baru dipakai
-export const KEY = 'clrm.db.v8' // ponytail: v8 = Unit Kerja seed dari sheet Departemen, Pemerintah-DPR di daftar regulator, filter tersimpan dihapus; v7 = teks audit tanpa nomor internal; v6 = PIC seed Regie/Fakhri/Osama; v5 seed lama tidak dibaca lagi (key beda), load() tetap aman membaca bentuk lama
+export const KEY = 'clrm.db.v9' // ponytail: v9 = seed request approval Tracker (Menunggu/Disetujui/Ditolak), seed lama dibuang karena kunci naik; v8 = Unit Kerja seed dari sheet Departemen, Pemerintah-DPR di daftar regulator, filter tersimpan dihapus; v7 = teks audit tanpa nomor internal; v6 = PIC seed Regie/Fakhri/Osama; v5 seed lama tidak dibaca lagi (key beda), load() tetap aman membaca bentuk lama
 const ROLE_KEY = 'clrm.role'
 function load(): DB {
   try {

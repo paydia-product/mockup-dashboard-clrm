@@ -8,6 +8,7 @@ const TONE = {
   blue: 'border-blue-300 text-blue-600 bg-blue-50',
   green: 'border-green-300 text-green-600 bg-green-50',
   gray: 'border-slate-300 text-slate-600 bg-slate-50',
+  orange: 'border-orange-300 text-orange-600 bg-orange-50',
 }
 export type Tone = keyof typeof TONE
 export const Badge = ({ tone, children, title }: { tone: Tone; children: ReactNode; title?: string }) => (

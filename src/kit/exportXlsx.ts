@@ -10,7 +10,7 @@ export function downloadXlsx(file: string, sheet: string, data: R[], extra?: { s
   if (extra) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(extra.data), extra.sheet.slice(0, 31))
   XLSX.writeFile(wb, file)
 }
-// Semua kolom Detail (kecuali noExport), nilai tersamar mengikuti mask, file = nama file, angka tetap angka
+// Semua kolom Detail (kecuali noExport), nilai tersamar mengikuti mask dan reveal, file = nama file, angka tetap angka
 export function exportRows<T extends BaseRec>(cfg: PageConfig<T>, rows: T[], c: Ctx, today: string) {
   // ponytail: urutan sama dengan DataTable (Tanggal Dibuat terbaru dulu); Nomor = posisi baris, bukan r.no
   const sorted = [...rows].sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || '') || b.no - a.no)
@@ -19,7 +19,8 @@ export function exportRows<T extends BaseRec>(cfg: PageConfig<T>, rows: T[], c: 
     for (const f of cfg.fields) {
       if (f.key === 'no' || f.noExport || (f.showIf && !f.showIf(r))) continue
       const v = f.auto ? f.auto(r, c) : (r as R)[f.key]
-      o[f.label] = isMasked(f, c) && v ? maskStr(String(v)) : ['number', 'money', 'percent'].includes(f.type) && typeof v === 'number' ? v : fmtValue(f, v, c)
+      // field reveal: export selalu tersamar untuk semua peran (tombol mata hanya untuk tampilan layar)
+      o[f.label] = (isMasked(f, c) || f.reveal) && v ? maskStr(String(v)) : ['number', 'money', 'percent'].includes(f.type) && typeof v === 'number' ? v : fmtValue(f, v, c)
     }
     return o
   })

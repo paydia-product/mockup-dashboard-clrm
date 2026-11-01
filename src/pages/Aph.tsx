@@ -28,6 +28,9 @@ const bapDate = (r: Aph) => r.bapUlang || r.bapTgl
 const age = (r: Aph, today: string) => diffDays(today, r.tglTerima)
 const late = (r: Aph, today: string) => ACTIVE(r) && !!r.tglBatas && r.tglBatas < today
 const toLO = ['Legal Officer']
+// Nama dan telepon penyidik: peran di luar Super Admin, Head CLRM, Legal Officer selalu tersamar tanpa tombol mata; ketiganya melihat tersamar dulu dan membuka lewat ikon mata (Detail, form Ubah). Export selalu tersamar.
+const isMasked = (c: Ctx) => !['Super Admin', 'Head CLRM', 'Legal Officer'].includes(c.role)
+const canReveal = (c: Ctx) => !isMasked(c)
 
 const fields: Field<Aph>[] = [
   { key: 'tglTerima', label: 'Tanggal Terima Surat', type: 'date', required: true, help: 'Awal hitungan batas waktu jawaban.' },
@@ -40,8 +43,8 @@ const fields: Field<Aph>[] = [
   { key: 'merchant', label: 'Nama Merchant', type: 'text', required: true },
   { key: 'groupMerchant', label: 'Group Merchant', type: 'text', required: true },
   { key: 'unit', label: 'Unit Penyidik', type: 'select', options: UNIT, required: true },
-  { key: 'namaPenyidik', label: 'Nama Penyidik', type: 'text', noExport: true, mask: (c) => c.role === 'Viewer' },
-  { key: 'noTelp', label: 'No. Telepon Penyidik', type: 'text', noExport: true, mask: (c) => c.role === 'Viewer' },
+  { key: 'namaPenyidik', label: 'Nama Penyidik', type: 'text', mask: isMasked, reveal: canReveal },
+  { key: 'noTelp', label: 'No. Telepon Penyidik', type: 'text', mask: isMasked, reveal: canReveal },
   { key: 'bapTgl', label: 'Tanggal BAP', type: 'date' },
   { key: 'bapUlang', label: 'Tanggal Jadwal Ulang BAP', type: 'date', help: 'Perubahan jadwal BAP tercatat di Log.' },
   { key: 'bapTempat', label: 'Tempat BAP', type: 'text' },

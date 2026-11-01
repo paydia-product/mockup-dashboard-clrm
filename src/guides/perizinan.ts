@@ -65,7 +65,7 @@ export const PerizinanGuide: GuideItem[] = [
 <li>Nama file: <b>Perizinan_Legalitas_[tanggal hari ini].xlsx</b>.</li>
 <li>Setiap export tercatat di menu Log beserta jumlah barisnya.</li>
 </ul>` },
-  { h: 'Hak akses per peran', b: `<p>Berikut matriks bawaan. Super Admin dapat mengubahnya di Admin &gt; Permission.</p>
+  { h: 'Hak akses per peran', b: `<p>Berikut matriks bawaan. Super Admin dapat mengubahnya di menu <b>Admin</b> (Manage Permissions).</p>
 <ul>
 <li><b>Super Admin</b>: Lihat, Tambah, Ubah, Batalkan/Kembalikan, Export.</li>
 <li><b>Head CLRM</b>: Lihat, Batalkan/Kembalikan, Export.</li>

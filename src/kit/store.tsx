@@ -2,25 +2,27 @@ import { ReactNode, useMemo, useSyncExternalStore } from 'react'
 import { AREAS, UNITS, addDays, nowStr, todayStr } from '../lib'
 import { LAPORAN_NAMES } from '../pages/laporan.shared'
 import { fmtValue } from './fmt'
-import { DEFAULT_PERMS, MODULE_LABEL, can as canPerm } from './perms'
-import type { Account, Action, ApprovalReq, ApprovalRule, BaseRec, Ctx, LogEntry, ModuleApi, ModuleId, NewRec, PageConfig, PermKey, Role, Session, Store } from './types'
+import { seedActivity } from './logSeed'
+import { DEFAULT_PERMS, MODULE_LABEL, can as canPerm, canAccount, permsOf } from './perms'
+import type { Account, AdminStatus, Action, ApprovalReq, ApprovalRule, BaseRec, Ctx, LogEntry, ModuleApi, ModuleId, NewRec, PageConfig, PermKey, Role, Session, Store } from './types'
 
 export type { ModuleApi }
-export const APP_KEY = 'clrm.app.v17' // ponytail: v17 = status Kontrak 'Expired' diganti 'Kedaluwarsa' (migrateKontrak di load() juga mengubah data lama); v16 = seed Risk Register 'Kontrol berkala dan peninjauan oleh <unit>' (bukan 'review'), seed lama dibuang karena kunci naik, load() tetap toleran terhadap kunci/slice lama; v15 = periode seed Reporting memakai tanggal/bulan nyata dari periodeOf (bukan 'Hari lalu'/'Bulan lalu'/'Bulan berjalan'/'Minggu berjalan'), seed lama dibuang karena kunci naik; v14 = master Jenis PKS Kontrak/Instansi Pengirim APH/Kategori Dokumen Perizinan, seed SOP (Klasifikasi Sangat Rahasia, Retensi tanpa Permanen, Review = Berlaku + 1 tahun), seed Fraud tanpa Jenis Data + No Laporan EDD, seed Risk Register tanpa RAS-RT, Kontrak Dokumen Induk teks bebas; v13 = master Mitra Vendor tanpa nama merchant, load() membuang slice modul rusak; v12 = seed Kontrak (Merchant teks bebas, Mitra dari master) + seed Perizinan dengan tiga tanggal; v11 = master Mitra Vendor (seed + PT Jaringan Nusa/PT Data Aman), seed Fraud dengan Jenis Data dan Produk master, tanpa No. Rekening; v10 = seed Regulatory Change (dampak Tinggi baru, sosialisasi terisi) dan PIC seed APH terisi; v9 = master Unit Kerja/Kategori Pelapor/Laporan dari Request Product.xlsx, Regulatory Change tindak lanjut teks + SOP daftar nama, filter tersimpan dihapus (load() membuang `saved` dan mengubah bentuk lama bila ada); v8 = seed tanpa nomor internal di teks, approval simpan nama data; v7 = master PIC (Regie/Fakhri/Osama) menggantikan master Regulator, seed PIC/regulator disesuaikan, akun demo PIC = Regie; v6 = tanggal batal seed Fraud tetap; v5 = pembatal seed Fraud nama orang; v4 = createdBy nama orang + createdAt seed masa lalu + seed Fraud valid; v3 = seed tanpa 'Lainnya' + createdAt datetime; data v2 direset (load() tetap aman membaca data lama)
+export const APP_KEY = 'clrm.app.v18' // ponytail: v18 = akun admin (status Active/Inactive/Archive/Suspend + permissions per kategori), Log berbentuk container/type/detail/ip (store.activity seed 120 baris), seed approval Fraud/Regulatory Change/Risk Register (kit/approvalSeed.ts), seed lama dibuang karena kunci naik; v17 = status Kontrak 'Expired' diganti 'Kedaluwarsa' (migrateKontrak di load() juga mengubah data lama); v16 = seed Risk Register 'Kontrol berkala dan peninjauan oleh <unit>' (bukan 'review'), seed lama dibuang karena kunci naik, load() tetap toleran terhadap kunci/slice lama; v15 = periode seed Reporting memakai tanggal/bulan nyata dari periodeOf (bukan 'Hari lalu'/'Bulan lalu'/'Bulan berjalan'/'Minggu berjalan'), seed lama dibuang karena kunci naik; v14 = master Jenis PKS Kontrak/Instansi Pengirim APH/Kategori Dokumen Perizinan, seed SOP (Klasifikasi Sangat Rahasia, Retensi tanpa Permanen, Review = Berlaku + 1 tahun), seed Fraud tanpa Jenis Data + No Laporan EDD, seed Risk Register tanpa RAS-RT, Kontrak Dokumen Induk teks bebas; v13 = master Mitra Vendor tanpa nama merchant, load() membuang slice modul rusak; v12 = seed Kontrak (Merchant teks bebas, Mitra dari master) + seed Perizinan dengan tiga tanggal; v11 = master Mitra Vendor (seed + PT Jaringan Nusa/PT Data Aman), seed Fraud dengan Jenis Data dan Produk master, tanpa No. Rekening; v10 = seed Regulatory Change (dampak Tinggi baru, sosialisasi terisi) dan PIC seed APH terisi; v9 = master Unit Kerja/Kategori Pelapor/Laporan dari Request Product.xlsx, Regulatory Change tindak lanjut teks + SOP daftar nama, filter tersimpan dihapus (load() membuang `saved` dan mengubah bentuk lama bila ada); v8 = seed tanpa nomor internal di teks, approval simpan nama data; v7 = master PIC (Regie/Fakhri/Osama) menggantikan master Regulator, seed PIC/regulator disesuaikan, akun demo PIC = Regie; v6 = tanggal batal seed Fraud tetap; v5 = pembatal seed Fraud nama orang; v4 = createdBy nama orang + createdAt seed masa lalu + seed Fraud valid; v3 = seed tanpa 'Lainnya' + createdAt datetime; data v2 direset (load() tetap aman membaca data lama)
 export const SESSION_KEY = 'clrm.session'
 export const DEFAULT_PASSWORD = 'Paydia123!'
 export const DEFAULT_PIN = '123456'
 
-const acc = (n: number, name: string, role: Role, departemen: string, email?: string): Account => ({
-  id: `a${n}`, name, email: email ?? `${name.toLowerCase().replace(/ /g, '.')}@paydia.id`, role, departemen, status: 'Aktif', lastLogin: '', password: DEFAULT_PASSWORD, pin: DEFAULT_PIN,
+const acc = (n: number, name: string, role: Role, departemen: string, email?: string, status: AdminStatus = 'Active'): Account => ({
+  id: `a${n}`, name, email: email ?? `${name.toLowerCase().replace(/ /g, '.')}@paydia.id`, role, departemen, status, lastLogin: '', password: DEFAULT_PASSWORD, pin: DEFAULT_PIN, permissions: permsOf(role),
 })
 const ACCOUNTS: Account[] = [
   acc(1, 'Super Admin', 'Super Admin', 'Information Technology', 'admin@paydia.id'), acc(2, 'Dewi Anggraini', 'Head CLRM', 'Compliance Legal & Risk Management'), acc(3, 'Rina Kartika', 'Compliance Officer', 'Compliance Legal & Risk Management'),
-  acc(4, 'Arief Nugraha', 'Compliance Officer', 'Compliance Legal & Risk Management'), acc(5, 'Rudi Hartono', 'Risk Officer', 'Compliance Legal & Risk Management'), acc(6, 'Lina Marlina', 'Legal Officer', 'Compliance Legal & Risk Management'),
+  acc(4, 'Arief Nugraha', 'Compliance Officer', 'Compliance Legal & Risk Management', undefined, 'Suspend'), acc(5, 'Rudi Hartono', 'Risk Officer', 'Compliance Legal & Risk Management'), acc(6, 'Lina Marlina', 'Legal Officer', 'Compliance Legal & Risk Management'),
   acc(7, 'Fakhri', 'Fraud Investigator', 'Operation'), acc(8, 'Yusuf Hakim', 'Ketua SMKI', 'Information Technology'), acc(9, 'Regie', 'PIC', 'Business'), acc(10, 'Tono Santoso', 'Viewer', 'Finance, Accounting, Tax & Treasury'),
+  acc(11, 'Bima Prakoso', 'Fraud Investigator', 'Operation', undefined, 'Inactive'), acc(12, 'Citra Dewi', 'Risk Officer', 'Compliance Legal & Risk Management', undefined, 'Archive'),
 ]
 const defaults = (): Store => ({
-  modules: {}, approvals: [], log: [], accounts: ACCOUNTS, perms: DEFAULT_PERMS, seq: {},
+  modules: {}, approvals: [], log: [], activity: seedActivity(ACCOUNTS, todayStr()), accounts: ACCOUNTS, perms: DEFAULT_PERMS, seq: {},
   master: {
     laporan: [...LAPORAN_NAMES],
     pic: ['Regie', 'Fakhri', 'Osama'],
@@ -76,6 +78,8 @@ function load(): Store {
   const raw = s.modules && typeof s.modules === 'object' && !Array.isArray(s.modules) ? s.modules : {}
   const modules = Object.fromEntries(Object.entries(raw).filter(([, l]) => Array.isArray(l)).map(([k, l]) => [k, (l as unknown[]).filter((x) => x && typeof x === 'object').map((x) => stamp(x as BaseRec)).map(MIGRATE[k] ?? ((x) => x))]))
   delete s.saved // filter tersimpan sudah dihapus
+  // akun bentuk lama: status Aktif/Nonaktif -> Active/Inactive, izin diturunkan dari peran
+  if (Array.isArray(s.accounts)) s.accounts = s.accounts.map((a: Omit<Account, 'status'> & { status: string }) => ({ ...a, status: a.status === 'Aktif' ? 'Active' : a.status === 'Nonaktif' ? 'Inactive' : a.status, permissions: Array.isArray(a.permissions) ? a.permissions : permsOf(a.role) }))
   return { ...d, ...s, modules, master: { ...d.master, ...m } } as Store
 }
 let store: Store = (() => { try { return load() } catch { return defaults() } })()
@@ -108,7 +112,7 @@ export function useApp() {
   const user = ctx.user
   return {
     store, setStore, ctx, session,
-    can: (m: PermKey, a: Action) => canPerm(store.perms, user.role, m, a),
+    can: (m: PermKey, a: Action) => (user.permissions ? canAccount(user, m, a) : canPerm(store.perms, user.role, m, a)),
     log: (module: string, aksi: string, nomor: string | number = '', ket = '') => pushLog(user, module, aksi, nomor, ket),
     logout: async () => { pushLog(user, 'Sesi', 'Logout'); setSession(null); try { await fetch('/api/logout', { method: 'POST' }) } catch { /* abaikan */ } location.href = '/login.html' },
   }

@@ -11,6 +11,23 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
+    v: '2.14.0',
+    date: '2026-11-01',
+    deployed: false,
+    title: 'Admin satu halaman, Log baru, seed Approval, sensor APH',
+    prompt: 'Sensor penyidik APH dan export tersamar; Log mengikuti tampilan referensi dengan seed; seed Approval tiap modul; Admin satu menu dengan Manage Permissions',
+    tokens: 250000,
+    changes: [
+      'Permintaan APH: Nama Penyidik dan No. Telepon Penyidik tersamar dengan ikon mata (Super Admin, Head CLRM, Legal Officer), di Detail dan form Edit',
+      'Export: kolom ber-reveal (APH penyidik, Fraud Terlapor dan RRN) selalu tersamar untuk semua peran',
+      'Log: tabel Tanggal, Container, Type, Detail, IP; tombol Filter (panel Container, Type, Tanggal, Detail, IP) dan Export hijau; seed 120 baris 30 hari terakhir; entri live dipetakan ke bentuk baru',
+      'Approval: seed pengajuan Menunggu, Disetujui, Ditolak untuk Fraud (Penutupan Kasus), Regulatory Change (Perubahan Daftar Peraturan), Risk Register (Perubahan Level Risiko), dan Tracker (Penutupan Temuan)',
+      'Admin: sub-menu Akun dan Permission digabung menjadi satu menu Admin; tabel No, Email, Nama, Status, Edit; modal Add New Admin dan Edit Admin dengan Manage Permissions per kategori (Compliance, Risk, Fraud, Legal, Approval, Master Data, Log, Admin)',
+      'Permission per admin (View, Create, Update, Export, Approve, Dashboard) kini dipakai can(); status admin Active, Inactive, Archive, Suspend; seed 12 admin',
+      'Kunci data naik: clrm.app.v18 dan clrm.db.v9 (data contoh lama dibuang)',
+    ],
+  },
+  {
     v: '2.13.10',
     date: '2026-10-31',
     deployed: true,

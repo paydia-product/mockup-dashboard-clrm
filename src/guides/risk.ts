@@ -73,5 +73,5 @@ export const RiskGuide: GuideItem[] = [
 <li><b>PIC</b>: Lihat, Tambah, Ubah (hanya Unit Kerjanya), Export.</li>
 <li><b>Compliance Officer, Legal Officer, Fraud Investigator, Ketua SMKI, Viewer</b>: Lihat dan Export.</li>
 </ul>
-<p>Super Admin dapat mengubah matriks ini di Admin &gt; Permission.</p>` },
+<p>Super Admin dapat mengubah matriks ini di menu <b>Admin</b> (Manage Permissions).</p>` },
 ]

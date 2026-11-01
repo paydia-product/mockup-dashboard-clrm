@@ -1,16 +1,17 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   ChevronDown, ChevronRight, ClipboardCheck, Database, FileSignature, FileText, Gavel, GitBranch, History, KeyRound, LayoutDashboard, ListChecks, LogOut, Menu, RotateCcw,
-  Scale, ScrollText, ShieldAlert, ShieldCheck, Siren, Tag, UserCog, Users,
+  Scale, ScrollText, ShieldAlert, ShieldCheck, Siren, Tag, UserCog,
 } from 'lucide-react'
 import { KEY as DB_KEY, Role as TrackerRole, useDB } from './lib'
 import { GuideSlots } from './kit/PageGuide'
 import NotifBell from './kit/notify'
+import { seedApprovals } from './kit/approvalSeed'
 import { APP_KEY, pushLog, setSession, useApp, useSession } from './kit/store'
 import type { PermKey, Role } from './kit/types'
 import Tracker from './Tracker'
 import { PAGES } from './pages'
-import { Akun, Permission } from './shared/Admin'
+import Admin from './shared/Admin'
 import Approval, { pendingCount } from './shared/Approval'
 import Log from './shared/Log'
 import MasterData, { MASTER_LISTS } from './shared/MasterData'
@@ -41,27 +42,24 @@ const GROUPS: Group[] = [
 ]
 const APPROVAL: Item = { id: 'approval', label: 'Approval', icon: ClipboardCheck, perm: 'approval' }
 const LOG: Item = { id: 'log', label: 'Log', icon: History, perm: 'log' }
+const ADMIN: Item = { id: 'admin', label: 'Admin', icon: UserCog, perm: 'admin' } // satu halaman: akun + Manage Permissions (dulu sub-menu Akun dan Permission)
 const LOWER: Group[] = [
   { id: 'master', label: 'Master Data', icon: Database, items: [
     ...MASTER_LISTS.map((m) => ({ id: `master/${m.slug}`, label: m.label, icon: Database, perm: 'master' as const })),
-  ] },
-  { id: 'admin', label: 'Admin', icon: UserCog, items: [
-    { id: 'admin/akun', label: 'Akun', icon: Users, perm: 'admin' },
-    { id: 'admin/permission', label: 'Permission', icon: KeyRound, perm: 'admin' },
   ] },
 ]
 const PROFIL: Item[] = [
   { id: 'profil/password', label: 'Ganti Password', icon: KeyRound, perm: 'approval' },
   { id: 'profil/pin', label: 'Ganti PIN', icon: KeyRound, perm: 'approval' },
 ]
-const ITEMS = [...GROUPS, ...LOWER].flatMap((g) => g.items).concat(APPROVAL, LOG, PROFIL)
+const ITEMS = [...GROUPS, ...LOWER].flatMap((g) => g.items).concat(APPROVAL, ADMIN, LOG, PROFIL)
 const labelOf = (id: string) => ITEMS.find((i) => i.id === id)?.label ?? id
 const groupOf = (id: string) => [...GROUPS, ...LOWER].find((g) => g.items.some((i) => i.id === id))?.label
 // peran sesi -> peran tracker (dipakai Drawer tracker)
 const trackerRole = (r: Role): TrackerRole => (r === 'Head CLRM' || r === 'Super Admin' ? 'Head CLRM' : r === 'Compliance Officer' ? 'Compliance Officer' : r === 'PIC' ? 'PIC' : 'Viewer')
 
 // ponytail: slug master 'mitra' berganti 'mitra-vendor' (v2.10.0); tautan lama dialihkan agar tidak crash
-const hashRoute = () => (location.hash.replace(/^#\/?/, '').split('?')[0] || TRACKER).replace(/^master\/mitra$/, 'master/mitra-vendor')
+const hashRoute = () => (location.hash.replace(/^#\/?/, '').split('?')[0] || TRACKER).replace(/^master\/mitra$/, 'master/mitra-vendor').replace(/^admin\/(akun|permission)$/, 'admin')
 
 function VersionPicker() {
   const [open, setOpen] = useState(false)
@@ -93,12 +91,14 @@ function VersionPicker() {
   )
 }
 
+seedApprovals() // seed approval Fraud/Regulatory Change/Risk Register sekali per data baru (flag seq.approvalSeed)
+
 export default function App() {
   const session = useSession()
   const { store } = useApp()
-  const ok = session?.verified2fa && store.accounts.some((a) => a.id === session.accountId && a.status === 'Aktif')
+  const ok = session?.verified2fa && store.accounts.some((a) => a.id === session.accountId && a.status === 'Active')
   // ponytail: gate server sudah cukup; tanpa sesi, langsung masuk sebagai akun aktif pertama (Super Admin)
-  useEffect(() => { if (!ok) { const a = store.accounts.find((x) => x.status === 'Aktif'); if (a) setSession({ accountId: a.id, verified2fa: true }) } }, [ok, store.accounts])
+  useEffect(() => { if (!ok) { const a = store.accounts.find((x) => x.status === 'Active'); if (a) setSession({ accountId: a.id, verified2fa: true }) } }, [ok, store.accounts])
   return ok ? <Shell /> : null
 }
 
@@ -111,6 +111,7 @@ function Shell() {
   const [menu, setMenu] = useState(false)
   const [btnEl, setBtnEl] = useState<HTMLElement | null>(null)
   const [panelEl, setPanelEl] = useState<HTMLElement | null>(null)
+  const [actEl, setActEl] = useState<HTMLElement | null>(null) // slot tombol aksi halaman di baris judul (Admin)
   const slots = useMemo(() => ({ btn: btnEl, panel: panelEl }), [btnEl, panelEl])
   useEffect(() => {
     const h = () => { setRoute(hashRoute()); if (innerWidth < 768) setSide(false) }
@@ -125,7 +126,7 @@ function Shell() {
     location.reload()
   }
   const demo = (() => {
-    const per = store.accounts.filter((a) => a.status === 'Aktif').filter((a, i, l) => l.findIndex((x) => x.role === a.role) === i)
+    const per = store.accounts.filter((a) => a.status === 'Active').filter((a, i, l) => l.findIndex((x) => x.role === a.role) === i)
     return per.some((a) => a.id === user.id) ? per : [...per, user]
   })()
   const switchTo = (id: string) => {
@@ -159,8 +160,7 @@ function Shell() {
     : route === 'approval' ? <Approval tdb={db} setTdb={setDb} />
     : route === 'log' ? <Log tdb={db} />
     : route.startsWith('master/') ? <MasterData key={route} kind={MASTER_LISTS.find((m) => `master/${m.slug}` === route)!.kind} />
-    : route === 'admin/akun' ? <Akun />
-    : route === 'admin/permission' ? <Permission />
+    : route === 'admin' ? <Admin actEl={actEl} />
     : route === 'profil/password' ? <Profile key="password" kind="password" />
     : route === 'profil/pin' ? <Profile key="pin" kind="pin" />
     : Page ? <Page key={route} /> : null
@@ -207,13 +207,14 @@ function Shell() {
               <div className="my-2 border-t" />
               {can('approval', 'Lihat') && nav(APPROVAL)}
               {LOWER.map(group)}
+              {can('admin', 'Lihat') && nav(ADMIN)}
               {can('log', 'Lihat') && nav(LOG)}
             </nav>
           </aside>
         )}
         <main className="min-w-0 flex-1 bg-page p-3 md:p-6">
           <div className="mb-1 text-xs text-slate-400">home / {groupOf(route) ? `${groupOf(route)} / ` : ''}{labelOf(route)}</div>
-          <div className="mb-4 flex flex-wrap items-center gap-3"><h1 className="text-xl font-semibold text-slate-800">{labelOf(route)}</h1><div ref={setBtnEl} /></div>
+          <div className="mb-4 flex flex-wrap items-center gap-3"><h1 className="text-xl font-semibold text-slate-800">{labelOf(route)}</h1><div ref={setBtnEl} /><div ref={setActEl} className="ml-auto" /></div>
           <div ref={setPanelEl} />
           <GuideSlots.Provider value={slots}>{content}</GuideSlots.Provider>
         </main>

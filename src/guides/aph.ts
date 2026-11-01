@@ -35,7 +35,7 @@ export const AphGuide: GuideItem[] = [
 <li>Aturan tanggal: Batas Waktu Jawaban dan Tanggal Jawaban tidak boleh sebelum Tanggal Terima. Jadwal Ulang BAP tidak boleh sebelum Tanggal BAP.</li>
 <li>Bila Jadwal Ulang BAP diisi, alert dan kalender memakai tanggal itu. Perubahan jadwal BAP tercatat di Log.</li>
 <li><b>Lainnya</b>: pada Pengirim, Perihal (Jenis), Kasus, dan Unit Penyidik, memilih Lainnya memunculkan isian teks bebas yang wajib diisi. Tabel menampilkan "Lainnya", Detail dan Export menampilkan teks aslinya. Teks bebas itu dihitung sebagai Lainnya di grafik per Pengirim dan per Kasus.</li>
-<li><b>Nama Penyidik</b> dan <b>No. Telepon Penyidik</b> disamarkan untuk peran Viewer, dan tidak ikut Export.</li>
+<li><b>Nama Penyidik</b> dan <b>No. Telepon Penyidik</b> <b>disamarkan</b> (contoh A*** P******) di Detail dan form Edit. Super Admin, Head CLRM, dan Legal Officer melihat <b>ikon mata</b> di samping label: klik untuk membuka nilai asli, klik lagi untuk menyamarkan lagi. Bawaan selalu tersamar. Peran lain tidak punya tombol mata dan nilainya tetap tersamar. Nilai yang tersamar bagi Anda tidak dapat diubah. Di Export, kedua kolom ini selalu tersamar untuk semua peran.</li>
 <li>Halaman ini tidak memakai approval dan tidak ada isian yang wajib alasan. Alasan perubahan bersifat opsional.</li>
 <li><b>Siapa boleh</b>: Tambah oleh Legal Officer. Edit oleh Legal Officer dan PIC. PIC hanya boleh mengedit permintaan yang PIC-nya namanya sendiri.</li>
 </ul>` },
@@ -58,17 +58,17 @@ export const AphGuide: GuideItem[] = [
 </ul>` },
   { h: 'Export Excel', b: `<ul>
 <li>Tombol <b>Export Excel</b> mengekspor baris yang tampil di tabel, sesuai pencarian dan filter saat itu. Baris Dibatalkan ikut terekspor bila tampil.</li>
-<li>Kolom: Nomor (posisi baris), Tanggal Dibuat, lalu semua isian yang tampil di Detail. <b>Nama Penyidik</b> dan <b>No. Telepon Penyidik</b> tidak diekspor.</li>
+<li>Kolom: Nomor (posisi baris), Tanggal Dibuat, lalu semua isian yang tampil di Detail. <b>Nama Penyidik</b> dan <b>No. Telepon Penyidik</b> diekspor dalam bentuk tersamar untuk semua peran, termasuk yang boleh membuka ikon mata.</li>
 <li>Nama file: <b>Permintaan_APH_[tanggal hari ini].xlsx</b>.</li>
 <li>Setiap export tercatat di menu Log beserta jumlah barisnya.</li>
 </ul>` },
-  { h: 'Hak akses per peran', b: `<p>Berikut matriks bawaan. Super Admin dapat mengubahnya di Admin &gt; Permission.</p>
+  { h: 'Hak akses per peran', b: `<p>Berikut matriks bawaan. Super Admin dapat mengubahnya di menu <b>Admin</b> (Manage Permissions).</p>
 <ul>
 <li><b>Super Admin</b>: Lihat, Tambah, Ubah, Batalkan/Kembalikan, Export.</li>
 <li><b>Head CLRM</b>: Lihat, Batalkan/Kembalikan, Export.</li>
 <li><b>Legal Officer</b>: Lihat, Tambah, Ubah, Export.</li>
 <li><b>PIC</b>: Lihat, Ubah (hanya permintaan miliknya), Export.</li>
-<li><b>Compliance Officer, Risk Officer, Fraud Investigator, Ketua SMKI, Viewer</b>: Lihat dan Export. Viewer melihat data penyidik tersamar.</li>
+<li><b>Compliance Officer, Risk Officer, Fraud Investigator, Ketua SMKI, Viewer</b>: Lihat dan Export. Data penyidik tersamar bagi semua peran selain Super Admin, Head CLRM, dan Legal Officer.</li>
 <li>Approve tidak dipakai di halaman ini.</li>
 </ul>` },
 ]

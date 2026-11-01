@@ -9,8 +9,8 @@ import InfoTip, { ChartInfo } from './InfoTip'
 export type { ChartInfo }
 
 export const PALETTE = ['#1f2ab5', '#3b82f6', '#06b6d4', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#64748b']
-export const TONE_HEX: Record<Tone, string> = { red: '#ef4444', yellow: '#f59e0b', green: '#10b981', blue: '#3b82f6', gray: '#94a3b8' }
-const TILE: Record<Tone, string> = { red: 'border-l-red-500 text-red-600', yellow: 'border-l-yellow-400 text-yellow-700', green: 'border-l-green-500 text-green-600', blue: 'border-l-blue-500 text-blue-600', gray: 'border-l-slate-300 text-slate-700' }
+export const TONE_HEX: Record<Tone, string> = { red: '#ef4444', yellow: '#f59e0b', green: '#10b981', blue: '#3b82f6', gray: '#94a3b8', orange: '#f97316' }
+const TILE: Record<Tone, string> = { red: 'border-l-red-500 text-red-600', yellow: 'border-l-yellow-400 text-yellow-700', green: 'border-l-green-500 text-green-600', blue: 'border-l-blue-500 text-blue-600', gray: 'border-l-slate-300 text-slate-700', orange: 'border-l-orange-500 text-orange-600' }
 type Row = Record<string, string | number>
 type Colors = string[] | Record<string, string>
 const colorOf = (colors: Colors | undefined, key: string, i: number) => (Array.isArray(colors) ? colors[i] : colors?.[key]) ?? PALETTE[i % PALETTE.length]

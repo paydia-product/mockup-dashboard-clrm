@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 2.14.0 | 2026-11-01 | ~250k |
 | 2.13.10 | 2026-10-31 | ~25k |
 | 2.13.9 | 2026-10-31 | ~10k |
 | 2.13.8 | 2026-10-31 | ~20k |
@@ -55,6 +56,19 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [2.14.0] - 2026-11-01
+
+### Ditambah
+- Permintaan APH: Nama Penyidik dan No. Telepon Penyidik tersamar dengan ikon mata (Super Admin, Head CLRM, Legal Officer), di Detail dan form Edit
+- Export: kolom ber-reveal (APH penyidik, Fraud Terlapor dan RRN) selalu tersamar untuk semua peran
+- Log: tabel Tanggal, Container, Type, Detail, IP; tombol Filter (panel Container, Type, Tanggal, Detail, IP) dan Export hijau; seed 120 baris 30 hari terakhir; entri live dipetakan ke bentuk baru
+- Approval: seed pengajuan Menunggu, Disetujui, Ditolak untuk Fraud (Penutupan Kasus), Regulatory Change (Perubahan Daftar Peraturan), Risk Register (Perubahan Level Risiko), dan Tracker (Penutupan Temuan)
+- Admin: sub-menu Akun dan Permission digabung menjadi satu menu Admin; tabel No, Email, Nama, Status, Edit; modal Add New Admin dan Edit Admin dengan Manage Permissions per kategori (Compliance, Risk, Fraud, Legal, Approval, Master Data, Log, Admin)
+- Permission per admin (View, Create, Update, Export, Approve, Dashboard) kini dipakai can(); status admin Active, Inactive, Archive, Suspend; seed 12 admin
+
+### Diubah
+- Kunci data naik: clrm.app.v18 dan clrm.db.v9 (data contoh lama dibuang)
 
 ## [2.13.10] - 2026-10-31
 

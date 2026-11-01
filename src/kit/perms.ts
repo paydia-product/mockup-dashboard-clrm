@@ -1,4 +1,4 @@
-import type { Action, ModuleId, PermKey, PermMatrix, Role } from './types'
+import type { Account, Action, ModuleId, PermKey, PermMatrix, Role } from './types'
 
 export const ROLES: Role[] = ['Super Admin', 'Head CLRM', 'Compliance Officer', 'Risk Officer', 'Legal Officer', 'Fraud Investigator', 'Ketua SMKI', 'PIC', 'Viewer']
 export const ACTIONS: Action[] = ['Lihat', 'Tambah', 'Ubah', 'Cancel', 'Approve', 'Export', 'Import']
@@ -42,3 +42,31 @@ function build(): PermMatrix {
 export const DEFAULT_PERMS: PermMatrix = build()
 export const can = (perms: PermMatrix, role: Role, m: PermKey, a: Action) => !!perms[role]?.[m]?.includes(a)
 export const sameName = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase()
+
+// ---- Izin per admin (halaman Admin): kategori = 4 modul + halaman pendukung ----
+// Aksi lama dipetakan: Update = Ubah + Cancel (edit dan hapus), Dashboard = tab Dashboard. Import tidak ada (tombol Import disembunyikan di semua halaman).
+export type PermAction = 'view' | 'create' | 'update' | 'export' | 'approve' | 'dashboard'
+export const PERM_ACTION_LABEL: Record<PermAction, string> = { view: 'View', create: 'Create', update: 'Update', export: 'Export', approve: 'Approve', dashboard: 'Dashboard' }
+const ACTION_OF: Record<PermAction, Action[]> = { view: ['Lihat'], create: ['Tambah'], update: ['Ubah', 'Cancel'], export: ['Export'], approve: ['Approve'], dashboard: ['Dashboard'] }
+export interface PermCategory { id: string; label: string; keys: PermKey[]; actions: PermAction[] }
+export const PERM_CATEGORIES: PermCategory[] = [
+  { id: 'compliance', label: 'Compliance', keys: ['tracker', 'reporting', 'regchange', 'sop'], actions: ['view', 'create', 'update', 'export', 'approve', 'dashboard'] },
+  { id: 'risk', label: 'Risk', keys: ['risk', 'kajian'], actions: ['view', 'create', 'update', 'export', 'approve', 'dashboard'] },
+  { id: 'fraud', label: 'Fraud', keys: ['fraud'], actions: ['view', 'create', 'update', 'export', 'approve', 'dashboard'] },
+  { id: 'legal', label: 'Legal', keys: ['kontrak', 'aph', 'perizinan', 'layanan'], actions: ['view', 'create', 'update', 'export', 'dashboard'] },
+  { id: 'approval', label: 'Approval', keys: ['approval'], actions: ['view', 'update', 'approve'] },
+  { id: 'master', label: 'Master Data', keys: ['master'], actions: ['view', 'create', 'update'] },
+  { id: 'log', label: 'Log', keys: ['log'], actions: ['view', 'update', 'export'] },
+  { id: 'admin', label: 'Admin', keys: ['admin'], actions: ['view', 'create', 'update'] },
+]
+export const ALL_PERM_IDS = PERM_CATEGORIES.flatMap((c) => c.actions.map((a) => `${c.id}.${a}`))
+const catOf = (m: PermKey) => PERM_CATEGORIES.find((c) => c.keys.includes(m))
+// Izin awal admin = turunan matriks peran: kategori memberi aksi bila salah satu halamannya memberi salah satu aksi lama yang dipetakan (Update = Ubah atau Cancel)
+export const permsOf = (role: Role, matrix: PermMatrix = DEFAULT_PERMS): string[] =>
+  PERM_CATEGORIES.flatMap((c) => c.actions.filter((a) => role === 'Super Admin' || (a !== 'dashboard' ? c.keys.some((k) => ACTION_OF[a].some((x) => matrix[role]?.[k]?.includes(x))) : c.keys.some((k) => matrix[role]?.[k]?.includes('Lihat')))).map((a) => `${c.id}.${a}`))
+// can() untuk akun yang punya daftar izin: ada izin kategori untuk salah satu aksi lama yang dipetakan
+export const canAccount = (acc: Pick<Account, 'permissions'>, m: PermKey, a: Action): boolean => {
+  const c = catOf(m)
+  const pa = (Object.keys(ACTION_OF) as PermAction[]).find((x) => ACTION_OF[x].includes(a))
+  return !!c && !!pa && acc.permissions.includes(`${c.id}.${pa}`)
+}

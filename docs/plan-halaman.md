@@ -49,7 +49,7 @@ src/kit/
   ImportExcel.tsx
   exportXlsx.ts
   charts.tsx      Card, StatCards, BarCard (stacked/horizontal), DonutCard, LineCard, ComboCard (bar+garis), CalendarCard (grid bulan + titik), MiniTable
-src/shared/  Approval.tsx, MasterData.tsx, Admin.tsx (Akun + Permission), Log.tsx, Login.tsx (login, 2FA, reset), Profile.tsx (password, PIN)
+src/shared/  Approval.tsx, MasterData.tsx, Admin.tsx (satu halaman Admin: daftar admin + Manage Permissions), Log.tsx, Login.tsx (login, 2FA, reset), Profile.tsx (password, PIN)
 src/pages/   index.ts (registry), Reporting.tsx, RegChange.tsx, Sop.tsx, RiskRegister.tsx, Kajian.tsx, Fraud.tsx, Kontrak.tsx, Aph.tsx, Perizinan.tsx, LayananHukum.tsx, sop.shared.ts
 ```
 
@@ -157,7 +157,7 @@ Sumber kebenaran: `src/kit/types.ts`. Perbedaan dari draf di atas:
 
 ## B. Fitur pendukung (dikerjakan foundation)
 
-**Sidebar**: Compliance (Regulatory Findings Tracker, Regulatory Reporting, Regulatory Change, SOP & Dokumen Kontrol) / Risk (Risk Register, Kajian Risiko) / Fraud (Fraud Case Monitoring) / Legal (Kontrak, Permintaan APH, Perizinan & Dokumen Legalitas, Permintaan Layanan Hukum) / garis pemisah / Approval (badge jumlah Menunggu yang bisa diputus peran aktif) / Master Data (Departemen, Produk, Pihak Pelapor) / Admin (Akun, Permission) / Log. Menu tanpa izin Lihat disembunyikan. Avatar header: menu Ganti Password, Ganti PIN, Logout.
+**Sidebar**: Compliance (Regulatory Findings Tracker, Regulatory Reporting, Regulatory Change, SOP & Dokumen Kontrol) / Risk (Risk Register, Kajian Risiko) / Fraud (Fraud Case Monitoring) / Legal (Kontrak, Permintaan APH, Perizinan & Dokumen Legalitas, Permintaan Layanan Hukum) / garis pemisah / Approval (badge jumlah Menunggu yang bisa diputus peran aktif) / Master Data (Departemen, Produk, Pihak Pelapor) / Admin (satu halaman) / Log. Menu tanpa izin Lihat disembunyikan. Avatar header: menu Ganti Password, Ganti PIN, Logout.
 
 **Route (hash)**: id yang sudah ada di `App.tsx` dipertahankan (`compliance/regulatory-reporting`, `compliance/regulatory-change`, `compliance/sop-dokumen-kontrol`, `risk/risk-register`, `risk/kajian-risiko`, `fraud/fraud-case-monitoring`, `legal/kontrak`, `legal/permintaan-aph`, `legal/perizinan`, `legal/layanan-hukum`), ditambah `approval`, `master/departemen`, `master/produk`, `master/pihak-pelapor`, `admin/akun`, `admin/permission`, `log`, `profil/password`, `profil/pin`. App merender `PAGES[route]` dari `src/pages/index.ts`.
 
@@ -168,8 +168,7 @@ Sumber kebenaran: `src/kit/types.ts`. Perbedaan dari draf di atas:
 **Akun seed**: Super Admin (admin@paydia.id), Dewi Anggraini (Head CLRM), Rina Kartika dan Arief Nugraha (Compliance Officer), Rudi Hartono (Risk Officer), Lina Marlina (Legal Officer), Fajar Ramadhan (Fraud Investigator), Yusuf Hakim (Ketua SMKI), Bima Pratama (PIC), Tono Santoso (Viewer). Nama tracker yang sudah ada dipertahankan.
 
 **Admin**:
-- Akun: list + cari + pagination (nama, email, peran, departemen, status, terakhir login); tambah/edit dalam modal; toggle Aktif/Nonaktif (log).
-- Permission: pilih peran → matriks baris modul (11 halaman + Approval, Master Data, Admin, Log) × kolom Lihat/Tambah/Ubah/Cancel/Approve/Export/Import, checkbox, langsung tersimpan dan langsung mengubah tombol (log).
+- Satu menu Admin (v2.14.0, menggantikan sub-menu Akun dan Permission): tabel No, Email, Nama, Status (Active/Suspend/Inactive/Archive), Edit; tombol Refresh Permissions dan Add; modal Add New Admin / Edit Admin dengan Manage Permissions (kategori Compliance, Risk, Fraud, Legal, Approval, Master Data, Log, Admin × View/Create/Update/Export/Approve/Dashboard). Izin disimpan di `Account.permissions` dan dipakai `can()` (log).
 - DEFAULT_PERMS mengikuti kolom "Siapa yang Boleh" di CR:
   - Tambah: tracker/reporting/regchange = CO; sop = CO + PIC; risk = Risk Officer + PIC (Risk Owner); kajian = Risk Officer; fraud = Fraud Investigator + CO; kontrak/aph/perizinan = Legal Officer; layanan = Legal Officer + PIC.
   - Ubah: + PIC di setiap modul yang di CR menyebut PIC.
@@ -547,7 +546,7 @@ Kolom:
 ### Task 0: Foundation (satu agent, selesai dan build hijau sebelum task page dimulai)
 Selesaikan semua file berikut:
 1. `src/kit/*` sesuai kontrak A. PageShell harus berjalan end-to-end dengan config minimal: tab, tabel, filter popover, Detail, Form tambah/edit dari fields (semua FieldType termasuk `list`, `checklist`, `file` via FileField, multiselect), alasan, cancel/restore, EmailSim (3 per alert, sample), Export + Log, Import Excel (template dari fields non-auto non-file, pratinjau, unduh gagal, Log), approval via `cfg.approvals`.
-2. `src/shared/*`: Approval (termasuk adapter tracker), MasterData, Admin (Akun, Permission), Log (gabung audit tracker), Login (login/2FA/reset), Profile.
+2. `src/shared/*`: Approval (termasuk adapter tracker), MasterData, Admin (satu halaman), Log (gabung audit tracker), Login (login/2FA/reset), Profile.
 3. `src/pages/index.ts`: `export const PAGES: Record<string, React.ComponentType>` memetakan route → default export setiap file page. Setiap `src/pages/<X>.tsx` diisi stub yang build: config minimal (2 field, seed 3 baris, Dashboard "Segera hadir") lewat PageShell.
 4. `src/pages/sop.shared.ts`: `export interface SopRec extends BaseRec {...12 kolom}`, `export function seedSop(today): SopRec[]` (~25), `export const sopLabel = (s: SopRec) => \`${s.noDok} - ${s.judul} - ${s.pemilik}\``.
 5. `App.tsx`: AppProvider, login gate mock, sidebar/route baru, header (pemilih akun, profil, reset kedua key, badge Approval).

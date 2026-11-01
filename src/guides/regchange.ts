@@ -124,6 +124,6 @@ export const REGCHANGE_GUIDE: GuideItem[] = [
 <li><b>PIC</b>: Lihat dan Export. Hak Ubah ada di matriks tetapi tombol Edit disembunyikan di halaman ini.</li>
 <li><b>Risk Officer, Legal Officer, Fraud Investigator, Viewer</b>: Lihat dan Export.</li>
 </ul>
-<p>Super Admin dapat mengubah matriks ini di <b>Admin &gt; Permission</b>.</p>`,
+<p>Super Admin dapat mengubah matriks ini di menu <b>Admin</b> (Manage Permissions).</p>`,
   },
 ]

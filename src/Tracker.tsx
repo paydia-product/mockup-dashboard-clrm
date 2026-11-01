@@ -23,7 +23,7 @@ type Pending = { kind: 'add' } | { kind: 'edit'; id: string } | { kind: 'reason'
 
 export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb: React.Dispatch<React.SetStateAction<DB>>; role: Role; user: { name: string }; can: (a: Action) => boolean }) {
   const { log: appLog, store: appStore } = useApp()
-  const [tab, setTab] = useState<'table' | 'dashboard'>('dashboard')
+  const [tab, setTab] = useState<'table' | 'dashboard'>(can('Dashboard') ? 'dashboard' : 'table')
   const [filter, setFilter] = useState<Filter>(EMPTY_FILTER)
   const [showFilters, setShowFilters] = useState(false)
   const [draft, setDraft] = useState<Filter>(EMPTY_FILTER)
@@ -169,7 +169,7 @@ export default function Tracker({ db, setDb, role, user, can }: { db: DB; setDb:
     <div>
       <PageGuide name="Regulatory Findings Tracker" items={TRACKER_GUIDE} />
       <div className="mb-3 flex gap-1 border-b border-slate-200">
-        {(['dashboard', 'table'] as const).map((t) => (
+        {(['dashboard', 'table'] as const).filter((t) => t === 'table' || can('Dashboard')).map((t) => (
           <button key={t} onClick={() => setTab(t)} className={`border-b-2 px-4 py-2 text-sm font-medium ${tab === t ? 'border-brand text-brand' : 'border-transparent text-slate-500'}`}>{t === 'table' ? 'Table' : 'Dashboard'}</button>
         ))}
       </div>

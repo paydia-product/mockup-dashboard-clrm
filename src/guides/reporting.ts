@@ -115,6 +115,6 @@ export const REPORTING_GUIDE: GuideItem[] = [
 <li><b>PIC</b>: Lihat, Ubah (hanya laporan miliknya), Export.</li>
 <li><b>Risk Officer, Legal Officer, Fraud Investigator, Ketua SMKI, Viewer</b>: Lihat dan Export.</li>
 </ul>
-<p>Super Admin dapat mengubah matriks ini di <b>Admin &gt; Permission</b>.</p>`,
+<p>Super Admin dapat mengubah matriks ini di menu <b>Admin</b> (Manage Permissions).</p>`,
   },
 ]
