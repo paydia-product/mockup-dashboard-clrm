@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { Fragment, useEffect, useMemo, useState } from 'react'
 import {
   ChevronDown, ChevronRight, ClipboardCheck, Database, FileSignature, FileText, Gavel, GitBranch, History, KeyRound, LayoutDashboard, ListChecks, LogOut, Menu, RotateCcw,
   Scale, ScrollText, ShieldAlert, ShieldCheck, Siren, Tag, UserCog,
@@ -220,7 +220,7 @@ function Shell() {
           <div className="mb-1 text-xs text-slate-400">home / {groupOf(route) ? `${groupOf(route)} / ` : ''}{labelOf(route)}</div>
           <div className="mb-4 flex flex-wrap items-center gap-3"><h1 className="text-xl font-semibold text-slate-800">{labelOf(route)}</h1><div ref={setBtnEl} /><div ref={setActEl} className="ml-auto" /></div>
           <div ref={setPanelEl} />
-          <GuideSlots.Provider value={slots}>{content}</GuideSlots.Provider>
+          <GuideSlots.Provider value={slots}><Fragment key={user.id}>{content}</Fragment></GuideSlots.Provider>{/* key: ganti akun memuat ulang halaman, sensor yang dibuka tertutup lagi */}
         </main>
       </div>
     </div>

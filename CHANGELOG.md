@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 2.14.6 | 2026-11-01 | ~5k |
 | 2.14.5 | 2026-11-01 | ~15k |
 | 2.14.4 | 2026-11-01 | ~5k |
 | 2.14.3 | 2026-11-01 | ~5k |
@@ -61,6 +62,11 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [2.14.6] - 2026-11-01
+
+### Diperbaiki
+- Ganti Akun demo memuat ulang halaman, jadi sensor yang sudah dibuka tertutup lagi
 
 ## [2.14.5] - 2026-11-01
 

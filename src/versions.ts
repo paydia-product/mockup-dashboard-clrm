@@ -11,6 +11,15 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
+    v: '2.14.6',
+    date: '2026-11-01',
+    deployed: true,
+    title: 'Sensor tertutup lagi saat ganti akun',
+    prompt: 'Temuan QA: sensor tetap terbuka setelah ganti akun',
+    tokens: 5000,
+    changes: ['Ganti Akun demo memuat ulang halaman, jadi sensor yang sudah dibuka tertutup lagi'],
+  },
+  {
     v: '2.14.5',
     date: '2026-11-01',
     deployed: true,
