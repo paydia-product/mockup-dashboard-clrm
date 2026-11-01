@@ -11,6 +11,15 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
+    v: '2.14.5',
+    date: '2026-11-01',
+    deployed: true,
+    title: 'Sensor Fraud bisa dibuka semua peran',
+    prompt: 'Sensor RRN dan Nama Terlapor bisa dibuka semua peran',
+    tokens: 15000,
+    changes: ['Fraud: semua peran yang bisa membuka halaman kini punya ikon mata untuk membuka Nama Terlapor dan RRN; Export tetap selalu tersamar'],
+  },
+  {
     v: '2.14.4',
     date: '2026-11-01',
     deployed: true,

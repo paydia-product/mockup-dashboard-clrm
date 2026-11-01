@@ -24,7 +24,7 @@ export const FraudGuide: GuideItem[] = [
 <li><b>Pencarian</b> mencari di No Laporan EDD, Terlapor (nilai yang tampil, bisa tersamar), Group Merchant, dan Kategori Pelapor.</li>
 <li><b>Filter</b>: Periode (Tanggal Terima), Status (Open, Closed, Dibatalkan), PIC, Jenis Dugaan, Tindakan, Sumber (Kategori Pelapor), Group Merchant, Produk, dan Channel.</li>
 <li><b>Pagination</b>: 10, 25, atau 50 baris per halaman.</li>
-<li>Nama Terlapor dan RRN <b>disamarkan</b> (contoh B*** S******) di tabel, Detail, dan form Edit. Super Admin, Head CLRM, dan Fraud Investigator melihat <b>ikon mata</b> (di header kolom tabel, di samping label pada Detail, dan di samping label pada form Edit): klik untuk membuka nilai asli, klik lagi untuk menyamarkan lagi. Bawaan selalu tersamar. Peran lain tidak punya tombol mata dan nilainya tetap tersamar. Di Export, Nama Terlapor dan RRN selalu tersamar untuk semua peran.</li>
+<li>Nama Terlapor dan RRN <b>disamarkan</b> (contoh B*** S******) di tabel, Detail, dan form Edit. Semua peran yang bisa membuka halaman ini melihat <b>ikon mata</b> (di header kolom tabel, di samping label pada Detail, dan di samping label pada form Edit): klik untuk membuka nilai asli, klik lagi untuk menyamarkan lagi. Bawaan selalu tersamar. Di Export, Nama Terlapor dan RRN selalu tersamar untuk semua peran.</li>
 </ul>` },
   { h: 'Tambah & Edit', b: `<p><b>Isian wajib saat Tambah</b>: Tanggal Terima Tugas, Kategori Pelapor, Media, Nama Terlapor, Jenis Pengguna, Jenis Dugaan, Hasil Asesmen Awal, dan Alasan Asesmen. Bukti tidak wajib. Status Open diberikan otomatis.</p>
 <p><b>Wajib bersyarat saat status Closed</b>: Uraian, Nominal Korban, Tindakan, Tanggal Email Resolved, dan PIC Investigator.</p>
@@ -40,7 +40,7 @@ export const FraudGuide: GuideItem[] = [
 <li>Aturan tanggal: EDD 2 tidak boleh sebelum EDD 1. Tanggal Resolved dan Tanggal Blokir tidak boleh sebelum Tanggal Terima.</li>
 <li>Kasus <b>Closed</b> tidak bisa diedit.</li>
 <li>Yang boleh <b>Tambah</b>: Fraud Investigator, Compliance Officer, Super Admin. Yang boleh <b>Edit</b>: Fraud Investigator, Compliance Officer, PIC, Super Admin. PIC dan Fraud Investigator hanya mengedit kasus yang PIC Investigator-nya dirinya.</li>
-<li>Nama Terlapor dan RRN yang tersamar bagi Anda tidak dapat diubah. Bagi Super Admin, Head CLRM, dan Fraud Investigator, buka dulu lewat ikon mata di samping label untuk mengubahnya.</li>
+<li>Untuk mengubah Nama Terlapor dan RRN, buka dulu lewat ikon mata di samping label.</li>
 </ul>` },
   { h: 'Approval', b: `<ul>
 <li>Jenis: <b>Penutupan Kasus</b>. Approver: <b>Head CLRM</b>.</li>
