@@ -54,7 +54,7 @@ Sumber keputusan: bagian "Keputusan yang sudah final" di prompt PRD tanggal 1 No
 | Umum | Master Data memuat pihak pelapor | Ada "Kategori Pelapor" dan "Media Pelapor". Tidak ada master "Pihak Pelapor" | 01 bagian 10.5 |
 | Umum | Data tidak dihapus permanen | Data modul tidak dihapus (Batalkan). Master Data memakai tombol Hapus permanen dari daftar | 01 bagian 10 |
 | Umum | Log mencatat semua aksi | Login, 2FA, lihat detail, upload, buka sensor, import tidak dicatat saat dipakai. Hanya ada di data contoh Log | 01 bagian 9 |
-| Umum | Approval hanya untuk tutup temuan Tracker, close case Fraud, dan persetujuan lain di CR | Ada 4 jenis: Penutupan Temuan, Penutupan Kasus, Perubahan Daftar Peraturan (Ketua SMKI), Perubahan Level Risiko (Risk Officer) | Dua jenis terakhir perlu dicek di CR |
+| Umum | Approval hanya untuk tutup temuan Tracker, close case Fraud, dan persetujuan lain di CR | Ada 4 jenis: Penutupan Temuan, Penutupan Kasus, Perubahan Daftar Peraturan (Ketua SMKI), Perubahan Level Risiko (Risk Officer) | Keempatnya ada di CR (lihat C.1) |
 | Umum | Atur permission per akun | Ada, tetapi per kategori (Compliance, Risk, Fraud, Legal, Approval, Master Data, Log, Admin), bukan per halaman. Update mencakup Ubah dan Batalkan sekaligus | Lihat bagian E |
 | Umum | Tidak ada fitur import | Tombol Import tersembunyi di semua halaman. Kode import masih ada | 01 bagian 12 |
 | Regulatory Findings Tracker | Progress diisi manual | Tidak ada kolom Progress | 02 |
@@ -76,7 +76,7 @@ Sumber keputusan: bagian "Keputusan yang sudah final" di prompt PRD tanggal 1 No
 | Kajian Risiko | Batalkan wajib alasan | Ada dua status batal: "Batal" (status manual) dan "Dibatalkan" (aksi Batalkan) | 04 |
 | Fraud Case Monitoring | No. Laporan EDD `EDD/YYYY/MM/DD/NNNN` | `EDD/YYYY/MM/NNNN`, urutan mulai lagi tiap bulan | 04 |
 | Fraud Case Monitoring | Batas waktu EDD = tanggal surat EDD + 2 hari kerja, notifikasi saat jatuh tempo | Rumus sementara: Tanggal Terima + 3 hari kerja bila EDD 1 kosong, selain itu EDD 1 + 7 hari kalender. Alert muncul setelah lewat batas | 04 |
-| Fraud Case Monitoring | Semua peran yang punya akses halaman bisa membuka sensor | Hanya Super Admin, Head CLRM, Fraud Investigator. Export selalu tersamar | 04 |
+| Fraud Case Monitoring | Semua peran yang punya akses halaman bisa membuka sensor | Sesuai sejak v2.14.5: semua peran punya ikon mata. Export selalu tersamar | 04 |
 | Fraud Case Monitoring | Nama merchant: teks uraian, bisa banyak, bisa dicari, tidak tampil di tabel | Tidak ada field Nama Merchant. Hanya Group Merchant (satu teks) dan Nama Terlapor | 04 |
 | Fraud Case Monitoring | Visual punya filter produk UE dan QRIS | Tidak ada filter produk di Dashboard. Produk hanya filter Table | 04 |
 | Kontrak | Mitra dari Master Data | Master hanya untuk Jenis Hubungan selain Merchant. Merchant memakai teks bebas | 05 |
@@ -88,6 +88,26 @@ Sumber keputusan: bagian "Keputusan yang sudah final" di prompt PRD tanggal 1 No
 | Permintaan APH | Semua file bukti opsional | Tidak ada upload file | 05 |
 | Perizinan & Dokumen Legalitas | Edit tanpa approval, dengan alasan perubahan | Alasan perubahan ada tetapi opsional | 05 |
 | Permintaan Layanan Hukum | Jenis bisa ditambah | Jenis daftar tetap di kode ditambah Lainnya. Tidak ada Master Data jenis | 05 |
+
+### C.1 Keputusan pemilik produk, 1 November 2026 (mengikat)
+
+Keputusan ini menggantikan "Keputusan final" untuk baris yang disebut. Tulis requirement PRD sesuai kolom "Requirement PRD". Jangan masukkan butir ini ke Open Questions.
+
+| Topik | Requirement PRD |
+| --- | --- |
+| Label unit kerja | Pakai label mockup "Unit Kerja" (beserta "Unit Kerja Terdampak", "Unit Kerja Pemohon", "Unit Pemilik", "Pemilik Dokumen"). Bukan selisih. |
+| No. Laporan EDD Fraud | Format mockup `EDD/YYYY/MM/NNNN`, urutan mulai lagi dari 0001 tiap bulan, otomatis, tidak bisa diedit. |
+| Batas waktu EDD Fraud | Rumus mockup: Tanggal Terima + 3 hari kerja selama Tanggal EDD 1 kosong. Setelah EDD 1 terisi: Tanggal EDD 1 + 7 hari kalender. Alert muncul setelah batas terlewat. |
+| Sensor Fraud | Semua peran yang bisa membuka halaman Fraud punya ikon mata untuk Nama Terlapor dan RRN (header kolom Table, label Detail, label form Edit). Bawaan tersamar. Export selalu tersamar untuk semua peran. Ganti akun menutup lagi sensor yang terbuka. Sudah diterapkan di v2.14.5 dan v2.14.6. |
+| Nama Merchant Fraud | Pakai mockup: tidak ada field Nama Merchant. Yang ada Group Merchant (teks) dan Nama Terlapor. |
+| Filter produk Fraud | Pakai mockup: Produk (UE, QRIS, Biller dari Master Data) ada sebagai filter di tab Table. Dashboard tidak punya filter produk. [Menunggu jawaban pemilik produk apakah Dashboard juga perlu filter produk.] |
+| Progress Tracker | Pakai mockup: tidak ada kolom Progress. |
+| Tren Tracker | Pakai mockup: Seluruh Waktu, 3, 6, 9, 12 bulan terakhir (bawaan 12), Custom. Tidak ada per kuartal. |
+| Rencana Tindak Lanjut Tracker | Satu isian teks bebas (pengguna bisa menulis beberapa rencana dalam satu teks) dan satu file bukti opsional. |
+| Permission per kategori | Pakai perilaku mockup apa adanya: Head CLRM bisa Ubah dan Batalkan di semua halaman modul; PIC bisa Tambah di halaman Compliance, Risk, dan Legal; Officer bisa Batalkan di kategorinya. Matriks bagian E adalah requirement. |
+| Approval | Empat jenis approval semuanya ada di CR 6 Oktober 2026: Penutupan Temuan Tracker (Head CLRM, setelah Validasi Ulang), Penutupan Kasus Fraud (Head CLRM), Perubahan Daftar Peraturan Regulatory Change (CR: "Daftar peraturan versi baru disetujui Ketua SMKI"), Perubahan Level Risiko Risk Register (CR: "Perubahan level risiko dicek Risk Officer"). |
+
+Dokumen CR asli: `CR Pengajuan Dashboard ttd_Fakhrirafi Zharfan.pdf` (diberikan pemilik produk). Baris lain di tabel C tetap ditulis versi keputusan final di PRD dan dicatat di Open Questions, kecuali pemilik produk memutuskan lain.
 
 ## D. Tambahan mockup (tidak ada di keputusan)
 
@@ -156,7 +176,7 @@ Nilai: Ya, Tidak, Milik sendiri. "Milik sendiri" hanya berlaku untuk Ubah. Atura
 | Fraud Case Monitoring | Ubah | Ya | Ya | Ya | Tidak | Tidak | Milik sendiri | Tidak | Milik sendiri | Tidak |
 | Fraud Case Monitoring | Batalkan dan Kembalikan | Ya | Ya | Ya | Tidak | Tidak | Ya | Tidak | Ya | Tidak |
 | Fraud Case Monitoring | Approve Penutupan Kasus | Ya | Ya | Tidak | Tidak | Tidak | Tidak | Tidak | Tidak | Tidak |
-| Fraud Case Monitoring | Buka sensor Nama Terlapor dan RRN | Ya | Ya | Tidak | Tidak | Tidak | Ya | Tidak | Tidak | Tidak |
+| Fraud Case Monitoring | Buka sensor Nama Terlapor dan RRN | Ya | Ya | Ya | Ya | Ya | Ya | Ya | Ya | Ya |
 | Kontrak | Tambah | Ya | Tidak | Tidak | Tidak | Ya | Tidak | Tidak | Ya | Tidak |
 | Kontrak | Ubah | Ya | Ya | Tidak | Tidak | Ya | Tidak | Tidak | Milik sendiri | Tidak |
 | Kontrak | Batalkan dan Kembalikan | Ya | Ya | Tidak | Tidak | Ya | Tidak | Tidak | Ya | Tidak |
@@ -193,7 +213,7 @@ Mengapa matriks ini berbeda dari panduan halaman:
 - Update mencakup Ubah dan Batalkan. HC punya Batalkan di matriks peran, jadi HC juga bisa Ubah di semua 11 halaman. CO, RO, LO, FI, dan PIC punya Ubah, jadi mereka juga bisa Batalkan di kategorinya.
 - HC tidak punya Tambah di halaman mana pun.
 - Izin Approve per kategori tidak cukup. Approve atau Reject juga butuh peran akun sama dengan approver request (atau SA) dan izin `approval.update`. Contoh: SMKI punya `compliance.approve` tetapi tidak bisa memutuskan Penutupan Temuan. HC punya `compliance.approve` tetapi tidak bisa memutuskan Perubahan Daftar Peraturan.
-- Hak buka sensor ditentukan oleh nama peran, bukan izin akun.
+- Hak buka sensor ditentukan oleh nama peran, bukan izin akun. Fraud: semua peran. APH: Super Admin, Head CLRM, Legal Officer.
 
 ### E.2 Halaman pendukung
 

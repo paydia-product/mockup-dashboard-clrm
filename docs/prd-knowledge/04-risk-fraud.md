@@ -334,7 +334,7 @@ Berbeda atau tambahan:
 ## Fraud Case Monitoring (menu: Fraud > Fraud Case Monitoring)
 
 - Ringkasan: satu halaman untuk mencatat laporan dugaan fraud/judi online/transaksi anomali, menilai lewat Hasil Asesmen Awal, menjalankan EDD 1 dan EDD 2, mencatat tindakan (blokir, hold, dll.), laporan ke regulator, dan menutup kasus dengan persetujuan Head CLRM.
-- Prasyarat akses: izin Lihat modul Fraud (semua peran). Tab Dashboard butuh izin Dashboard kategori Fraud. Nama Terlapor dan RRN disamarkan; peran tertentu dapat membuka sensor (lihat Peran). Rute `fraud/fraud-case-monitoring`.
+- Prasyarat akses: izin Lihat modul Fraud (semua peran). Tab Dashboard butuh izin Dashboard kategori Fraud. Nama Terlapor dan RRN disamarkan; semua peran dapat membuka sensor lewat ikon mata. Rute `fraud/fraud-case-monitoring`.
 
 ### Tab Dashboard
 Filter global: **Periode Tanggal Terima** (dua tanggal + Reset); berlaku untuk kartu angka dan visual kecuali dua grafik bulanan (lihat masing-masing). Kasus Dibatalkan tidak dihitung.
@@ -363,9 +363,9 @@ Sembilan grafik, tiap grafik di kartu sendiri dengan (i), urutan grid 2 kolom:
 - Grafik tanpa data: tampil "Tidak ada data" (kecuali grafik bulanan yang selalu menampilkan bulan nol).
 
 ### Tab Table
-- Kolom (urutan): Nomor, **No Laporan EDD** ("-" bila kosong), **Tgl Terima**, **Kategori Pelapor**, **Terlapor** (tersamar; ikon mata di header untuk peran berhak), **RRN** (tersamar; "-" bila kosong; ikon mata di header), **Jenis Dugaan**, **Nominal** (Nominal Korban, `Rp ...`, "-" bila kosong), **Tindakan** ("-" bila kosong), **Status** (pill: Open biru, Closed hijau, Dibatalkan abu-abu), **PIC** ("-" bila kosong), Tanggal Dibuat, Aksi. Nama merchant/Group Merchant TIDAK ada di tabel.
+- Kolom (urutan): Nomor, **No Laporan EDD** ("-" bila kosong), **Tgl Terima**, **Kategori Pelapor**, **Terlapor** (tersamar; ikon mata di header untuk semua peran), **RRN** (tersamar; "-" bila kosong; ikon mata di header), **Jenis Dugaan**, **Nominal** (Nominal Korban, `Rp ...`, "-" bila kosong), **Tindakan** ("-" bila kosong), **Status** (pill: Open biru, Closed hijau, Dibatalkan abu-abu), **PIC** ("-" bila kosong), Tanggal Dibuat, Aksi. Nama merchant/Group Merchant TIDAK ada di tabel.
 - Pagination 10/25/50.
-- Cari: placeholder "Cari no laporan EDD, terlapor/merchant, kategori pelapor"; mencari di `{No Laporan EDD} {Terlapor} {Group Merchant} {Kategori Pelapor}`. Bagi peran tanpa hak sensor, Terlapor yang dicari = nilai tersamar; bagi SA/Head CLRM/Fraud Investigator, nilai aslinya (terlepas dari keadaan tombol mata). RRN tidak dicari. Tidak ada field "Nama Merchant".
+- Cari: placeholder "Cari no laporan EDD, terlapor/merchant, kategori pelapor"; mencari di `{No Laporan EDD} {Terlapor} {Group Merchant} {Kategori Pelapor}`. Terlapor yang dicari = nilai aslinya untuk semua peran (terlepas dari keadaan tombol mata). RRN tidak dicari. Tidak ada field "Nama Merchant".
 - Filter (9): **Periode (Tanggal Terima)**, **Status** (Open, Closed, Dibatalkan), **PIC** (nilai unik dari data), **Jenis Dugaan**, **Tindakan** (10 nilai), **Sumber (Kategori Pelapor)** (Master), **Group Merchant** (nilai unik dari data), **Produk** (Master: UE, QRIS, Biller), **Channel** (nilai unik dari data). Tidak ada simpan filter.
 - Tombol: Export Excel, Tambah, aksi baris Lihat Detail / Edit / Batalkan / Kembalikan. Tidak ada aksi baris khusus.
 - Export: `Kasus_Fraud_EDD_{tanggal}.xlsx`, sheet "Fraud Case Monitoring". Kolom: Nomor, Tanggal Dibuat, lalu SEMUA field berurutan: No Laporan EDD (kolom pertama setelah Tanggal Dibuat), Tanggal Terima Tugas, Kategori Pelapor, Media (teks asli), Nama Terlapor, Jenis Pengguna, Jenis Dugaan, Rincian Dugaan, Uraian, Bukti (nama file), Nominal Korban, RRN, Tanggal Transaksi, Hasil Asesmen Awal, Alasan Asesmen, Tanggal Hold Settlement, Nominal Hold Settlement, Tanggal Email PPATK, Tanggal EDD 1, Tanggal EDD 2, Batas Waktu EDD (rumus sementara), Hasil EDD, Tindakan, Tanggal Blokir, Tanggal Released Settlement, Nominal Released Settlement, Saldo Tertahan, Tanggal Hapus QRIS, Tanggal Email Tutup Akun, Tanggal Lapor Komdigi, Tanggal Lapor BI, Tanggal Lapor PPATK, Tanggal Email Resolved, Status, PIC Investigator, Group Merchant, Produk, Channel, Kerugian Paydia. Nominal tetap angka. **Nama Terlapor dan RRN selalu tersamar untuk SEMUA peran**, termasuk yang berhak membuka mata. Data mengikuti cari dan filter (termasuk baris Dibatalkan). Tercatat di Log (`{n} baris`).
@@ -423,14 +423,14 @@ Tombol Tambah: default Fraud Investigator, Compliance Officer, Super Admin (efek
 
 ### Edit
 - Siapa boleh: izin Ubah (default Fraud Investigator, Compliance Officer, PIC, Super Admin; efektif juga Head CLRM, lihat 0.2). Pembatas `canEditRow`: kasus berstatus Closed tidak bisa diedit; peran **PIC** dan **Fraud Investigator** hanya bila `sameName(PIC Investigator kasus, nama akun)`; Head CLRM, Compliance Officer, Super Admin bebas. Konsekuensi: kasus tanpa PIC Investigator tidak bisa diedit oleh Fraud Investigator/PIC (termasuk yang membuatnya sendiri) sampai peran lain mengisi PIC.
-- Kolom terkunci: No Laporan EDD (read-only). Nama Terlapor dan RRN: bagi peran tanpa hak sensor, nonaktif dengan nilai tersamar dan nilai tersimpan tidak pernah ditimpa; bagi SA/Head CLRM/Fraud Investigator, nonaktif tersamar sampai ikon mata (di samping label) diklik, lalu dapat diedit.
+- Kolom terkunci: No Laporan EDD (read-only). Nama Terlapor dan RRN: nonaktif tersamar sampai ikon mata (di samping label) diklik, lalu dapat diedit oleh peran yang boleh Ubah.
 - Alasan perubahan: wajib bila salah satu field berikut yang SUDAH terisi diubah: Tanggal Terima Tugas, Nominal Korban, Tanggal Transaksi, Tanggal Hold Settlement, Nominal Hold Settlement, Tanggal Email PPATK, Tanggal EDD 1, Tanggal EDD 2, Tanggal Blokir, Tanggal Released Settlement, Nominal Released Settlement, Saldo Tertahan, Tanggal Hapus QRIS, Tanggal Email Tutup Akun, Tanggal Lapor Komdigi/BI/PPATK, Tanggal Email Resolved, Kerugian Paydia. Mengisi dari kosong tidak butuh alasan.
 - Perubahan yang memicu approval: hanya mengubah **Status dari Open ke Closed** (lihat Approval). Perubahan lain langsung tersimpan.
 
 ### Lihat Detail
 - Isi: Tanggal Dibuat; semua field termasuk Batas Waktu EDD (rumus sementara); badge alert aktif (label dan detail, tooltip aturan + penerima); banner Menunggu persetujuan Head CLRM; banner pembatalan; Log Perubahan.
 - File: Bukti tampil `{nama} ({ukuran})` sebagai teks; tidak ada tautan buka.
-- Sensor: Nama Terlapor dan RRN tersamar (`B*** S******`: huruf pertama tiap kata + minimal dua tanda `*`; RRN satu kata) bawaan untuk SEMUA peran. Untuk Super Admin, Head CLRM, Fraud Investigator ada ikon mata di samping label (toggle tampilkan/sembunyikan, tooltip "Tampilkan {label}" / "Sembunyikan {label}"). Peran lain tanpa tombol. Membuka sensor tidak dicatat di Log (tidak ada pemanggilan log).
+- Sensor: Nama Terlapor dan RRN tersamar (`B*** S******`: huruf pertama tiap kata + minimal dua tanda `*`; RRN satu kata) bawaan untuk SEMUA peran. Semua peran punya ikon mata di samping label (toggle tampilkan/sembunyikan, tooltip "Tampilkan {label}" / "Sembunyikan {label}"). Ganti Akun demo menutup lagi sensor yang terbuka. Membuka sensor tidak dicatat di Log (tidak ada pemanggilan log).
 
 ### Status dan transisi
 - Status: **Open**, **Closed**, plus `Dibatalkan`.
@@ -465,18 +465,18 @@ Default Lapis A:
 |---|---|---|---|---|---|---|---|
 | Super Admin | ya | ya | ya | ya | ya | ya | ya |
 | Head CLRM | ya | tidak | tidak | ya | ya | ya | ya |
-| Compliance Officer | ya | ya | ya (semua kasus Open) | tidak | tidak | ya | tidak |
-| Risk Officer | ya | tidak | tidak | tidak | tidak | ya | tidak |
-| Legal Officer | ya | tidak | tidak | tidak | tidak | ya | tidak |
+| Compliance Officer | ya | ya | ya (semua kasus Open) | tidak | tidak | ya | ya |
+| Risk Officer | ya | tidak | tidak | tidak | tidak | ya | ya |
+| Legal Officer | ya | tidak | tidak | tidak | tidak | ya | ya |
 | Fraud Investigator | ya | ya | ya (hanya kasus dengan PIC Investigator = nama akun) | tidak | tidak | ya | ya |
-| Ketua SMKI | ya | tidak | tidak | tidak | tidak | ya | tidak |
-| PIC | ya | tidak | ya (hanya kasus dengan PIC Investigator = nama akun) | tidak | tidak | ya | tidak |
-| Viewer | ya | tidak | tidak | tidak | tidak | ya | tidak |
-- Buka sensor ditentukan oleh PERAN (bukan izin akun): `Super Admin`, `Head CLRM`, `Fraud Investigator`. Export selalu tersamar untuk semua peran.
+| Ketua SMKI | ya | tidak | tidak | tidak | tidak | ya | ya |
+| PIC | ya | tidak | ya (hanya kasus dengan PIC Investigator = nama akun) | tidak | tidak | ya | ya |
+| Viewer | ya | tidak | tidak | tidak | tidak | ya | ya |
+- Buka sensor: semua peran yang bisa membuka halaman (sejak v2.14.5). Export selalu tersamar untuk semua peran.
 - Lapis B (0.2): efektif Head CLRM juga mendapat Edit, Fraud Investigator dan Compliance Officer juga mendapat Batalkan/Kembalikan, PIC juga Batalkan. Sejak v2.14 Admin > Manage Permissions menimpa default.
 
 ### Kondisi khusus dan prasyarat
-- Ikon mata Nama Terlapor/RRN hanya untuk Super Admin, Head CLRM, Fraud Investigator; hanya ada di header kolom Table, label Detail, label form Edit (tidak di form Tambah, tempat nilai tidak tersamar).
+- Ikon mata Nama Terlapor/RRN untuk semua peran; hanya ada di header kolom Table, label Detail, label form Edit (tidak di form Tambah, tempat nilai tidak tersamar).
 - Form Tambah tidak punya Status; Status hanya di Edit; Closed butuh approval.
 - Kasus Closed tidak bisa diedit; Edit/Batalkan hilang selama Menunggu approval.
 - Wajib bersyarat saat Closed: Uraian, Nominal Korban, Tindakan, Tanggal Email Resolved, PIC Investigator; EDD 1 bila asesmen Dilanjutkan; Hasil EDD bila EDD 1/2 terisi; tiga tanggal lapor bila Tindakan = Blokir (Blokir IP tidak termasuk).
@@ -500,7 +500,7 @@ Cocok: tidak ada kolom Jenis Data dan setiap laporan dicatat lalu dinilai lewat 
 Berbeda atau tambahan:
 1. **Penomoran No. Laporan EDD**: keputusan `EDD/YYYY/MM/DD/NNNN`; mockup `EDD/YYYY/MM/NNNN` (tanpa DD, urutan reset tiap bulan-tahun). Sama-sama otomatis dan tidak bisa diedit.
 2. **Batas waktu EDD**: keputusan "tanggal surat EDD + 2 hari kerja, notifikasi saat jatuh tempo, status tetap Open". Mockup: "rumus sementara" (EDD 1 terisi: EDD 1 + 7 hari kalender; kosong: Tanggal Terima + 3 hari kerja), field otomatis "Batas Waktu EDD (rumus sementara)" tidak tampil di form, hanya Detail/Export; alert mulai SETELAH lewat batas (`> 0`) dan hanya bila Hasil EDD kosong, asesmen Dilanjutkan, status Open. Status tetap Open: cocok.
-3. **Membuka sensor**: keputusan "semua peran yang punya akses halaman bisa membuka sensor"; mockup hanya Super Admin, Head CLRM, Fraud Investigator. Peran lain tidak punya tombol mata. Export selalu tersamar semua peran (tidak ada di keputusan).
+3. **Membuka sensor**: sudah sesuai keputusan sejak v2.14.5 (semua peran). Export selalu tersamar semua peran (tambahan mockup).
 4. **Nama merchant**: keputusan "teks uraian, bisa banyak merchant, bisa dicari, tidak tampil di tabel". Mockup tidak punya field Nama Merchant; hanya "Group Merchant" (teks satu nilai, dicari, ada di filter Table dan grafik Top 10) dan "Nama Terlapor".
 5. **Filter produk UE dan QRIS pada visual**: keputusan menyebutnya; mockup tidak memilikinya di Dashboard. Produk hanya filter Table (semua nilai Master Produk termasuk Biller).
 6. Tambahan mockup (tidak ada di keputusan): field Jenis Pengguna, Rincian Dugaan, Alasan Asesmen (wajib), Hold Settlement, Released, Saldo Tertahan, Tanggal Email PPATK, Tanggal Hapus QRIS, Tanggal Email Tutup Akun, tiga Tanggal Lapor (Komdigi, BI, PPATK dengan batas 7/14/30 hari), Tanggal Email Resolved, PIC Investigator, Tanggal Transaksi; enam alert; 5 kartu dan 9 grafik dashboard; wajib bersyarat saat Closed; pembatas "kasus miliknya" untuk PIC dan Fraud Investigator.
