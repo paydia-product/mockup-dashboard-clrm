@@ -11,6 +11,19 @@ export interface Version {
 // Terbaru di atas. Tiap pengerjaan: tambah entri di sini + CHANGELOG.md + VERSION.
 export const versions: Version[] = [
   {
+    v: '2.15.0',
+    date: '2026-11-02',
+    deployed: false,
+    title: 'Filter periode dengan tombol Terapkan Filter, drill-down dashboard dihapus',
+    prompt: 'Filter periode berlaku hanya setelah klik Terapkan Filter; klik kartu atau grafik dashboard tidak lagi membuka Table',
+    tokens: 60000,
+    changes: [
+      'Semua filter periode dashboard (Periode tanggal halaman, Tracker, dan filter bulan per grafik) kini hanya mengubah draft; grafik berubah setelah klik Terapkan Filter',
+      'Klik kartu, batang, irisan donat, dan legenda dashboard tidak lagi membuka tab Table terfilter; teks info (i) dan panduan disesuaikan',
+      'Tetap: klik baris tabel dashboard dan acara kalender membuka Detail, klik kotak heatmap menampilkan daftar di bawahnya, notifikasi membuka Detail',
+    ],
+  },
+  {
     v: '2.14.6',
     date: '2026-11-01',
     deployed: true,

@@ -180,7 +180,7 @@ const cfg: PageConfig<Kajian> = {
     run: (r, api, close) => <SelesaiModal r={r} api={api} close={close} />,
   }],
   dashDate: { get: (r) => r.tglMasuk, label: 'Tanggal Masuk' },
-  Dashboard: ({ rows, c, drill, open }) => {
+  Dashboard: ({ rows, c, open }) => {
     const n = (s: string) => rows.filter((r) => r.status === s).length
     const late = rows.filter((r) => lateDays(r, c.today) > 0)
     const done = rows.filter((r) => r.status === 'Selesai' && r.tglSelesai)
@@ -190,8 +190,8 @@ const cfg: PageConfig<Kajian> = {
     return (
       <div className="space-y-3">
         <div className="grid gap-3 lg:grid-cols-2">
-          <DonutCard info={{ apa: 'Komposisi kajian menurut Jenis (CR, Vendor, Produk, Regulasi, Proyek) pada Periode Tanggal Masuk yang dipilih.', baca: ['Tiap irisan = satu jenis; ukuran irisan = jumlah kajian.', 'Arahkan kursor ke irisan untuk melihat jumlahnya.', 'Klik irisan untuk membuka Table terfilter jenis tersebut.'] }} title="Kajian per jenis" data={JENIS.map((j) => ({ name: j, value: rows.filter((r) => r.jenis === j).length }))} onClick={(name) => drill({ jenis: name })} />
-          <BarCard info={{ apa: 'Jumlah kajian di tiap Status: Baru, Proses, Review, Selesai, dan Batal.', baca: ['Sumbu X: status. Sumbu Y: jumlah kajian.', 'Klik batang untuk membuka Table terfilter status tersebut.'] }} title="Kajian per status" data={STATUS.map((s) => ({ name: s, Jumlah: n(s) }))} keys={['Jumlah']} onClick={(row) => drill({ status: row.name })} />
+          <DonutCard info={{ apa: 'Komposisi kajian menurut Jenis (CR, Vendor, Produk, Regulasi, Proyek) pada Periode Tanggal Masuk yang dipilih.', baca: ['Tiap irisan = satu jenis; ukuran irisan = jumlah kajian.', 'Arahkan kursor ke irisan untuk melihat jumlahnya.'] }} title="Kajian per jenis" data={JENIS.map((j) => ({ name: j, value: rows.filter((r) => r.jenis === j).length }))} />
+          <BarCard info={{ apa: 'Jumlah kajian di tiap Status: Baru, Proses, Review, Selesai, dan Batal.', baca: ['Sumbu X: status. Sumbu Y: jumlah kajian.'] }} title="Kajian per status" data={STATUS.map((s) => ({ name: s, Jumlah: n(s) }))} keys={['Jumlah']} />
           <Card title={`Lewat batas waktu (${late.length})`} info={{ apa: 'Kajian yang Tanggal Batas-nya (Tanggal Masuk + SLA hari kalender) sudah lewat dan statusnya belum Selesai atau Batal.', baca: ['Angka merah besar = jumlah kajian yang lewat batas.', 'Kolom Lewat = jumlah hari kalender sejak Tanggal Batas.', 'Klik baris untuk membuka Detail kajian. Tabel menampilkan 5 baris per halaman.'] }}>
             <div className="mb-2 text-3xl font-bold text-red-600">{late.length}</div>
             <MiniTable cols={[
@@ -199,9 +199,9 @@ const cfg: PageConfig<Kajian> = {
               { label: 'Batas', get: (r) => fmtDate(batas(r)) }, { label: 'Lewat', get: (r) => <span className="font-semibold text-red-600">{lateDays(r, c.today)} hari</span> },
             ]} rows={late} onRow={(r) => open(r.id)} empty="Tidak ada kajian lewat batas" />
           </Card>
-          <BarCard info={{ apa: 'Jumlah kajian per Unit Kerja pengusul. Semua Unit Kerja dari Master Data ditampilkan, termasuk yang berjumlah nol.', baca: ['Sumbu Y: Unit Kerja. Sumbu X: jumlah kajian.', 'Klik batang untuk membuka Table terfilter Unit Kerja tersebut.'] }} title="Kajian per unit kerja" horizontal data={c.master.unitKerja.map((d) => ({ name: d, Jumlah: rows.filter((r) => r.dept === d).length }))} keys={['Jumlah']} onClick={(row) => drill({ dept: row.name })} />
+          <BarCard info={{ apa: 'Jumlah kajian per Unit Kerja pengusul. Semua Unit Kerja dari Master Data ditampilkan, termasuk yang berjumlah nol.', baca: ['Sumbu Y: Unit Kerja. Sumbu X: jumlah kajian.'] }} title="Kajian per unit kerja" horizontal data={c.master.unitKerja.map((d) => ({ name: d, Jumlah: rows.filter((r) => r.dept === d).length }))} keys={['Jumlah']} />
           <BarCard info={{ apa: 'Rata-rata hari kalender dari Tanggal Masuk sampai Tanggal Selesai, per Jenis, hanya untuk kajian berstatus Selesai yang punya Tanggal Selesai. Dibulatkan ke hari terdekat.', baca: ['Sumbu X: jenis kajian. Sumbu Y: rata-rata lama dalam hari.', 'Batang nol berarti belum ada kajian Selesai pada jenis itu.', 'Grafik ini tidak bisa diklik.'] }} title="Rata-rata lama masuk sampai selesai per jenis (hari)" data={JENIS.map((j) => { const x = done.filter((r) => r.jenis === j); return { name: j, Hari: x.length ? Math.round(x.reduce((a, r) => a + lamaSelesai(r), 0) / x.length) : 0 } })} keys={['Hari']} unit="Hari" />
-          <DonutCard info={{ apa: 'Komposisi Hasil / Opini Risk Management. Hanya kajian yang sudah punya hasil (diisi lewat aksi Selesai) yang dihitung.', baca: ['Tiap irisan = satu hasil: Tidak Direkomendasikan, Direkomendasikan Dengan Syarat, Direkomendasikan, atau Risk Acceptance.', 'Arahkan kursor ke irisan untuk melihat jumlahnya.', 'Klik irisan untuk membuka Table terfilter hasil tersebut.'] }} title="Kajian per hasil / opini" data={HASIL.map((h) => ({ name: h, value: rows.filter((r) => r.hasil === h).length }))} onClick={(name) => drill({ hasil: name })} />
+          <DonutCard info={{ apa: 'Komposisi Hasil / Opini Risk Management. Hanya kajian yang sudah punya hasil (diisi lewat aksi Selesai) yang dihitung.', baca: ['Tiap irisan = satu hasil: Tidak Direkomendasikan, Direkomendasikan Dengan Syarat, Direkomendasikan, atau Risk Acceptance.', 'Arahkan kursor ke irisan untuk melihat jumlahnya.'] }} title="Kajian per hasil / opini" data={HASIL.map((h) => ({ name: h, value: rows.filter((r) => r.hasil === h).length }))} />
           <Card title="Jadwal evaluasi mitra akan tiba / terlewat (≤ 30 hari)" info={{ apa: 'Kajian Jenis Vendor yang punya Tanggal Due Diligence / Evaluasi dan jadwalnya 30 hari lagi atau kurang, atau sudah lewat. Urut dari jadwal paling awal.', baca: ['Kolom Sisa: merah "Lewat N hari" bila jadwal terlewat, kuning "N hari lagi" bila masih akan datang.', 'Klik baris untuk membuka Detail kajian. Tabel menampilkan 5 baris per halaman.'] }}>
             <MiniTable cols={[
               { label: 'Mitra', get: (r: Kajian) => r.namaMitra }, { label: 'Status', get: (r) => r.statusMitra }, { label: 'Jadwal', get: (r) => fmtDate(r.tglDD) },

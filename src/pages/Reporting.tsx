@@ -33,7 +33,6 @@ const INFO: Record<string, ChartInfo> = {
       'Sumbu Y: kelompok ("Jenis: ..." berwarna biru, "Regulator: ..." berwarna hijau). Sumbu X: persen tepat waktu (0 sampai 100).',
       'Batang kosong (0) bisa berarti belum ada laporan Terkirim di kelompok itu atau semuanya terlambat. Cek rinciannya di hover.',
       'Arahkan kursor untuk melihat persen dan rincian "tepat/total".',
-      'Klik batang untuk membuka tab Table terfilter menurut jenis periode atau regulator yang diklik.',
     ],
   },
   beban: {
@@ -41,7 +40,6 @@ const INFO: Record<string, ChartInfo> = {
     baca: [
       'Sumbu X: Jenis Periode (Harian sampai Insidental). Sumbu Y: jumlah laporan.',
       'Hijau = Terkirim. Kuning = Dalam proses. Merah = Terlambat. Tinggi tumpukan = total laporan jenis itu.',
-      'Klik batang (warna mana pun) untuk membuka tab Table terfilter menurut jenis periode tersebut.',
     ],
   },
   tren: {
@@ -233,7 +231,7 @@ const cfg: PageConfig<Laporan> = {
     return e
   },
   dashDate: { get: (r) => r.batas, label: 'Batas Waktu' },
-  Dashboard: ({ rows, allRows, c, open, drill }) => {
+  Dashboard: ({ rows, allRows, c, open }) => {
     const pct = (xs: Laporan[]) => { const s = xs.filter((r) => SENT(r) && r.tglSubmit); const ok = s.filter((r) => !lateBy(r)).length; return { 'Tepat Waktu (%)': s.length ? Math.round((ok / s.length) * 100) : 0, ok, total: s.length } }
     const tepatData = [
       ...JENIS.map((j) => ({ name: `Jenis: ${j}`, ...pct(rows.filter((r) => r.jenis === j)) })),
@@ -251,10 +249,8 @@ const cfg: PageConfig<Laporan> = {
           events={rows.map((r) => ({ date: dOf(r.batas), label: r.nama, tone: statusTone(r.status), id: r.id }))} />
         <div className="grid gap-3 lg:grid-cols-2">
           <BarCard title="Ketepatan waktu: jenis periode dan regulator (% tepat waktu)" info={INFO.tepat} horizontal data={tepatData} keys={['Tepat Waktu (%)']} cellColors={tepatColors}
-            tip={(d) => <><div className="mb-1 font-semibold text-slate-800">{String(d.name)}</div><div>Tepat waktu %: {d['Tepat Waktu (%)']}</div><div>Rincian: {d.ok}/{d.total}</div></>}
-            onClick={(row) => { const n = String(row.name); if (n.startsWith('Jenis: ')) drill({ jenis: n.slice(7) }); else drill({ regulator: n.slice(11) }) }} />
-          <BarCard title="Beban laporan per jenis periode" info={INFO.beban} stacked data={beban} keys={['Terkirim', 'Dalam proses', 'Terlambat']} colors={{ Terkirim: '#10b981', 'Dalam proses': '#f59e0b', Terlambat: '#ef4444' }}
-            onClick={(row) => drill({ jenis: String(row.name) })} />
+            tip={(d) => <><div className="mb-1 font-semibold text-slate-800">{String(d.name)}</div><div>Tepat waktu %: {d['Tepat Waktu (%)']}</div><div>Rincian: {d.ok}/{d.total}</div></>} />
+          <BarCard title="Beban laporan per jenis periode" info={INFO.beban} stacked data={beban} keys={['Terkirim', 'Dalam proses', 'Terlambat']} colors={{ Terkirim: '#10b981', 'Dalam proses': '#f59e0b', Terlambat: '#ef4444' }} />
           <TrenTerlambat rows={allRows} />
           <SoonTable rows={soon} open={open} />
         </div>

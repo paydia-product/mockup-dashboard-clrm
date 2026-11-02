@@ -3,8 +3,7 @@ import type { GuideItem } from '../kit/PageGuide'
 export const AphGuide: GuideItem[] = [
   { h: 'Alur penggunaan', b: `<ol>
 <li>Buka tab <b>Dashboard</b>. Lihat jumlah permintaan Active dan Done, grafik, jadwal BAP, dan daftar permintaan Active menurut umur.</li>
-<li>Atur <b>Periode Tanggal Terima Surat</b> bila perlu. Kosongkan kedua tanggal untuk melihat semua data.</li>
-<li>Klik kartu atau grafik untuk membuka tab <b>Table</b> yang sudah terfilter. Atau buka tab <b>Table</b> langsung.</li>
+<li>Atur <b>Periode Tanggal Terima Surat</b> bila perlu, lalu klik <b>Terapkan Filter</b>. Kosongkan kedua tanggal untuk melihat semua data.</li>
 <li>Klik <b>Tambah</b>, lengkapi isian wajib, lalu <b>Simpan</b>.</li>
 <li>Klik <b>Edit</b> untuk memperbarui data, misalnya jadwal BAP atau status Done. Alasan perubahan boleh diisi.</li>
 <li>Head CLRM dapat <b>Batalkan</b> permintaan yang salah (alasan wajib) dan <b>Kembalikan</b> bila perlu.</li>
@@ -12,11 +11,11 @@ export const AphGuide: GuideItem[] = [
 </ol>` },
   { h: 'Dashboard', b: `<p>Dashboard menghitung permintaan yang tidak <b>Dibatalkan</b>. Filter <b>Periode Tanggal Terima Surat</b> membatasi data menurut Tanggal Terima Surat. Kosong berarti semua data.</p>
 <ul>
-<li><b>Kartu Active dan Done</b>: jumlah permintaan menurut status. Klik kartu untuk membuka Table terfilter Status.</li>
-<li><b>Surat masuk per bulan</b>: garis jumlah surat menurut bulan Tanggal Terima. Punya filter <b>Periode</b> sendiri (bawaan 12 bulan terakhir), tidak ikut Periode halaman. Arahkan kursor ke titik untuk rincian per instansi pengirim.</li>
-<li><b>Instansi pengirim terbanyak</b>: batang mendatar, urut terbanyak. Klik batang untuk membuka Table terfilter Pengirim.</li>
-<li><b>Permintaan per kasus</b>: diagram donat. Arahkan kursor untuk rincian per instansi pengirim. Klik irisan untuk membuka Table terfilter Kasus.</li>
-<li><b>Top 5 Group merchant paling banyak disebut</b>: 5 group teratas. Klik batang untuk membuka Table terfilter Group Merchant.</li>
+<li><b>Kartu Active dan Done</b>: jumlah permintaan menurut status.</li>
+<li><b>Surat masuk per bulan</b>: garis jumlah surat menurut bulan Tanggal Terima. Punya filter <b>Periode</b> sendiri (bawaan 12 bulan terakhir, berlaku setelah klik <b>Terapkan Filter</b>), tidak ikut Periode halaman. Arahkan kursor ke titik untuk rincian per instansi pengirim.</li>
+<li><b>Instansi pengirim terbanyak</b>: batang mendatar, urut terbanyak.</li>
+<li><b>Permintaan per kasus</b>: diagram donat. Arahkan kursor untuk rincian per instansi pengirim.</li>
+<li><b>Top 5 Group merchant paling banyak disebut</b>: 5 group teratas.</li>
 <li><b>Jadwal BAP 30 hari ke depan</b>: kalender permintaan Active yang punya jadwal BAP. Klik acara untuk membuka Detail.</li>
 <li><b>Permintaan Active menurut umur</b>: batang umur sejak surat diterima dan tabel permintaan Active (5 baris per halaman, tertua dulu). Klik baris untuk membuka Detail.</li>
 </ul>` },

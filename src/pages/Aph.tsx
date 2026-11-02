@@ -147,7 +147,7 @@ const cfg: PageConfig<Aph> = {
     return e
   },
   dashDate: { get: (r) => r.tglTerima, label: 'Tanggal Terima Surat' },
-  Dashboard: ({ rows, allRows, c, open, drill }) => {
+  Dashboard: ({ rows, allRows, c, open }) => {
     const act = rows.filter(ACTIVE)
     const done = rows.filter((r) => r.status === 'Done').length
     const rg = useMonthRange('12') // filter bulan kartu ini, independen dari filter halaman
@@ -167,10 +167,10 @@ const cfg: PageConfig<Aph> = {
       <div className="space-y-3">
         <StatCards title="Status permintaan" info={{
           apa: 'Jumlah permintaan APH menurut status. Data Dibatalkan tidak dihitung.',
-          baca: ['Active (kuning bila ada, abu-abu bila nol): permintaan yang masih berjalan.', 'Done (hijau): permintaan yang sudah dijawab.', 'Klik kartu untuk membuka tab Table terfilter Status.'],
+          baca: ['Active (kuning bila ada, abu-abu bila nol): permintaan yang masih berjalan.', 'Done (hijau): permintaan yang sudah dijawab.'],
         }} items={[
-          { label: 'Active', value: act.length, tone: act.length ? 'yellow' : 'gray', onClick: () => drill({ status: 'Active' }) },
-          { label: 'Done', value: done, tone: 'green', onClick: () => drill({ status: 'Done' }) },
+          { label: 'Active', value: act.length, tone: act.length ? 'yellow' : 'gray' },
+          { label: 'Done', value: done, tone: 'green' },
         ]} />
         <div className="grid gap-3 lg:grid-cols-2">
           <LineCard title="Surat masuk per bulan" info={{
@@ -180,17 +180,17 @@ const cfg: PageConfig<Aph> = {
             tip={(d) => <Breakdown title={`${d.name}: ${d.Surat} surat`} sub="Per instansi pengirim" items={countBy(allRows.filter((r) => monthKey(r.tglTerima) === d.name), (r) => r.pengirim)} />} />
           <BarCard title="Instansi pengirim terbanyak" info={{
             apa: 'Jumlah permintaan menurut instansi pengirim (Active dan Done, tanpa Dibatalkan), dalam Periode Tanggal Terima yang dipilih.',
-            baca: ['Sumbu vertikal: instansi pengirim, urut terbanyak di atas. Sumbu horizontal: jumlah permintaan.', 'Isian teks bebas di luar daftar dihitung di batang Lainnya.', 'Klik batang untuk membuka tab Table terfilter Pengirim.'],
-          }} horizontal data={count((r) => showLainnya(r.pengirim, pengirimOpts(c)), pengirimOpts(c)).sort((a, b) => b.Jumlah - a.Jumlah)} keys={['Jumlah']} onClick={(row) => drill({ pengirim: row.name })} />
+            baca: ['Sumbu vertikal: instansi pengirim, urut terbanyak di atas. Sumbu horizontal: jumlah permintaan.', 'Isian teks bebas di luar daftar dihitung di batang Lainnya.'],
+          }} horizontal data={count((r) => showLainnya(r.pengirim, pengirimOpts(c)), pengirimOpts(c)).sort((a, b) => b.Jumlah - a.Jumlah)} keys={['Jumlah']} />
           <DonutCard title="Permintaan per kasus" info={{
             apa: 'Proporsi permintaan menurut Kasus (Active dan Done, tanpa Dibatalkan), dalam Periode Tanggal Terima yang dipilih.',
-            baca: ['Tiap irisan adalah satu Kasus. Makin besar irisan, makin banyak permintaan. Kasus tanpa data tidak tampil.', 'Arahkan kursor ke irisan untuk melihat jumlah dan rinciannya per instansi pengirim.', 'Isian teks bebas di luar daftar dihitung di irisan Lainnya.', 'Klik irisan untuk membuka tab Table terfilter Kasus.'],
-          }} data={KASUS.map((k) => ({ name: k, value: rows.filter((r) => showLainnya(r.kasus, KASUS) === k).length }))} onClick={(name) => drill({ kasus: name })}
+            baca: ['Tiap irisan adalah satu Kasus. Makin besar irisan, makin banyak permintaan. Kasus tanpa data tidak tampil.', 'Arahkan kursor ke irisan untuk melihat jumlah dan rinciannya per instansi pengirim.', 'Isian teks bebas di luar daftar dihitung di irisan Lainnya.'],
+          }} data={KASUS.map((k) => ({ name: k, value: rows.filter((r) => showLainnya(r.kasus, KASUS) === k).length }))}
             tip={(name, value) => <Breakdown title={`${name}: ${value} permintaan`} sub="Per instansi pengirim" items={countBy(rows.filter((r) => showLainnya(r.kasus, KASUS) === name), (r) => r.pengirim)} />} />
           <BarCard title="Top 5 Group merchant paling banyak disebut" info={{
             apa: 'Lima Group Merchant yang paling sering muncul pada permintaan (Active dan Done, tanpa Dibatalkan), dalam Periode Tanggal Terima yang dipilih.',
-            baca: ['Sumbu horizontal: Group Merchant, urut terbanyak di kiri. Sumbu vertikal: jumlah permintaan.', 'Klik batang untuk membuka tab Table terfilter Group Merchant.'],
-          }} data={top((r) => r.groupMerchant, 5)} keys={['Jumlah']} onClick={(row) => drill({ groupMerchant: row.name })} />
+            baca: ['Sumbu horizontal: Group Merchant, urut terbanyak di kiri. Sumbu vertikal: jumlah permintaan.'],
+          }} data={top((r) => r.groupMerchant, 5)} keys={['Jumlah']} />
           <CalendarCard title="Jadwal BAP 30 hari ke depan" info={{
             apa: 'Kalender 30 hari mulai hari ini. Menampilkan jadwal BAP permintaan berstatus Active. Bila ada Tanggal Jadwal Ulang BAP, tanggal itu yang dipakai.',
             baca: ['Tiap sel adalah satu hari. Titik berwarna dengan nama "BAP [merchant]" adalah satu jadwal.', 'Merah: BAP 2 hari atau kurang dari hari ini. Kuning: 3 sampai 7 hari. Biru: lebih dari 7 hari.', 'Sel hari ini diberi warna biru muda. Sel dengan lebih dari 3 jadwal menampilkan "+N lagi".', 'Klik jadwal untuk membuka Detail permintaan.'],

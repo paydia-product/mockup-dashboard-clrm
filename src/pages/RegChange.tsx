@@ -27,7 +27,6 @@ const INFO: Record<string, ChartInfo> = {
     baca: [
       'Sumbu X: regulator. Sumbu Y: jumlah peraturan.',
       'Warna = Jenis Perubahan: biru Baru, kuning Perubahan, merah Pencabutan, ungu Imbauan. Tinggi tumpukan = total peraturan regulator itu.',
-      'Klik batang untuk membuka tab Table terfilter menurut regulator tersebut.',
     ],
   },
   tren: {
@@ -44,7 +43,7 @@ const INFO: Record<string, ChartInfo> = {
     baca: [
       'Tiap irisan adalah satu status. Hijau Comply, kuning Partial, merah Gap, abu-abu Belum Dinilai.',
       'Makin besar irisan, makin banyak peraturan di status itu. Status tanpa data tidak ditampilkan.',
-      'Arahkan kursor untuk melihat jumlahnya. Klik irisan untuk membuka tab Table terfilter menurut Status Kepatuhan itu.',
+      'Arahkan kursor untuk melihat jumlahnya.',
     ],
   },
   pemenuhan: {
@@ -76,7 +75,6 @@ const INFO: Record<string, ChartInfo> = {
     baca: [
       'Sumbu Y: unit kerja. Sumbu X: jumlah peraturan.',
       'Kuning = Partial. Merah = Gap. Panjang batang = total Partial ditambah Gap unit itu.',
-      'Klik batang untuk membuka tab Table terfilter menurut Unit Kerja Terdampak tersebut.',
     ],
   },
   agenda: {
@@ -265,7 +263,7 @@ const cfg: PageConfig<Reg> = {
     return e
   },
   dashDate: { get: (r) => r.tglDicatat, label: 'Tanggal Dicatat' },
-  Dashboard: ({ rows, allRows, c, drill, open }) => {
+  Dashboard: ({ rows, allRows, c, open }) => {
     const n = (k: string) => rows.filter((r) => kep(r) === k).length
     const rg = useMonthRange('12') // filter bulan kartu Tren, independen dari filter halaman
     const mons = rg.months(allRows.map((r) => monthKey(r.tglDicatat)))
@@ -281,9 +279,9 @@ const cfg: PageConfig<Reg> = {
     return (
       <div className="space-y-3">
         <div className="grid gap-3 lg:grid-cols-2">
-          <BarCard title="Peraturan per regulator dan jenis perubahan" info={INFO.regulator} stacked data={REGULATOR.map((g) => ({ name: g, ...Object.fromEntries(JP.map((j) => [j, rows.filter((r) => regB(r) === g && r.jp === j).length])) }))} keys={JP} colors={['#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6']} onClick={(row) => drill({ regulator: row.name })} />
+          <BarCard title="Peraturan per regulator dan jenis perubahan" info={INFO.regulator} stacked data={REGULATOR.map((g) => ({ name: g, ...Object.fromEntries(JP.map((j) => [j, rows.filter((r) => regB(r) === g && r.jp === j).length])) }))} keys={JP} colors={['#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6']} />
           <LineCard title="Tren peraturan baru dan perubahan per bulan" info={INFO.tren} toolbar={rg.toolbar} data={mons.map((m) => ({ name: m, Baru: allRows.filter((r) => r.tglDicatat.startsWith(m) && r.jp === 'Baru').length, Perubahan: allRows.filter((r) => r.tglDicatat.startsWith(m) && r.jp === 'Perubahan').length }))} keys={['Baru', 'Perubahan']} colors={['#3b82f6', '#f59e0b']} />
-          <DonutCard title="Status kepatuhan" info={INFO.kepatuhan} data={KEP.map((k) => ({ name: k, value: n(k), color: KEP_COLOR[k] }))} onClick={(name) => drill({ kepatuhan: name })} />
+          <DonutCard title="Status kepatuhan" info={INFO.kepatuhan} data={KEP.map((k) => ({ name: k, value: n(k), color: KEP_COLOR[k] }))} />
           <BarCard title="Rata-rata pemenuhan per kategori (%)" info={INFO.pemenuhan} data={withLainnya(c.master.kategoriRegulasi).map((k) => { const x = rated.filter((r) => showLainnya(r.kategori, c.master.kategoriRegulasi) === k); const sum = x.reduce((a, r) => a + Number(r.pemenuhan), 0); return { name: k, Pemenuhan: x.length ? Math.round(sum / x.length) : 0 } })} keys={['Pemenuhan']}
             tip={(d) => <><div className="mb-1 font-semibold text-slate-800">{String(d.name)}</div><div>Rata-rata pemenuhan: {d.Pemenuhan}%</div></>} />
           <div className="space-y-3">
@@ -291,7 +289,7 @@ const cfg: PageConfig<Reg> = {
             <MiniTable title="Peraturan belum dinilai" info={INFO.belum} rows={un} onRow={(r) => open(r.id)} empty="Semua sudah dinilai"
               cols={[{ label: 'No', get: (r) => r.no }, { label: 'Peraturan', get: label }, { label: 'Dicatat', get: (r) => fmtDate(r.tglDicatat) }, { label: 'Umur (hari)', get: (r) => age(r) }]} />
           </div>
-          <BarCard title="Peraturan Partial dan Gap per unit kerja terdampak" info={INFO.unit} horizontal stacked data={gapByDept} keys={['Partial', 'Gap']} colors={{ Partial: KEP_COLOR.Partial, Gap: KEP_COLOR.Gap }} onClick={(row) => drill({ dept: row.name })} />
+          <BarCard title="Peraturan Partial dan Gap per unit kerja terdampak" info={INFO.unit} horizontal stacked data={gapByDept} keys={['Partial', 'Gap']} colors={{ Partial: KEP_COLOR.Partial, Gap: KEP_COLOR.Gap }} />
         </div>
         <MiniTable title="Berlaku dalam 90 hari dan imbauan perlu dijawab" info={INFO.agenda} rows={agenda} onRow={(x) => open(x.r.id)} empty="Tidak ada agenda"
           cols={[

@@ -3,8 +3,7 @@ import type { GuideItem } from '../kit/PageGuide'
 export const KontrakGuide: GuideItem[] = [
   { h: 'Alur penggunaan', b: `<ol>
 <li>Buka tab <b>Dashboard</b>. Lihat enam kartu masa berlaku kontrak, grafik, dan daftar kontrak yang segera berakhir.</li>
-<li>Atur <b>Periode Tanggal Mulai</b> bila perlu. Kosongkan kedua tanggal untuk melihat semua data.</li>
-<li>Klik kartu atau batang grafik untuk membuka tab <b>Table</b> yang sudah terfilter. Atau buka tab <b>Table</b> langsung.</li>
+<li>Atur <b>Periode Tanggal Mulai</b> bila perlu, lalu klik <b>Terapkan Filter</b>. Kosongkan kedua tanggal untuk melihat semua data.</li>
 <li>Klik <b>Tambah</b>, lalu isi semua isian bertanda *. <b>File Perjanjian</b> boleh dikosongkan. Klik <b>Simpan</b>.</li>
 <li>Klik <b>Edit</b> pada baris untuk mengubah data. Alasan perubahan boleh diisi untuk dicatat di Log Perubahan.</li>
 <li>Head CLRM dapat <b>Batalkan</b> kontrak yang salah (alasan wajib) dan <b>Kembalikan</b> bila perlu.</li>
@@ -12,10 +11,10 @@ export const KontrakGuide: GuideItem[] = [
 </ol>` },
   { h: 'Dashboard', b: `<p>Dashboard menghitung kontrak yang tidak <b>Dibatalkan</b>. Filter <b>Periode Tanggal Mulai</b> di atas dashboard membatasi data menurut Tanggal Mulai kontrak. Kosong berarti semua data.</p>
 <ul>
-<li><b>Enam kartu masa berlaku</b>: Aktif lebih dari 90 hari, berakhir 60 sampai 90 hari, berakhir 30 sampai 60 hari, berakhir 30 hari atau kurang, Kedaluwarsa, dan Tanggal Berakhir kosong. Klik kartu untuk membuka Table dengan filter <b>Kelompok masa berlaku</b>.</li>
+<li><b>Enam kartu masa berlaku</b>: Aktif lebih dari 90 hari, berakhir 60 sampai 90 hari, berakhir 30 sampai 60 hari, berakhir 30 hari atau kurang, Kedaluwarsa, dan Tanggal Berakhir kosong.</li>
 <li>Kontrak berstatus Draft, Review, Diperpanjang, atau Berakhir yang punya Tanggal Berakhir tidak masuk kartu mana pun.</li>
-<li><b>Kontrak per jenis dokumen</b>: batang mendatar, klik batang untuk membuka Table terfilter Jenis Dokumen.</li>
-<li><b>Kontrak baru per bulan</b>: garis jumlah kontrak menurut bulan Tanggal Mulai. Grafik ini punya filter <b>Periode</b> sendiri (bawaan 12 bulan terakhir) dan tidak ikut Periode halaman.</li>
+<li><b>Kontrak per jenis dokumen</b>: batang mendatar.</li>
+<li><b>Kontrak baru per bulan</b>: garis jumlah kontrak menurut bulan Tanggal Mulai. Grafik ini punya filter <b>Periode</b> sendiri (bawaan 12 bulan terakhir, berlaku setelah klik <b>Terapkan Filter</b>) dan tidak ikut Periode halaman.</li>
 <li><b>Kontrak berakhir dalam 90 hari</b>: tabel kecil, terdekat dulu, 5 baris per halaman. Klik baris untuk membuka Detail.</li>
 </ul>` },
   { h: 'Tabel, cari, filter', b: `<ul>

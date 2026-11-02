@@ -17,24 +17,27 @@ const colorOf = (colors: Colors | undefined, key: string, i: number) => (Array.i
 
 // ---- Filter bulan per grafik (independen dari filter halaman) ----
 const ymOf = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-type MonthRange = { p: string; setP: (v: string) => void; from: string; setFrom: (v: string) => void; to: string; setTo: (v: string) => void }
+type MR = { p: string; from: string; to: string }
+type MonthRange = { d: MR; setD: (v: MR) => void; apply: () => void }
 export function MonthRangeFilter({ r }: { r: MonthRange }) {
+  const { d, setD } = r
   return (
     <div className="flex flex-wrap items-center gap-2 text-xs">
       <span className="font-medium text-slate-500">Periode</span>
-      <select className="inp !w-auto" value={r.p} onChange={(e) => r.setP(e.target.value)}>
+      <select className="inp !w-auto" value={d.p} onChange={(e) => setD({ ...d, p: e.target.value })}>
         <option value="all">Seluruh Waktu</option>{[3, 6, 9, 12].map((n) => <option key={n} value={n}>{n} bulan terakhir</option>)}<option value="custom">Custom</option>
       </select>
-      {r.p === 'custom' && <><input type="month" className="inp !w-auto" value={r.from} onChange={(e) => r.setFrom(e.target.value)} /><span>sampai</span><input type="month" className="inp !w-auto" value={r.to} onChange={(e) => r.setTo(e.target.value)} /></>}
+      {d.p === 'custom' && <><input type="month" className="inp !w-auto" value={d.from} onChange={(e) => setD({ ...d, from: e.target.value })} /><span>sampai</span><input type="month" className="inp !w-auto" value={d.to} onChange={(e) => setD({ ...d, to: e.target.value })} /></>}
+      <button className="btn btn-primary" onClick={r.apply}>Terapkan Filter</button>
     </div>
   )
 }
 // months(keys): daftar bulan berurutan 'YYYY-MM' (waktu lokal). N bulan terakhir = tepat N bulan termasuk bulan ini;
 // Seluruh Waktu = dari bulan data tertua (keys) sampai bulan ini; Custom = dari/sampai (kosong = tertua / bulan ini).
 export function useMonthRange(def = '12') {
-  const [p, setP] = useState(def)
-  const [from, setFrom] = useState('')
-  const [to, setTo] = useState('')
+  const [a, setA] = useState<MR>({ p: def, from: '', to: '' }) // nilai yang berlaku (grafik)
+  const [d, setD] = useState<MR>(a) // draft isian, baru berlaku setelah klik Terapkan Filter
+  const { p, from, to } = a
   const months = (keys: string[] = []): string[] => {
     const ks = keys.filter(Boolean).sort()
     const cur = ymOf(new Date())
@@ -46,7 +49,7 @@ export function useMonthRange(def = '12') {
     for (const d = new Date(`${start}-01T00:00:00`); ymOf(d) <= end && out.length < 600; d.setMonth(d.getMonth() + 1)) out.push(ymOf(d))
     return out
   }
-  return { months, toolbar: <MonthRangeFilter r={{ p, setP, from, setFrom, to, setTo }} /> }
+  return { months, toolbar: <MonthRangeFilter r={{ d, setD, apply: () => setA(d) }} /> }
 }
 
 // Rincian untuk tooltip: hitung per kunci, urut terbanyak
@@ -65,11 +68,11 @@ export const Card = ({ title, children, className = '', toolbar, info }: { title
 const Empty = () => <div className="py-10 text-center text-xs text-slate-400">Tidak ada data</div>
 const hasData = (data: Row[], keys: string[], monthly?: boolean) => (monthly ? data.length > 0 : data.some((d) => keys.some((k) => Number(d[k]) > 0))) // grafik bulanan (punya toolbar periode): bulan kosong tetap tampil sebagai nol
 
-export function StatCards({ items, info, title = 'Ringkasan' }: { items: { label: string; value: string | number; tone?: Tone; onClick?: () => void }[]; info?: ChartInfo; title?: string }) {
+export function StatCards({ items, info, title = 'Ringkasan' }: { items: { label: string; value: string | number; tone?: Tone }[]; info?: ChartInfo; title?: string }) {
   const grid = (
     <div className="grid grid-cols-2 gap-3 sm:[grid-template-columns:repeat(var(--n),minmax(0,1fr))]" style={{ '--n': Math.min(items.length, 6) } as React.CSSProperties}>
       {items.map((it) => (
-        <div key={it.label} onClick={it.onClick} className={`rounded-lg border border-l-4 border-slate-200 bg-white p-4 ${TILE[it.tone ?? 'gray']} ${it.onClick ? 'cursor-pointer hover:bg-slate-50' : ''}`}>
+        <div key={it.label} className={`rounded-lg border border-l-4 border-slate-200 bg-white p-4 ${TILE[it.tone ?? 'gray']}`}>
           <div className="text-xs text-slate-500">{it.label}</div>
           <div className="mt-1 text-2xl font-semibold">{it.value}</div>
         </div>
@@ -80,11 +83,11 @@ export function StatCards({ items, info, title = 'Ringkasan' }: { items: { label
 }
 
 // data: [{ name, <key1>, <key2> ... }]; cellColors mewarnai tiap batang (hanya untuk satu seri)
-export function BarCard({ title, data, keys, stacked, horizontal, colors, cellColors, xKey = 'name', onClick, height = 240, className, tip, toolbar, unit, catLabel, info }: {
+export function BarCard({ title, data, keys, stacked, horizontal, colors, cellColors, xKey = 'name', height = 240, className, tip, toolbar, unit, catLabel, info }: {
   info?: ChartInfo;
   unit?: string; catLabel?: string; // unit = satuan sumbu angka (mis. 'Hari': label sumbu + tooltip 'N hari'); catLabel = label sumbu kategori
   title: string; toolbar?: ReactNode; data: Row[]; keys: string[]; stacked?: boolean; horizontal?: boolean; colors?: Colors; cellColors?: string[]; xKey?: string; tip?: (row: Row) => ReactNode
-  onClick?: (row: Row, key: string) => void; height?: number; className?: string
+  height?: number; className?: string
 }) {
   return (
     <Card title={title} className={className} toolbar={toolbar} info={info}>
@@ -98,7 +101,7 @@ export function BarCard({ title, data, keys, stacked, horizontal, colors, cellCo
             {tip ? <Tooltip content={({ active, payload }) => (active && payload?.length ? <div className="rounded border border-slate-200 bg-white p-2 text-xs shadow">{tip(payload[0].payload as Row)}</div> : null)} /> : <Tooltip formatter={unit ? (v) => `${v} ${unit.toLowerCase()}` : undefined} />}
             {keys.length > 1 && <Legend wrapperStyle={{ fontSize: 11 }} />}
             {keys.map((k, i) => (
-              <Bar key={k} dataKey={k} stackId={stacked ? 's' : undefined} fill={colorOf(colors, k, i)} cursor={onClick ? 'pointer' : undefined} onClick={onClick ? (d) => onClick(d.payload as Row, k) : undefined}>
+              <Bar key={k} dataKey={k} stackId={stacked ? 's' : undefined} fill={colorOf(colors, k, i)}>
                 {cellColors && keys.length === 1 && data.map((_, j) => <Cell key={j} fill={cellColors[j % cellColors.length]} />)}
               </Bar>
             ))}
@@ -109,14 +112,14 @@ export function BarCard({ title, data, keys, stacked, horizontal, colors, cellCo
   )
 }
 
-export function DonutCard({ title, data, onClick, className, tip, info }: { info?: ChartInfo; title: string; data: { name: string; value: number; color?: string }[]; onClick?: (name: string) => void; className?: string; tip?: (name: string, value: number) => ReactNode }) {
+export function DonutCard({ title, data, className, tip, info }: { info?: ChartInfo; title: string; data: { name: string; value: number; color?: string }[]; className?: string; tip?: (name: string, value: number) => ReactNode }) {
   const d = data.filter((x) => x.value > 0)
   return (
     <Card title={title} className={className} info={info}>
       {!d.length ? <Empty /> : (
         <ResponsiveContainer width="100%" height={240}>
           <PieChart>
-            <Pie data={d} dataKey="value" nameKey="name" innerRadius={50} outerRadius={85} paddingAngle={2} cursor={onClick ? 'pointer' : undefined} onClick={onClick ? (e) => onClick(e.name) : undefined}>
+            <Pie data={d} dataKey="value" nameKey="name" innerRadius={50} outerRadius={85} paddingAngle={2}>
               {d.map((x, i) => <Cell key={x.name} fill={x.color ?? PALETTE[i % PALETTE.length]} />)}
             </Pie>
             {tip ? <Tooltip content={({ active, payload }) => (active && payload?.length ? <div className="rounded border border-slate-200 bg-white p-2 text-xs shadow">{tip(String(payload[0].name), Number(payload[0].value))}</div> : null)} /> : <Tooltip />}<Legend wrapperStyle={{ fontSize: 11 }} />

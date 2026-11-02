@@ -172,9 +172,9 @@ const cfg: PageConfig<Kontrak> = {
     return e
   },
   dashDate: { get: (r) => r.mulai, label: 'Tanggal Mulai' },
-  Dashboard: ({ rows, allRows, c, open, drill }) => {
+  Dashboard: ({ rows, allRows, c, open }) => {
     const cnt = (g: string) => rows.filter((r) => grup(r, c.today) === g).length
-    const card = (label: string, g: string, tone: 'green' | 'yellow' | 'red') => ({ label, value: cnt(g), tone, onClick: () => drill({ kelompok: g }) })
+    const card = (label: string, g: string, tone: 'green' | 'yellow' | 'red') => ({ label, value: cnt(g), tone })
     const dekat = rows.filter((r) => LIVE(r) && r.berakhir && (sisa(r, c.today) as number) >= 0 && (sisa(r, c.today) as number) <= 90).sort((a, b) => a.berakhir.localeCompare(b.berakhir))
     const rg = useMonthRange('12') // filter bulan kartu ini, independen dari filter halaman
     const bulan = rg.months(allRows.map((r) => monthKey(r.mulai)))
@@ -189,7 +189,6 @@ const cfg: PageConfig<Kontrak> = {
             'Kedaluwarsa (merah): status Kedaluwarsa, Tanggal Berakhir sudah lewat.',
             'Tanggal Berakhir Kosong (kuning): kontrak tanpa Tanggal Berakhir, kecuali status Berakhir atau Dibatalkan.',
             'Kontrak berstatus Draft, Review, Diperpanjang, atau Berakhir yang punya Tanggal Berakhir tidak masuk kartu mana pun.',
-            'Klik kartu untuk membuka tab Table dengan filter Kelompok masa berlaku yang sama.',
           ],
         }} items={[
           card('Kontrak Aktif > 90 hari', G.over, 'green'), card('Kontrak Berakhir 60–90 hari', G.d90, 'yellow'), card('Kontrak Berakhir 30–60 hari', G.d60, 'yellow'),
@@ -198,8 +197,8 @@ const cfg: PageConfig<Kontrak> = {
         <div className="grid gap-3 lg:grid-cols-2">
           <BarCard title="Kontrak per jenis dokumen" info={{
             apa: 'Jumlah kontrak menurut Jenis Dokumen, semua status kecuali Dibatalkan, dalam Periode Tanggal Mulai yang dipilih.',
-            baca: ['Sumbu vertikal: Jenis Dokumen. Sumbu horizontal: jumlah kontrak.', 'Arahkan kursor ke batang untuk melihat jumlahnya.', 'Klik batang untuk membuka tab Table terfilter Jenis Dokumen.', 'Isian teks bebas di luar daftar dihitung di batang Lainnya, sehingga jumlah semua batang sama dengan jumlah kontrak.'],
-          }} horizontal data={jenisDok(c).map((j) => ({ name: j, Jumlah: rows.filter((r) => showLainnya(r.jenisDok, jenisDok(c)) === j).length }))} keys={['Jumlah']} onClick={(row) => drill({ jenisDok: row.name })} />
+            baca: ['Sumbu vertikal: Jenis Dokumen. Sumbu horizontal: jumlah kontrak.', 'Arahkan kursor ke batang untuk melihat jumlahnya.', 'Isian teks bebas di luar daftar dihitung di batang Lainnya, sehingga jumlah semua batang sama dengan jumlah kontrak.'],
+          }} horizontal data={jenisDok(c).map((j) => ({ name: j, Jumlah: rows.filter((r) => showLainnya(r.jenisDok, jenisDok(c)) === j).length }))} keys={['Jumlah']} />
           <LineCard title="Kontrak baru per bulan" info={{
             apa: 'Jumlah kontrak baru menurut bulan Tanggal Mulai, semua status kecuali Dibatalkan. Tidak ikut filter Periode halaman.',
             baca: ['Sumbu horizontal: bulan (tahun-bulan). Sumbu vertikal: jumlah kontrak.', 'Filter Periode di atas grafik mengatur rentang bulan: 3, 6, 9, 12 bulan terakhir, Seluruh Waktu, atau Custom. Bawaan 12 bulan terakhir.', 'Bulan tanpa kontrak tampil sebagai nol.', 'Arahkan kursor ke titik untuk melihat bulan dan jumlahnya.'],

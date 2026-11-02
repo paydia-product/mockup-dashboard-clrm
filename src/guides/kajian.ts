@@ -2,8 +2,8 @@ import type { GuideItem } from '../kit/PageGuide'
 
 export const KajianGuide: GuideItem[] = [
   { h: 'Alur penggunaan', b: `<ol>
-<li>Buka tab <b>Dashboard</b>. Atur <b>Periode Tanggal Masuk</b> bila perlu.</li>
-<li>Klik grafik untuk membuka tab <b>Table</b> terfilter, atau klik baris tabel dashboard untuk membuka Detail.</li>
+<li>Buka tab <b>Dashboard</b>. Atur <b>Periode Tanggal Masuk</b> bila perlu, lalu klik <b>Terapkan Filter</b>.</li>
+<li>Klik baris tabel dashboard untuk membuka Detail.</li>
 <li>Di tab <b>Table</b>, cari atau filter kajian.</li>
 <li>Klik <b>Tambah</b>. Pilih Jenis, lengkapi isian wajib, lalu <b>Simpan</b>. Bila Jenis = Vendor, isi juga data mitra.</li>
 <li>Klik <b>Edit</b> untuk mengubah data. Mengubah Tanggal Masuk atau SLA wajib disertai alasan.</li>
@@ -14,7 +14,6 @@ export const KajianGuide: GuideItem[] = [
   { h: 'Dashboard', b: `<ul>
 <li><b>Periode Tanggal Masuk</b>: kosong = semua data.</li>
 <li>8 kartu: Kajian per jenis, Kajian per status, Lewat batas waktu, Kajian per unit kerja, Rata-rata lama masuk sampai selesai, Kajian per hasil / opini, jadwal evaluasi mitra akan tiba / terlewat, dan Mitra Eksisting vs Rencana.</li>
-<li>Klik irisan jenis, batang status, batang unit kerja, atau irisan hasil untuk membuka Table terfilter.</li>
 <li>Klik baris di tabel Lewat batas waktu atau Jadwal evaluasi mitra untuk membuka Detail.</li>
 <li>Kajian yang <b>Dibatalkan</b> tidak dihitung.</li>
 </ul>` },

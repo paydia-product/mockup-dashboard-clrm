@@ -6,6 +6,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 | Versi | Tanggal | Estimasi token |
 | --- | --- | --- |
+| 2.15.0 | 2026-11-02 | ~60k |
 | 2.14.6 | 2026-11-01 | ~5k |
 | 2.14.5 | 2026-11-01 | ~15k |
 | 2.14.4 | 2026-11-01 | ~5k |
@@ -62,6 +63,15 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 | 1.1.1 | 2026-10-29 | ~40k |
 | 1.1.0 | 2026-10-29 | ~180k |
 | 1.0.0 | 2026-10-29 | ~450k |
+
+## [2.15.0] - 2026-11-02
+
+### Diubah
+- Semua filter periode dashboard (Periode tanggal halaman, Periode Tanggal Temuan di Tracker, filter bulan per grafik) hanya mengubah draft; data berubah setelah klik tombol **Terapkan Filter**
+- Dashboard tidak lagi punya drill-down: klik kartu, batang, irisan, atau legenda tidak membuka tab Table terfilter. Teks info (i) dan panduan disesuaikan
+
+### Dihapus
+- Prop `drill` pada kit dashboard dan handler klik pada StatCards, BarCard, DonutCard
 
 ## [2.14.6] - 2026-11-01
 

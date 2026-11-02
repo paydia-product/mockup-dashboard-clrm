@@ -4,7 +4,7 @@ export const REGCHANGE_GUIDE: GuideItem[] = [
   {
     h: 'Alur penggunaan',
     b: `<ol>
-<li>Buka tab <b>Dashboard</b> (tab awal). Atur <b>Periode Tanggal Dicatat</b> bila perlu. Kosong berarti semua.</li>
+<li>Buka tab <b>Dashboard</b> (tab awal). Atur <b>Periode Tanggal Dicatat</b> bila perlu, lalu klik <b>Terapkan Filter</b>. Kosong berarti semua.</li>
 <li>Buka tab <b>Table</b>. Cari atau saring peraturan lewat pencarian dan tombol <b>Filter</b>.</li>
 <li>Klik <b>Tambah</b>. Isi isian bertanda <b>*</b> lalu klik <b>Simpan</b>.</li>
 <li>Klik <b>Edit</b> untuk memperbarui penilaian dampak, Pemenuhan (%), tindak lanjut, jawaban imbauan, sosialisasi, atau daftar SOP.</li>
@@ -17,9 +17,8 @@ export const REGCHANGE_GUIDE: GuideItem[] = [
     h: 'Dashboard',
     b: `<ul>
 <li>Isi: peraturan per regulator dan jenis perubahan, tren peraturan baru dan perubahan, status kepatuhan, rata-rata pemenuhan per kategori, peraturan belum dinilai (grafik dan tabel), Partial dan Gap per unit kerja, dan agenda peraturan berlaku 90 hari serta imbauan perlu dijawab.</li>
-<li>Filter <b>Periode Tanggal Dicatat</b> (dua tanggal) menyaring semua kartu, kecuali Tren yang memakai semua data. Tombol <b>Reset</b> mengosongkannya.</li>
-<li><b>Tren peraturan baru dan perubahan</b> punya filter bulan sendiri (3, 6, 9, 12 bulan terakhir, Seluruh Waktu, atau Custom).</li>
-<li><b>Klik grafik</b> membuka tab Table yang sudah terfilter: batang regulator (filter Regulator), irisan Status kepatuhan (filter Status Kepatuhan), dan batang Partial/Gap per unit kerja (filter Unit Kerja Terdampak).</li>
+<li>Filter <b>Periode Tanggal Dicatat</b> (dua tanggal) menyaring semua kartu, kecuali Tren yang memakai semua data. Tanggal baru berlaku setelah klik <b>Terapkan Filter</b>. Tombol <b>Reset</b> mengosongkannya.</li>
+<li><b>Tren peraturan baru dan perubahan</b> punya filter bulan sendiri (3, 6, 9, 12 bulan terakhir, Seluruh Waktu, atau Custom). Klik <b>Terapkan Filter</b> agar pilihan berlaku.</li>
 <li>Klik <b>baris</b> pada tabel belum dinilai atau tabel agenda untuk membuka Detail peraturan.</li>
 <li>Data Dibatalkan tidak dihitung di dashboard.</li>
 <li>Klik ikon info (i) pada tiap kartu untuk melihat cara membacanya.</li>

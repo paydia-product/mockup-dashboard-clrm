@@ -2,8 +2,7 @@ import type { GuideItem } from '../kit/PageGuide'
 
 export const SopGuide: GuideItem[] = [
   { h: 'Alur penggunaan', b: `<ol>
-<li>Buka tab <b>Dashboard</b>. Atur <b>Periode Tanggal Berlaku</b> bila perlu.</li>
-<li>Klik kartu atau grafik untuk membuka tab <b>Table</b> dengan filter yang sudah terpasang.</li>
+<li>Buka tab <b>Dashboard</b>. Atur <b>Periode Tanggal Berlaku</b> bila perlu, lalu klik <b>Terapkan Filter</b>.</li>
 <li>Di tab <b>Table</b>, cari atau filter SOP.</li>
 <li>Klik <b>Tambah</b>. Isi semua isian bertanda * (No Dokumen harus unik). File boleh dikosongkan. Klik <b>Simpan</b>.</li>
 <li>Klik <b>Edit</b> untuk mengubah data. Kolom Alasan perubahan boleh diisi.</li>
@@ -13,7 +12,6 @@ export const SopGuide: GuideItem[] = [
   { h: 'Dashboard', b: `<p>Dashboard memuat 4 kartu ringkasan, 3 grafik, dan 1 tabel SOP yang harus ditinjau.</p>
 <ul>
 <li><b>Periode Tanggal Berlaku</b>: isi tanggal awal dan akhir untuk membatasi data. Kosong = semua data. Tombol Reset mengosongkan periode.</li>
-<li>Klik kartu <b>Aktif</b>, batang unit kerja, irisan status, atau batang umur dokumen untuk membuka Table terfilter.</li>
 <li>Klik baris tabel peninjauan untuk membuka Detail SOP.</li>
 <li>SOP yang <b>Dibatalkan</b> tidak dihitung di dashboard.</li>
 </ul>` },

@@ -4,7 +4,7 @@ export const REPORTING_GUIDE: GuideItem[] = [
   {
     h: 'Alur penggunaan',
     b: `<ol>
-<li>Buka tab <b>Dashboard</b> (tab awal). Atur <b>Periode Batas Waktu</b> bila perlu. Kosong berarti semua.</li>
+<li>Buka tab <b>Dashboard</b> (tab awal). Atur <b>Periode Batas Waktu</b> bila perlu, lalu klik <b>Terapkan Filter</b>. Kosong berarti semua.</li>
 <li>Buka tab <b>Table</b>. Cari atau saring laporan lewat pencarian dan tombol <b>Filter</b>.</li>
 <li>Klik <b>Tambah</b>. Isi isian bertanda <b>*</b> lalu klik <b>Simpan</b>. Jadwal laporan tidak dibuat otomatis, setiap laporan ditambah manual.</li>
 <li>Saat laporan dikirim, klik <b>Edit</b>: ubah Status ke <b>Terkirim</b>, isi Tanggal Pengiriman, lalu file Bukti Pengiriman atau Nomor Tanda Terima.</li>
@@ -17,9 +17,8 @@ export const REPORTING_GUIDE: GuideItem[] = [
     h: 'Dashboard',
     b: `<ul>
 <li>Isi: <b>Kalender pelaporan</b>, <b>Ketepatan waktu</b> (% tepat waktu per jenis periode dan regulator), <b>Beban laporan per jenis periode</b>, <b>Tren laporan terlambat</b>, dan tabel <b>Jatuh tempo 7 hari ke depan</b>.</li>
-<li>Filter <b>Periode Batas Waktu</b> (dua tanggal) menyaring semua kartu, kecuali Tren yang memakai semua data. Tombol <b>Reset</b> mengosongkannya.</li>
-<li><b>Tren laporan terlambat</b> punya filter bulan sendiri (3, 6, 9, 12 bulan terakhir, Seluruh Waktu, atau Custom).</li>
-<li><b>Klik batang</b> pada grafik Ketepatan waktu atau Beban laporan membuka tab Table yang sudah terfilter (jenis periode atau regulator yang diklik).</li>
+<li>Filter <b>Periode Batas Waktu</b> (dua tanggal) menyaring semua kartu, kecuali Tren yang memakai semua data. Tanggal baru berlaku setelah klik <b>Terapkan Filter</b>. Tombol <b>Reset</b> mengosongkannya.</li>
+<li><b>Tren laporan terlambat</b> punya filter bulan sendiri (3, 6, 9, 12 bulan terakhir, Seluruh Waktu, atau Custom). Klik <b>Terapkan Filter</b> agar pilihan berlaku.</li>
 <li>Klik <b>titik pada kalender</b> atau <b>baris</b> tabel jatuh tempo untuk membuka Detail laporan.</li>
 <li>Laporan Dibatalkan tidak dihitung di dashboard.</li>
 <li>Klik ikon info (i) pada tiap kartu untuk melihat cara membacanya.</li>

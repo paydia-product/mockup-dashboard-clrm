@@ -4,7 +4,7 @@ export const TRACKER_GUIDE: GuideItem[] = [
   {
     h: 'Alur penggunaan',
     b: `<ol>
-<li>Buka tab <b>Dashboard</b> (tab awal) untuk melihat ringkasan temuan. Atur <b>Periode Tanggal Temuan</b> bila perlu. Kosong berarti semua tanggal.</li>
+<li>Buka tab <b>Dashboard</b> (tab awal) untuk melihat ringkasan temuan. Atur <b>Periode Tanggal Temuan</b> bila perlu, lalu klik <b>Terapkan Filter</b>. Kosong berarti semua tanggal.</li>
 <li>Buka tab <b>Table</b> untuk melihat daftar temuan. Cari lewat kotak pencarian atau tombol <b>Filter</b>.</li>
 <li>Klik <b>Tambah</b> (hanya peran yang diizinkan). Isi semua isian bertanda <b>*</b> lalu klik <b>Simpan</b>. File bukti tidak wajib.</li>
 <li>Klik <b>Lihat Detail</b> untuk melihat isi temuan dan Log Perubahan.</li>
@@ -18,10 +18,10 @@ export const TRACKER_GUIDE: GuideItem[] = [
     h: 'Dashboard',
     b: `<p>Dashboard menampilkan 4 angka ringkasan dan 6 grafik. <b>Temuan Dibatalkan tidak dihitung</b>.</p>
 <ul>
-<li><b>Periode Tanggal Temuan</b>: dua tanggal (dari dan sampai) pada <b>Tanggal Temuan</b>. Kosong berarti semua. Tombol <b>Reset</b> mengosongkan tanggal dan semua filter di tab Table. Periode ini juga mengisi filter Periode di tab Table.</li>
+<li><b>Periode Tanggal Temuan</b>: dua tanggal (dari dan sampai) pada <b>Tanggal Temuan</b>. Kosong berarti semua. Tanggal baru berlaku setelah klik <b>Terapkan Filter</b>. Tombol <b>Reset</b> mengosongkan tanggal dan semua filter di tab Table. Periode ini juga mengisi filter Periode di tab Table.</li>
 <li><b>Ringkasan</b>: Open (belum Selesai), Selesai, Lewat Batas Waktu, dan % Selesai.</li>
 <li><b>Grafik</b>: Temuan per Regulator, per Unit Kerja, per Area, per Tingkat Risiko (menurut status), Temuan Lewat Batas Waktu, dan Tren Penyelesaian.</li>
-<li><b>Tren Penyelesaian</b> punya filter bulan sendiri (3, 6, 9, 12 bulan terakhir, Seluruh Waktu, atau Custom). Filter ini tidak ikut Periode Tanggal Temuan.</li>
+<li><b>Tren Penyelesaian</b> punya filter bulan sendiri (3, 6, 9, 12 bulan terakhir, Seluruh Waktu, atau Custom). Pilihan baru berlaku setelah klik <b>Terapkan Filter</b>. Filter ini tidak ikut Periode Tanggal Temuan.</li>
 <li>Pada tabel <b>Temuan Lewat Batas Waktu</b>, klik satu baris untuk membuka Detail temuan. Grafik lain tidak bisa diklik.</li>
 <li>Arahkan kursor atau klik ikon info (i) pada tiap kartu untuk melihat cara membacanya.</li>
 </ul>`,

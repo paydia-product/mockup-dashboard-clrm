@@ -2,8 +2,7 @@ import type { GuideItem } from '../kit/PageGuide'
 
 export const FraudGuide: GuideItem[] = [
   { h: 'Alur penggunaan', b: `<ol>
-<li>Buka tab <b>Dashboard</b>. Atur <b>Periode Tanggal Terima</b> bila perlu.</li>
-<li>Klik kartu atau grafik untuk membuka tab <b>Table</b> terfilter.</li>
+<li>Buka tab <b>Dashboard</b>. Atur <b>Periode Tanggal Terima</b> bila perlu, lalu klik <b>Terapkan Filter</b>.</li>
 <li>Di tab <b>Table</b>, cari atau filter kasus.</li>
 <li>Klik <b>Tambah</b>. Lengkapi isian wajib. Bukti boleh dikosongkan. Kasus baru selalu berstatus Open. Klik <b>Simpan</b>.</li>
 <li>Klik <b>Edit</b> untuk melengkapi kasus (tindakan, hold, blokir, laporan regulator). Perubahan data yang sudah terisi wajib disertai alasan.</li>
@@ -13,9 +12,8 @@ export const FraudGuide: GuideItem[] = [
 </ol>` },
   { h: 'Dashboard', b: `<ul>
 <li><b>Periode Tanggal Terima</b>: kosong = semua data.</li>
-<li>5 kartu ringkasan dan 9 grafik. Kartu <b>Open</b> dan <b>Closed</b> bisa diklik untuk membuka Table terfilter.</li>
-<li>Klik irisan Jenis dugaan, batang Kategori pelapor, Tindakan, atau Top 10 merchant untuk membuka Table terfilter.</li>
-<li>Grafik <b>Kasus per bulan</b> dan <b>Nilai uang per bulan</b> punya <b>filter bulan sendiri</b> (Seluruh Waktu, 3, 6, 9, 12 bulan terakhir, atau Custom). Standar 12 bulan terakhir. Dua grafik ini tidak terpengaruh Periode halaman.</li>
+<li>5 kartu ringkasan dan 9 grafik.</li>
+<li>Grafik <b>Kasus per bulan</b> dan <b>Nilai uang per bulan</b> punya <b>filter bulan sendiri</b> (Seluruh Waktu, 3, 6, 9, 12 bulan terakhir, atau Custom). Standar 12 bulan terakhir. Pilihan baru berlaku setelah klik <b>Terapkan Filter</b>. Dua grafik ini tidak terpengaruh Periode halaman.</li>
 <li>Kasus yang <b>Dibatalkan</b> tidak dihitung.</li>
 </ul>` },
   { h: 'Tabel, cari, filter', b: `<ul>

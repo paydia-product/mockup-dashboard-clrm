@@ -160,7 +160,7 @@ const cfg: PageConfig<Izin> = {
     return e
   },
   dashDate: { get: (r) => r.tglTerbit, label: 'Tanggal Terbit' },
-  Dashboard: ({ rows, c, open, drill }) => {
+  Dashboard: ({ rows, c, open }) => {
     const live = rows.filter(LIVE)
     const withExp = live.filter((r) => r.tglKedaluwarsa)
     const soon = live.filter((r) => { const d = sisa(r, c.today); return d !== null && d >= 0 && d <= 180 && r.status !== 'Kedaluwarsa' })
@@ -170,13 +170,13 @@ const cfg: PageConfig<Izin> = {
       <div className="space-y-3">
         <StatCards title="Izin yang perlu diperpanjang" info={{
           apa: 'Jumlah dokumen yang masih berlaku dengan sisa 0 sampai 180 hari sampai Tanggal Kedaluwarsa dan belum berstatus Kedaluwarsa. Dokumen Tidak Berlaku tidak dihitung.',
-          baca: ['Merah: ada dokumen dengan sisa 90 hari atau kurang. Kuning: ada dokumen dengan sisa 91 sampai 180 hari. Abu-abu: tidak ada.', 'Klik kartu untuk membuka tab Table terfilter Kelompok Masa Berlaku "180 hari atau kurang".'],
-        }} items={[{ label: 'Izin kedaluwarsa dalam 180 hari', value: soon.length, tone: red ? 'red' : soon.length ? 'yellow' : 'gray', onClick: () => drill({ masa: SOON180 }) }]} />
+          baca: ['Merah: ada dokumen dengan sisa 90 hari atau kurang. Kuning: ada dokumen dengan sisa 91 sampai 180 hari. Abu-abu: tidak ada.'],
+        }} items={[{ label: 'Izin kedaluwarsa dalam 180 hari', value: soon.length, tone: red ? 'red' : soon.length ? 'yellow' : 'gray' }]} />
         <div className="grid gap-3 lg:grid-cols-2">
           <DonutCard title="Dokumen per kategori" info={{
             apa: 'Proporsi dokumen menurut Kategori Dokumen (daftar dari Master Data Kategori Dokumen Perizinan). Dokumen Tidak Berlaku tidak dihitung, dokumen Kedaluwarsa tetap dihitung.',
-            baca: ['Tiap irisan adalah satu kategori. Makin besar irisan, makin banyak dokumen.', 'Arahkan kursor ke irisan untuk melihat jumlah.', 'Klik irisan untuk membuka tab Table terfilter Kategori.'],
-          }} data={[...new Set([...kat(c), ...live.map((r) => r.kategori).filter(Boolean)])].map((k) => ({ name: k, value: live.filter((r) => r.kategori === k).length }))} onClick={(name) => drill({ kategori: name })} />
+            baca: ['Tiap irisan adalah satu kategori. Makin besar irisan, makin banyak dokumen.', 'Arahkan kursor ke irisan untuk melihat jumlah.'],
+          }} data={[...new Set([...kat(c), ...live.map((r) => r.kategori).filter(Boolean)])].map((k) => ({ name: k, value: live.filter((r) => r.kategori === k).length }))} />
           <MiniTable<Izin> title="Daftar izin dan tanggal kedaluwarsa" info={{
             apa: 'Dokumen yang punya Tanggal Kedaluwarsa, diurut dari tanggal kedaluwarsa paling awal. Dokumen Tidak Berlaku tidak ikut.',
             baca: ['Dokumen yang sudah lewat tanggalnya tampil paling atas.', 'Kolom Sisa hari berwarna: merah bila 90 hari atau kurang atau sudah lewat ("Lewat N hari"), kuning bila 91 sampai 180 hari, hijau bila lebih dari 180 hari.', 'Tabel menampilkan 5 baris per halaman.', 'Klik baris untuk membuka Detail dokumen.'],

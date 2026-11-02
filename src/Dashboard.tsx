@@ -1,11 +1,12 @@
 import { useMemo } from 'react'
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { Audit, EMPTY_FILTER, Filter, Finding, REGULATORS, RISKS, STATUSES, fmtDate, lateDays } from './lib'
+import { Audit, Filter, Finding, REGULATORS, RISKS, STATUSES, fmtDate, lateDays } from './lib'
 import { monthKey } from './kit/dates'
 import { RiskBadge, StatusBadge } from './ui'
 import { useDashPaged } from './shared/Pager'
 import { useMonthRange } from './kit/charts'
 import InfoTip from './kit/InfoTip'
+import PeriodBar from './kit/PeriodBar'
 import { useApp } from './kit/store'
 import type { ChartInfo } from './kit/InfoTip'
 
@@ -142,11 +143,7 @@ export default function Dashboard({ findings, audit, filter, setFilter, onOpen }
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 bg-white p-3">
-        <span className="text-xs font-medium text-slate-500">Periode Tanggal Temuan</span>
-        <input type="date" className="inp !w-auto" value={filter.from} onChange={(e) => setFilter({ ...filter, from: e.target.value })} />
-        <span>sampai</span>
-        <input type="date" className="inp !w-auto" value={filter.to} onChange={(e) => setFilter({ ...filter, to: e.target.value })} />
-        <button className="btn" onClick={() => setFilter({ ...EMPTY_FILTER })}>Reset</button>
+        <PeriodBar label="Periode Tanggal Temuan" from={filter.from} to={filter.to} onApply={(from, to) => setFilter({ ...filter, from, to })} />
         <span className="ml-auto text-xs text-slate-400">{data.length} temuan (tanpa yang dibatalkan)</span>
       </div>
 

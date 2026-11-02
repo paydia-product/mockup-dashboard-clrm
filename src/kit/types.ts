@@ -78,7 +78,7 @@ export interface PageConfig<T extends BaseRec> {
   guide: GuideItem[] // isi tombol Panduan Halaman di samping judul (HTML statis)
   dashDate?: { get: (r: T) => string; label: string } // tanggal utama untuk filter Periode di atas dashboard
   // rows = sudah difilter Periode halaman; allRows = tidak difilter (untuk grafik bulanan dengan filter bulan sendiri)
-  Dashboard: (p: { rows: T[]; allRows: T[]; c: Ctx; open: (id: string) => void; drill: (filter: Record<string, unknown>) => void }) => JSX.Element
+  Dashboard: (p: { rows: T[]; allRows: T[]; c: Ctx; open: (id: string) => void }) => JSX.Element
 }
 export interface ApprovalReq {
   id: string; no: number; module: ModuleId; jenis: string; recordId: string; recordNo: number; recordLabel?: string

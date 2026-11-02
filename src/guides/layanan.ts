@@ -3,8 +3,7 @@ import type { GuideItem } from '../kit/PageGuide'
 export const LayananGuide: GuideItem[] = [
   { h: 'Alur penggunaan', b: `<ol>
 <li>Buka tab <b>Dashboard</b>. Lihat jumlah permintaan Baru, Proses, Selesai, dan yang lewat batas, serta grafik umur dan unit kerja.</li>
-<li>Atur <b>Periode Tanggal Masuk</b> bila perlu. Kosongkan kedua tanggal untuk melihat semua data.</li>
-<li>Klik kartu atau grafik untuk membuka tab <b>Table</b> yang sudah terfilter. Atau buka tab <b>Table</b> langsung.</li>
+<li>Atur <b>Periode Tanggal Masuk</b> bila perlu, lalu klik <b>Terapkan Filter</b>. Kosongkan kedua tanggal untuk melihat semua data.</li>
 <li>Klik <b>Tambah</b>, lengkapi isian wajib, lalu <b>Simpan</b>. Tanggal Batas terhitung otomatis.</li>
 <li>Legal Officer klik <b>Edit</b> untuk mengisi PIC dan mengubah status. Saat Selesai, isi Tanggal Selesai dan Nomor Memo.</li>
 <li>Head CLRM dapat <b>Batalkan</b> permintaan yang salah (alasan wajib) dan <b>Kembalikan</b> bila perlu.</li>
@@ -12,10 +11,10 @@ export const LayananGuide: GuideItem[] = [
 </ol>` },
   { h: 'Dashboard', b: `<p>Dashboard menghitung permintaan yang tidak <b>Dibatalkan</b>. Filter <b>Periode Tanggal Masuk</b> membatasi data menurut Tanggal Masuk. Kosong berarti semua data.</p>
 <ul>
-<li><b>Kartu status</b>: Baru, Proses, Selesai (klik untuk membuka Table terfilter Status), dan <b>Lewat batas waktu</b> (permintaan Baru atau Proses yang melewati Tanggal Batas, tanpa klik). Permintaan berstatus Batal tidak punya kartu.</li>
-<li><b>Permintaan per jenis</b>: diagram donat. Arahkan kursor untuk rincian per unit kerja. Klik irisan untuk membuka Table terfilter Jenis.</li>
+<li><b>Kartu status</b>: Baru, Proses, Selesai, dan <b>Lewat batas waktu</b> (permintaan Baru atau Proses yang melewati Tanggal Batas). Permintaan berstatus Batal tidak punya kartu.</li>
+<li><b>Permintaan per jenis</b>: diagram donat. Arahkan kursor untuk rincian per unit kerja.</li>
 <li><b>Belum selesai menurut umur (hari)</b>: permintaan Baru dan Proses menurut umur sejak Tanggal Masuk (0 sampai 7, 8 sampai 14, lebih dari 14 hari).</li>
-<li><b>Permintaan per unit kerja</b>: batang mendatar. Klik batang untuk membuka Table terfilter Unit Kerja.</li>
+<li><b>Permintaan per unit kerja</b>: batang mendatar.</li>
 <li><b>Rata-rata lama selesai per jenis (hari)</b>: dari permintaan Selesai yang punya Tanggal Selesai.</li>
 </ul>` },
   { h: 'Tabel, cari, filter', b: `<ul>

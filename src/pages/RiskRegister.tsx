@@ -144,21 +144,21 @@ const cfg: PageConfig<Risk> = {
     needs: (old, next, c) => c.role !== 'Risk Officer' && level(old) !== level(next),
   }],
   dashDate: { get: (r) => r.tglRegister, label: 'Tanggal Register' },
-  Dashboard: ({ rows, open, drill }) => {
+  Dashboard: ({ rows, open }) => {
     const cnt = (lv: string) => rows.filter((r) => level(r) === lv).length
     const depts = [...new Set(rows.map((r) => r.dept))]
     return (
       <div className="space-y-3">
-        <StatCards info={{ apa: 'Jumlah risiko per Level (inherent) pada Periode yang dipilih.', baca: ['High: skor 6-9. Medium: skor 3-4. Low: skor 1-2. Skor = Dampak x Kemungkinan.', 'Klik kartu untuk membuka Table terfilter Level tersebut.'] }} items={[
-          { label: 'High', value: cnt('High'), tone: 'red', onClick: () => drill({ level: 'High' }) },
-          { label: 'Medium', value: cnt('Medium'), tone: 'yellow', onClick: () => drill({ level: 'Medium' }) },
-          { label: 'Low', value: cnt('Low'), tone: 'green', onClick: () => drill({ level: 'Low' }) },
+        <StatCards info={{ apa: 'Jumlah risiko per Level (inherent) pada Periode yang dipilih.', baca: ['High: skor 6-9. Medium: skor 3-4. Low: skor 1-2. Skor = Dampak x Kemungkinan.'] }} items={[
+          { label: 'High', value: cnt('High'), tone: 'red' },
+          { label: 'Medium', value: cnt('Medium'), tone: 'yellow' },
+          { label: 'Low', value: cnt('Low'), tone: 'green' },
         ]} />
         <Heatmap rows={rows} open={open} />
         <div className="grid gap-3 lg:grid-cols-2">
-          <BarCard info={{ apa: 'Jumlah risiko di tiap Domain Risiko (10 domain), ditumpuk menurut Level inherent.', baca: ['Sumbu X: domain risiko. Sumbu Y: jumlah risiko.', 'Warna tumpukan: merah = High, kuning = Medium, hijau = Low.', 'Arahkan kursor ke batang untuk melihat jumlah per level.', 'Klik batang (bagian mana pun) untuk membuka Table terfilter domain tersebut.'] }} title="Risiko per domain menurut level" stacked data={DOMAINS.map((d) => ({ name: d, High: rows.filter((r) => r.domain === d && level(r) === 'High').length, Medium: rows.filter((r) => r.domain === d && level(r) === 'Medium').length, Low: rows.filter((r) => r.domain === d && level(r) === 'Low').length }))} keys={LEVELS} colors={{ High: TONE_HEX.red, Medium: TONE_HEX.yellow, Low: TONE_HEX.green }} onClick={(row) => drill({ domain: row.name })} />
-          <BarCard info={{ apa: 'Jumlah risiko per Unit Pemilik Risiko. Hanya Unit Kerja yang punya risiko pada periode ini yang tampil, urut dari terbanyak.', baca: ['Sumbu Y: Unit Kerja. Sumbu X: jumlah risiko.', 'Arahkan kursor ke batang untuk melihat jumlah total dan rincian High, Medium, Low.', 'Klik batang untuk membuka Table terfilter Unit Kerja tersebut.'] }} title="Risiko per unit kerja pemilik" horizontal data={depts.map((d) => ({ name: d, Jumlah: rows.filter((r) => r.dept === d).length, ...Object.fromEntries(LEVELS.map((l) => [l, rows.filter((r) => r.dept === d && level(r) === l).length])) })).sort((a, b) => b.Jumlah - a.Jumlah)} keys={['Jumlah']}
-            tip={(d) => <><div className="mb-1 font-semibold text-slate-800">{String(d.name)}: {d.Jumlah}</div>{LEVELS.map((l) => <div key={l}>{l}: {d[l]}</div>)}</>} onClick={(row) => drill({ dept: row.name })} />
+          <BarCard info={{ apa: 'Jumlah risiko di tiap Domain Risiko (10 domain), ditumpuk menurut Level inherent.', baca: ['Sumbu X: domain risiko. Sumbu Y: jumlah risiko.', 'Warna tumpukan: merah = High, kuning = Medium, hijau = Low.', 'Arahkan kursor ke batang untuk melihat jumlah per level.'] }} title="Risiko per domain menurut level" stacked data={DOMAINS.map((d) => ({ name: d, High: rows.filter((r) => r.domain === d && level(r) === 'High').length, Medium: rows.filter((r) => r.domain === d && level(r) === 'Medium').length, Low: rows.filter((r) => r.domain === d && level(r) === 'Low').length }))} keys={LEVELS} colors={{ High: TONE_HEX.red, Medium: TONE_HEX.yellow, Low: TONE_HEX.green }} />
+          <BarCard info={{ apa: 'Jumlah risiko per Unit Pemilik Risiko. Hanya Unit Kerja yang punya risiko pada periode ini yang tampil, urut dari terbanyak.', baca: ['Sumbu Y: Unit Kerja. Sumbu X: jumlah risiko.', 'Arahkan kursor ke batang untuk melihat jumlah total dan rincian High, Medium, Low.'] }} title="Risiko per unit kerja pemilik" horizontal data={depts.map((d) => ({ name: d, Jumlah: rows.filter((r) => r.dept === d).length, ...Object.fromEntries(LEVELS.map((l) => [l, rows.filter((r) => r.dept === d && level(r) === l).length])) })).sort((a, b) => b.Jumlah - a.Jumlah)} keys={['Jumlah']}
+            tip={(d) => <><div className="mb-1 font-semibold text-slate-800">{String(d.name)}: {d.Jumlah}</div>{LEVELS.map((l) => <div key={l}>{l}: {d[l]}</div>)}</>} />
         </div>
       </div>
     )

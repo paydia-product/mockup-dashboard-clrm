@@ -3,8 +3,7 @@ import type { GuideItem } from '../kit/PageGuide'
 export const PerizinanGuide: GuideItem[] = [
   { h: 'Alur penggunaan', b: `<ol>
 <li>Buka tab <b>Dashboard</b>. Lihat jumlah izin yang kedaluwarsa dalam 180 hari, dokumen per kategori, dan daftar tanggal kedaluwarsa.</li>
-<li>Atur <b>Periode Tanggal Terbit</b> bila perlu. Kosongkan kedua tanggal untuk melihat semua data.</li>
-<li>Klik kartu atau irisan untuk membuka tab <b>Table</b> yang sudah terfilter. Atau buka tab <b>Table</b> langsung.</li>
+<li>Atur <b>Periode Tanggal Terbit</b> bila perlu, lalu klik <b>Terapkan Filter</b>. Kosongkan kedua tanggal untuk melihat semua data.</li>
 <li>Klik <b>Tambah</b>, lengkapi isian wajib, lalu <b>Simpan</b>. <b>File Dokumen</b> boleh dikosongkan.</li>
 <li>Untuk memperbarui data, klik <b>Edit</b>. Untuk izin yang diperpanjang, pilih <b>Perpanjang izin = Ya</b> di form Edit.</li>
 <li>Head CLRM dapat <b>Batalkan</b> dokumen (status menjadi Tidak Berlaku, alasan wajib) dan <b>Kembalikan</b> bila perlu.</li>
@@ -12,8 +11,8 @@ export const PerizinanGuide: GuideItem[] = [
 </ol>` },
   { h: 'Dashboard', b: `<p>Dashboard menghitung dokumen yang tidak <b>Dibatalkan</b> dan tidak berstatus <b>Tidak Berlaku</b>. Filter <b>Periode Tanggal Terbit</b> membatasi data menurut Tanggal Terbit. Kosong berarti semua data.</p>
 <ul>
-<li><b>Izin kedaluwarsa dalam 180 hari</b>: kartu jumlah dokumen yang sisa harinya 0 sampai 180 dan belum berstatus Kedaluwarsa. Merah bila ada yang 90 hari atau kurang, kuning bila ada yang 91 sampai 180 hari, abu-abu bila nol. Klik kartu untuk membuka Table terfilter 180 hari atau kurang.</li>
-<li><b>Dokumen per kategori</b>: diagram donat Akta + SK, Izin, dan Legalitas Lainnya. Klik irisan untuk membuka Table terfilter Kategori.</li>
+<li><b>Izin kedaluwarsa dalam 180 hari</b>: kartu jumlah dokumen yang sisa harinya 0 sampai 180 dan belum berstatus Kedaluwarsa. Merah bila ada yang 90 hari atau kurang, kuning bila ada yang 91 sampai 180 hari, abu-abu bila nol.</li>
+<li><b>Dokumen per kategori</b>: diagram donat Akta + SK, Izin, dan Legalitas Lainnya.</li>
 <li><b>Daftar izin dan tanggal kedaluwarsa</b>: tabel kecil, kedaluwarsa terdekat dulu (yang sudah lewat paling atas), 5 baris per halaman. Klik baris untuk membuka Detail.</li>
 </ul>` },
   { h: 'Tabel, cari, filter', b: `<ul>

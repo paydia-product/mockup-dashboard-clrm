@@ -8,6 +8,7 @@ import FilterPopover from './FilterPopover'
 import FormModal from './FormModal'
 import ImportExcel from './ImportExcel'
 import PageGuide from './PageGuide'
+import PeriodBar from './PeriodBar'
 import { useApp, useModule } from './store'
 import type { BaseRec, PageConfig } from './types'
 
@@ -36,7 +37,6 @@ export default function PageShell<T extends BaseRec>({ config: cfg }: { config: 
     return cfg.filters.every((d) => { const v = filter[d.key]; return !hasVal(v) || d.match(r, v as string | [string, string]) })
   })
   const row = (id: string) => api.rows.find((r) => r.id === id)
-  const drill = (f: Filt) => { setFilter(f); setQ(''); setTab('table') }
   const D = cfg.Dashboard
   const detail = modal && modal.k === 'detail' ? row(modal.id) : undefined
   const editing = modal && modal.k === 'edit' ? api.stored(modal.id) : undefined // form Edit mulai dari record tersimpan, bukan hasil normalize
@@ -87,15 +87,11 @@ export default function PageShell<T extends BaseRec>({ config: cfg }: { config: 
         <div className="space-y-3">
           {dd && (
             <div className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 bg-white p-3">
-              <span className="text-xs font-medium text-slate-500">Periode {dd.label}</span>
-              <input type="date" className="inp !w-auto" value={dFrom} onChange={(e) => setDFrom(e.target.value)} />
-              <span>sampai</span>
-              <input type="date" className="inp !w-auto" value={dTo} onChange={(e) => setDTo(e.target.value)} />
-              <button className="btn" onClick={() => { setDFrom(''); setDTo('') }}>Reset</button>
+              <PeriodBar label={`Periode ${dd.label}`} from={dFrom} to={dTo} onApply={(f, t) => { setDFrom(f); setDTo(t) }} />
               <span className="ml-auto text-xs text-slate-400">{dashRows.length} data (tanpa yang dibatalkan)</span>
             </div>
           )}
-          <D rows={dashRows} allRows={live} c={c} open={openDetail} drill={drill} />
+          <D rows={dashRows} allRows={live} c={c} open={openDetail} />
         </div>
       ) : (
         <div className="rounded-lg border border-slate-200 bg-white">

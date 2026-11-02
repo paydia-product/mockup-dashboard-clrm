@@ -109,7 +109,7 @@ const cfg: PageConfig<Layanan> = {
     return e
   },
   dashDate: { get: (r) => r.tglMasuk, label: 'Tanggal Masuk' },
-  Dashboard: ({ rows, c, drill }) => {
+  Dashboard: ({ rows, c }) => {
     const n = (s: string) => rows.filter((r) => r.status === s).length
     const late = rows.filter((r) => lateDays(r, c.today) > 0).length
     const open = rows.filter(OPEN)
@@ -121,18 +121,18 @@ const cfg: PageConfig<Layanan> = {
       <div className="space-y-3">
         <StatCards title="Status permintaan" info={{
           apa: 'Jumlah permintaan layanan hukum menurut status, ditambah jumlah yang sudah lewat Tanggal Batas. Data Dibatalkan tidak dihitung.',
-          baca: ['Baru (biru), Proses (kuning), Selesai (hijau): jumlah permintaan menurut Status. Klik kartu untuk membuka tab Table terfilter Status.', 'Lewat batas waktu (merah bila ada): permintaan Baru atau Proses yang Tanggal Batasnya sudah terlewat. Kartu ini tidak bisa diklik.', 'Permintaan berstatus Batal tidak punya kartu.'],
+          baca: ['Baru (biru), Proses (kuning), Selesai (hijau): jumlah permintaan menurut Status.', 'Lewat batas waktu (merah bila ada): permintaan Baru atau Proses yang Tanggal Batasnya sudah terlewat. Kartu ini tidak bisa diklik.', 'Permintaan berstatus Batal tidak punya kartu.'],
         }} items={[
-          { label: 'Baru', value: n('Baru'), tone: 'blue', onClick: () => drill({ status: 'Baru' }) },
-          { label: 'Proses', value: n('Proses'), tone: 'yellow', onClick: () => drill({ status: 'Proses' }) },
-          { label: 'Selesai', value: n('Selesai'), tone: 'green', onClick: () => drill({ status: 'Selesai' }) },
+          { label: 'Baru', value: n('Baru'), tone: 'blue' },
+          { label: 'Proses', value: n('Proses'), tone: 'yellow' },
+          { label: 'Selesai', value: n('Selesai'), tone: 'green' },
           { label: 'Lewat batas waktu', value: late, tone: late ? 'red' : 'gray' },
         ]} />
         <div className="grid gap-3 lg:grid-cols-2">
           <DonutCard title="Permintaan per jenis" info={{
             apa: 'Proporsi semua permintaan (semua status kecuali Dibatalkan) menurut Jenis, dalam Periode Tanggal Masuk yang dipilih.',
-            baca: ['Tiap irisan adalah satu Jenis. Jenis tanpa data tidak tampil.', 'Arahkan kursor ke irisan untuk melihat jumlah dan rinciannya per unit kerja.', 'Isian teks bebas di luar daftar dihitung di irisan Lainnya.', 'Klik irisan untuk membuka tab Table terfilter Jenis.'],
-          }} data={JENIS.map((j) => ({ name: j, value: rows.filter((r) => showLainnya(r.jenis, JENIS) === j).length }))} onClick={(name) => drill({ jenis: name })}
+            baca: ['Tiap irisan adalah satu Jenis. Jenis tanpa data tidak tampil.', 'Arahkan kursor ke irisan untuk melihat jumlah dan rinciannya per unit kerja.', 'Isian teks bebas di luar daftar dihitung di irisan Lainnya.'],
+          }} data={JENIS.map((j) => ({ name: j, value: rows.filter((r) => showLainnya(r.jenis, JENIS) === j).length }))}
             tip={(name, value) => <Breakdown title={`${name}: ${value} permintaan`} sub="Per unit kerja" items={countBy(rows.filter((r) => showLainnya(r.jenis, JENIS) === name), (r) => r.dept)} />} />
           <BarCard title="Belum selesai menurut umur (hari)" info={{
             apa: 'Permintaan berstatus Baru atau Proses dikelompokkan menurut umur sejak Tanggal Masuk.',
@@ -140,8 +140,8 @@ const cfg: PageConfig<Layanan> = {
           }} data={umur} keys={['Jumlah']} catLabel="Hari" cellColors={['#f59e0b', '#f59e0b', '#ef4444']} />
           <BarCard title="Permintaan per unit kerja" info={{
             apa: 'Jumlah permintaan (semua status kecuali Dibatalkan) menurut Unit Kerja Pemohon dari master Unit Kerja, dalam Periode Tanggal Masuk yang dipilih.',
-            baca: ['Sumbu vertikal: unit kerja. Sumbu horizontal: jumlah permintaan.', 'Klik batang untuk membuka tab Table terfilter Unit Kerja.'],
-          }} horizontal data={c.master.unitKerja.map((d) => ({ name: d, Jumlah: rows.filter((r) => r.dept === d).length }))} keys={['Jumlah']} onClick={(row) => drill({ dept: row.name })} />
+            baca: ['Sumbu vertikal: unit kerja. Sumbu horizontal: jumlah permintaan.'],
+          }} horizontal data={c.master.unitKerja.map((d) => ({ name: d, Jumlah: rows.filter((r) => r.dept === d).length }))} keys={['Jumlah']} />
           <BarCard title="Rata-rata lama selesai per jenis (hari)" info={{
             apa: 'Rata-rata hari dari Tanggal Masuk sampai Tanggal Selesai, dihitung dari permintaan berstatus Selesai yang punya Tanggal Selesai. Hasil dibulatkan.',
             baca: ['Sumbu horizontal: Jenis. Sumbu vertikal: rata-rata dalam hari.', 'Jenis tanpa permintaan Selesai tampil sebagai nol.', 'Arahkan kursor ke batang untuk melihat nilai dalam hari. Batang tidak bisa diklik.'],

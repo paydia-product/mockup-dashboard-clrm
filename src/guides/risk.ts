@@ -2,8 +2,8 @@ import type { GuideItem } from '../kit/PageGuide'
 
 export const RiskGuide: GuideItem[] = [
   { h: 'Alur penggunaan', b: `<ol>
-<li>Buka tab <b>Dashboard</b>. Atur <b>Periode Tanggal Register</b> bila perlu.</li>
-<li>Klik kartu, kotak heatmap, atau batang grafik untuk melihat risikonya. Sebagian membuka tab <b>Table</b> terfilter.</li>
+<li>Buka tab <b>Dashboard</b>. Atur <b>Periode Tanggal Register</b> bila perlu, lalu klik <b>Terapkan Filter</b>.</li>
+<li>Klik kotak heatmap untuk melihat daftar risikonya.</li>
 <li>Di tab <b>Table</b>, cari atau filter risiko.</li>
 <li>Klik <b>Tambah</b>. Lengkapi isian wajib, pilih Skor Dampak dan Skor Kemungkinan, lalu <b>Simpan</b>. Skor dan Level terhitung otomatis.</li>
 <li>Klik <b>Edit</b>. Bila Level Risiko berubah dan Anda bukan Risk Officer, perubahan skor menunggu <b>approval Risk Officer</b>.</li>
@@ -12,10 +12,9 @@ export const RiskGuide: GuideItem[] = [
 </ol>` },
   { h: 'Dashboard', b: `<ul>
 <li><b>Periode Tanggal Register</b>: kosong = semua data.</li>
-<li>3 kartu: High, Medium, dan Low. Klik kartu untuk membuka Table terfilter.</li>
+<li>3 kartu: High, Medium, dan Low.</li>
 <li><b>Heatmap</b> 3 x 3 (Dampak x Kemungkinan). Klik satu kotak untuk menampilkan daftar risiko di bawahnya. Klik baris untuk membuka Detail.</li>
 <li>2 grafik batang: risiko per domain menurut level dan risiko per unit kerja pemilik.</li>
-<li>Klik batang domain atau unit kerja untuk membuka Table terfilter.</li>
 <li>Risiko yang <b>Dibatalkan</b> tidak dihitung.</li>
 </ul>` },
   { h: 'Rumus Level Risiko', b: `<ul>
